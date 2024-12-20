@@ -144,4 +144,5 @@ AMAZON_CONFIG = {
 STATIC_URL = '/static/'
 
 # Optional: Directories where Django will search for static files
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
