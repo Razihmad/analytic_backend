@@ -29,10 +29,10 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["app.expgrowthdigital.com", "localhost", "127.0.0.1", ]
 
 INTERNAL_APPS = []
-EXTERNAL_APPS = []
+EXTERNAL_APPS = ["rest_framework",]
 DEFAULT_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -132,3 +132,16 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AMAZON_CONFIG = {
+    "AMAZON_CLIENT_ID": os.getenv("AMAZON_CLIENT_ID"),
+    "AMAZON_CLIENT_SECRET": os.getenv("AMAZON_CLIENT_SECRET"),
+    "AMAZON_APP_ID": os.getenv("AMAZON_APP_ID"),
+}
+
+
+# URL to access static files
+STATIC_URL = '/static/'
+
+# Optional: Directories where Django will search for static files
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
