@@ -12,9 +12,9 @@ class AmazonSpApi:
 
     def generate_login_url(self, marketplace: str):
         marketplace_data = getattr(BaseEndpoint, marketplace.upper())
-        base_url = marketplace_data.endpoint
-        marketplace_id = marketplace_data.marketplace_id
-        return f"{base_url}/apps/authorize/consent?application_id={self.app_id}&state={marketplace_id}&version=beta"
+        base_url = marketplace_data.value
+        # marketplace_id = marketplace_data.marketplace_id
+        return f"{base_url}/apps/authorize/consent?application_id={self.app_id}&state={marketplace}&version=beta"
 
     def url_for_generating_token(self, code: str, marketplace: str):
         marketplace_data = getattr(BaseEndpoint, marketplace.upper())
