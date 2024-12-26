@@ -16,7 +16,7 @@ class AmazonSpApi:
         # marketplace_id = marketplace_data.marketplace_id
         return f"{base_url}/apps/authorize/consent?application_id={self.app_id}&state={marketplace}&version=beta"
 
-    def url_for_generating_token(self, code: str, marketplace: str):
+    def url_for_generating_token(self, code: str):
         # marketplace_data = getattr(BaseEndpoint, marketplace.upper())
         # base_url = marketplace_data.endpoint
         # return f"{base_url}/auth/token" + "?" + f"grant_type=authorization_code&code={code}&client_id={self.client_id}&client_secret={self.client_secret}" + "&scope=advertising::campaigns"
