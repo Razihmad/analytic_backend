@@ -17,13 +17,13 @@ class AmazonSpApi:
         return f"{base_url}/apps/authorize/consent?application_id={self.app_id}&state={marketplace}&version=beta"
 
     def url_for_generating_token(self, code: str, marketplace: str):
-        marketplace_data = getattr(BaseEndpoint, marketplace.upper())
-        base_url = marketplace_data.endpoint
+        # marketplace_data = getattr(BaseEndpoint, marketplace.upper())
+        # base_url = marketplace_data.endpoint
         # return f"{base_url}/auth/token" + "?" + f"grant_type=authorization_code&code={code}&client_id={self.client_id}&client_secret={self.client_secret}" + "&scope=advertising::campaigns"
-        return f"{base_url}/auth/o2/token?grant_type=authorization_code&code={code}&client_id={self.client_id}&client_secret={self.client_secret}"
+        return f"https://api.amazon.com/auth/o2/token?grant_type=authorization_code&code={code}&client_id={self.client_id}&client_secret={self.client_secret}"
 
-    def generate_refresh_token(self, code: str, marketplace: str):
-        url = self.url_for_generating_token(code=code, marketplace=marketplace)
+    def generate_refresh_token(self, code: str):
+        url = self.url_for_generating_token(code=code)
         import requests
         response = requests.post(url)
         print(response.status_code)

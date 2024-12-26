@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 # Authentication
-from authentication.services import get_amazon_login_uri
+from authentication.services import get_amazon_login_uri, get_refresh_token
 
 
 # Create your views here.
@@ -20,4 +20,6 @@ class AmazonCallback(APIView):
         spapi_oauth_code = request.GET.get("spapi_oauth_code")
         state = request.GET.get("state")
         print(spapi_oauth_code, state, selling_partner_id)
-        return Response({"message": "Hello, world!", "state": state, "spapi_code": spapi_oauth_code, "partner_id": selling_partner_id})
+        response = get_refresh_token(code=spapi_oauth_code)
+        print(response)
+        return Response({"message": "Hello, world!", "state": state, "spapi_code": spapi_oauth_code, "partner_id": selling_partner_id, "response": response})
