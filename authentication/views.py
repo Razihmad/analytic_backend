@@ -20,4 +20,4 @@ class AmazonCallback(APIView):
         spapi_oauth_code = request.GET.get("spapi_oauth_code")
         state = request.GET.get("state")
         print(spapi_oauth_code, state, selling_partner_id)
-        return Response({"message": "Hello, world!"})
+        return Response({"message": "Hello, world!", "state": state, "spapi_code": spapi_oauth_code, "partner_id": selling_partner_id})
