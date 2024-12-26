@@ -13,6 +13,7 @@ class AmazonSpApi:
         marketplace_data = getattr(Marketplaces, marketplace.upper())
         base_url = marketplace_data.endpoint
         marketplace_id = marketplace_data.marketplace_id
+        # return f"https://www.amazon.com/ap/oa?client_id={self.client_id}&scope=profile%20advertising::campaign_management&response_type=code"
         # return f"{base_url}/apps/authorize/consent?application_id={self.client_id}&scope=advertising::campaigns&response_type=code&state={marketplace_id}&redirect_uri=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         return f"{base_url}/apps/authorize/consent?application_id={self.app_id}&state={marketplace_id}&version=beta"
 
