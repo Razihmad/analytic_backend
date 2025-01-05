@@ -33,7 +33,7 @@ LOGGING = {
             "format": "%(levelname)s %(message)s"
         },
         "verbose": {
-            "format": "%(asctime)s | %(levelname)s | %(module)s  | %(funcName)d | %(message)s"
+            "format": "%(asctime)s | %(levelname)s | %(module)s  | %(funcName)s | %(message)s"
         }
     }
 }

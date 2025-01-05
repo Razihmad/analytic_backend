@@ -11,7 +11,6 @@ urlpatterns = [
 
     ## authorize login with google
     path("oauth/google/login/", GoogleLogin.as_view(), name="google_login"),
-    path("oauth/google/login/callback", GoogleLoginCallback.as_view(), name="google_login_callback"),
-
+    path("oauth/google/login/callback/", GoogleLoginCallback.as_view(), name="google_login_callback"),
 
 ]

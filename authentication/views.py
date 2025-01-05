@@ -44,7 +44,8 @@ class GoogleLogin(APIView):
 
     def get(self, request, *args, **kwargs):
         login_url = generate_google_login_url()
-        return redirect(login_url)
+        # return redirect(login_url)
+        return status_200(message="Login successful", data={"login_url": login_url})
 
     def post(self, request, *args, **kwargs):
         code = request.GET.get("code", None)

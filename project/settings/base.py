@@ -16,9 +16,9 @@ import environ
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
 env = environ.Env()
-
+load_dotenv()
+environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -153,6 +153,7 @@ GOOGLE_OAUTH_CONFIG = {
     "GOOGLE_USER_INFO_URL": env.str("GOOGLE_USER_INFO_URL", ""),
     "GOOGLE_AUTHORIZATION_URL": env.str("GOOGLE_AUTHORIZATION_URL", ""),
 }
+print(GOOGLE_OAUTH_CONFIG)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -206,7 +207,7 @@ LOGGING = {
             "format": "%(levelname)s %(message)s"
         },
         "verbose": {
-            "format": "%(asctime)s | %(levelname)s | %(module)s  | %(funcName)d | %(message)s"
+            "format": "%(asctime)s | %(levelname)s | %(module)s  | %(funcName)s | %(message)s"
         }
     }
 }
