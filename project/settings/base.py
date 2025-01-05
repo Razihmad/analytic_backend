@@ -10,11 +10,14 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-from pathlib import Path
+from datetime import timedelta
 import os
+import environ
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+env = environ.Env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,14 +27,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = env.str("SECRET_KEY", "secretkeytesting")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", "True") == "True"
+DEBUG = env.bool("DEBUG", True)
 
 ALLOWED_HOSTS = ["app.expgrowthdigital.com", "localhost", "127.0.0.1", ]
 
-INTERNAL_APPS = []
+INTERNAL_APPS = ["amazon", "authentication"]
 EXTERNAL_APPS = ["rest_framework",]
 DEFAULT_APPS = [
     "django.contrib.admin",
@@ -134,9 +137,34 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AMAZON_CONFIG = {
-    "AMAZON_CLIENT_ID": os.getenv("AMAZON_CLIENT_ID"),
-    "AMAZON_CLIENT_SECRET": os.getenv("AMAZON_CLIENT_SECRET"),
-    "AMAZON_APP_ID": os.getenv("AMAZON_APP_ID"),
+    "AMAZON_CLIENT_ID": env.str("AMAZON_CLIENT_ID", ""),
+    "AMAZON_CLIENT_SECRET": env.str("AMAZON_CLIENT_SECRET", ""),
+    "AMAZON_APP_ID": env.str("AMAZON_APP_ID", ""),
+    "AMAZON_TOKEN_BASE_URL": env.str("AMAZON_TOKEN_BASE_URL", ""),
+}
+
+
+GOOGLE_OAUTH_CONFIG = {
+    "GOOGLE_OAUTH_CLIENT_ID": env.str("GOOGLE_OAUTH_CLIENT_ID", ""),
+    "GOOGLE_OAUTH_CLIENT_SECRET": env.str("GOOGLE_OAUTH_CLIENT_SECRET", ""),
+    "GOOGLE_OAUTH_CALLBACK_URL": env.str("GOOGLE_OAUTH_CALLBACK_URL", ""),
+    "GOOGLE_ID_TOKEN_INFO_URL": env.str("GOOGLE_ID_TOKEN_INFO_URL", ""),
+    "GOOGLE_ACCESS_TOKEN_OBTAIN_URL": env.str("GOOGLE_ACCESS_TOKEN_OBTAIN_URL", ""),
+    "GOOGLE_USER_INFO_URL": env.str("GOOGLE_USER_INFO_URL", ""),
+    "GOOGLE_AUTHORIZATION_URL": env.str("GOOGLE_AUTHORIZATION_URL", ""),
+}
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
 }
 
 
@@ -146,3 +174,39 @@ STATIC_URL = '/static/'
 # Optional: Directories where Django will search for static files
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+## Environments ###
+ENVIRONMENT = os.getenv("ENVIRONMENT", "DEVELOPMENT")
+AWS_ENV = os.getenv("AWS_ENV", "SANDBOX")
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            "formatter": "verbose"
+        },
+        "file": {
+            "level": "DEBUG",
+            "class": "logging.FileHandler",
+            "filename": os.path.join(BASE_DIR, "../logs/django_all_logs.log"),
+            "formatter": "simple",
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["file"],
+            "level": "INFO",
+        },
+    },
+    "formatters": {
+        "simple": {
+            "format": "%(levelname)s %(message)s"
+        },
+        "verbose": {
+            "format": "%(asctime)s | %(levelname)s | %(module)s  | %(funcName)d | %(message)s"
+        }
+    }
+}
