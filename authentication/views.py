@@ -1,14 +1,15 @@
 # Third Party
 from django.shortcuts import redirect
 from rest_framework.views import APIView
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.permissions import IsAuthenticated
+# from rest_framework_simplejwt.authentication import JWTAuthentication
+# from rest_framework.permissions import IsAuthenticated
 
 # Base Package
 from base.response import status_200
 
 # Authentication
 from authentication.services import (
+    create_amazon_seller,
     create_user_by_google_data,
     generate_google_login_url,
     get_amazon_login_uri,
@@ -20,24 +21,35 @@ from authentication.services import (
 
 # Create your views here.
 class AmazonLogin(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        url = get_amazon_login_uri(marketplace="US")
+        country = request.GET.get("country", None)
+        country_code = request.GET.get("country_code", None)
+        url = get_amazon_login_uri(country=country, country_code=country_code)
         return redirect(url)
 
 
 class AmazonCallback(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         selling_partner_id = request.GET.get("selling_partner_id")
         spapi_oauth_code = request.GET.get("spapi_oauth_code")
-        state = request.GET.get("state")
+        marketplace_id = request.GET.get("state")
         response = get_refresh_token(code=spapi_oauth_code)
-        return status_200(data={"state": state, "spapi_code": spapi_oauth_code, "partner_id": selling_partner_id, "response": response})
+        seller = create_amazon_seller(
+            partner_id=selling_partner_id,
+            refresh_token=response["refresh_token"],
+            marketplace_id=marketplace_id,
+            access_token=response["access_token"],
+            user=request.user
+        )
+        print(seller)
+        return status_200(data={"state": marketplace_id, "spapi_code": spapi_oauth_code, "partner_id": selling_partner_id, "response": response, "seller_data": seller})
+
 
 
 class GoogleLogin(APIView):

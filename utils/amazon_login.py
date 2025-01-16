@@ -2,6 +2,7 @@ import requests
 from typing import Optional
 
 from django.conf import settings
+from sp_api.base import Marketplaces
 from utils.constants import BaseEndpoint
 from project.constants import Environment
 
@@ -15,10 +16,12 @@ class LoginWithAmazon:
         self.token_base_url = self.config["AMAZON_TOKEN_BASE_URL"]
         self.environment = settings.ENVIRONMENT
 
-    def generate_login_url(self, marketplace: str):
-        marketplace_data = getattr(BaseEndpoint, marketplace.upper())
+    def generate_login_url(self, country: str, country_code: str):
+        marketplace_data = getattr(BaseEndpoint, country.upper())
+        marketplace = getattr(Marketplaces, country_code.upper())
+        marketplace_id = marketplace.marketplace_id
         base_url = marketplace_data.value
-        url = f"{base_url}/apps/authorize/consent?application_id={self.app_id}&state={marketplace}"
+        url = f"{base_url}/apps/authorize/consent?application_id={self.app_id}&state={marketplace_id}"
         if self.environment != Environment.PRODUCTION.value:
             url += "&verion=beta"
         return url
