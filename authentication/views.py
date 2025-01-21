@@ -51,7 +51,6 @@ class AmazonCallback(APIView):
         return status_200(data={"state": marketplace_id, "spapi_code": spapi_oauth_code, "partner_id": selling_partner_id, "response": response, "seller_data": seller})
 
 
-
 class GoogleLogin(APIView):
 
     def get(self, request, *args, **kwargs):

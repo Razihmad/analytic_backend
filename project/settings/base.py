@@ -16,6 +16,8 @@ import environ
 from pathlib import Path
 from dotenv import load_dotenv
 
+from project import celery_config
+
 env = environ.Env()
 load_dotenv()
 environ.Env.read_env()
@@ -35,7 +37,9 @@ DEBUG = env.bool("DEBUG", True)
 ALLOWED_HOSTS = ["app.expgrowthdigital.com", "localhost", "127.0.0.1", ]
 
 INTERNAL_APPS = ["amazon", "authentication"]
+
 EXTERNAL_APPS = ["rest_framework",]
+
 DEFAULT_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -153,7 +157,6 @@ GOOGLE_OAUTH_CONFIG = {
     "GOOGLE_USER_INFO_URL": env.str("GOOGLE_USER_INFO_URL", ""),
     "GOOGLE_AUTHORIZATION_URL": env.str("GOOGLE_AUTHORIZATION_URL", ""),
 }
-print(GOOGLE_OAUTH_CONFIG)
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -181,6 +184,17 @@ ENVIRONMENT = os.getenv("ENVIRONMENT", "DEVELOPMENT")
 AWS_ENV = os.getenv("AWS_ENV", "SANDBOX")
 
 
+# ---------- CELERY CONFIG ---------- #
+CELERY_DEFAULT_QUEUE = celery_config.task_default_queue
+CELERY_DEFAULT_EXCHANGE = celery_config.task_default_exchange
+CELERY_DEFAULT_EXCHANGE_TYPE = celery_config.task_default_exchange_type
+CELERY_DEFAULT_ROUTING_KEY = celery_config.task_default_routing_key
+CELERY_QUEUES = celery_config.task_queues
+CELERY_ROUTES = celery_config.task_routes
+CELERY_TIMEZONE = "Asia/Kolkata"
+CELERY_BROKER_URL = env.str("CELERY_BROKER_URL", default="amqp://localhost")
+
+## Logging ##
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
