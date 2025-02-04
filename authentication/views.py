@@ -25,8 +25,8 @@ class AmazonLogin(APIView):
     # permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        country = request.GET.get("country", None)
-        country_code = request.GET.get("country_code", None)
+        country = request.GET.get("country", "India")
+        country_code = request.GET.get("country_code", "A21TJRUUN4KGV")
         url = get_amazon_login_uri(country=country, country_code=country_code)
         return redirect(url)
 
