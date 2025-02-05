@@ -28,6 +28,9 @@ class Seller(models.Model):
     def __str__(self) -> str:
         return f"{self.user.username}  {self.amazon_seller_id}"
 
+    class Meta:
+        unique_together = ['user', 'marketplace_id']
+
 
 class SellerCentralSale(models.Model):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE)

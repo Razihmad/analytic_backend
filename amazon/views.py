@@ -14,7 +14,6 @@ class TryApi(APIView):
         testing_tasks.apply_async(countdown=10)
         print("tasksuing iansnjasdfk")
 
-
         return status_200(message="Hello World", data={"name": "Razi"})
 
 

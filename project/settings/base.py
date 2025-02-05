@@ -88,20 +88,15 @@ WSGI_APPLICATION = "project.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.postgresql",
-#         "NAME": os.getenv("DATABASE_NAME", "db"),  # noqa
-#         "USER": os.getenv("DATABASE_USER", "user"),  # noqa
-#         "PASSWORD": os.getenv("DATABASE_PASSWORD", "password"),  # noqa
-#         "HOST": os.getenv("DATABASE_HOST", "localhost"),  # noqa
-#         "PORT": os.getenv("DATABASE_PORT", "5432"),  # noqa
-#     }
-# }
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "mydatabase",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env.str("DATABASE_NAME", "testdb"),
+        'USER': env.str("DATABASE_USERNAME", "postgres"),
+        'PASSWORD': env.str("DATABASE_PASSWORD", "password"),
+        'HOST': env.str("DATABASE_HOST", "localhost"),
+        'PORT': env.str("DATABASE_PORT", "5432"),
     }
 }
 
@@ -225,3 +220,22 @@ LOGGING = {
         }
     }
 }
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': env.str("REDIS_SERVER_URI", "redis://localhost:6379/1"),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 100,
+                'retry_on_timeout': True,
+            },
+        }
+    }
+}
+
+# Optional: This is to ensure Django sessions are stored in Redis
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'

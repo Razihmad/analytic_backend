@@ -8,12 +8,14 @@ def get_or_create_user(*, email: str, extra_data: Dict) -> Tuple[User, bool]:
     return User.objects.get_or_create(email=email, defaults=extra_data)
 
 
-def create_seller(*, partner_id: str, refresh_token: str, access_token: str, marketplace_id: str, user: User):
-    seller = Seller.objects.create(
+def get_or_create_seller(*, partner_id: str, refresh_token: str, access_token: str, marketplace_id: str, user: User):
+    seller, _ = Seller.objects.get_or_create(
         user=user,
         marketplace_id=marketplace_id,
-        refresh_token=refresh_token,
-        access_token=access_token,
-        amazon_seller_id=partner_id,
+        defaults={
+            "refresh_token": refresh_token,
+            "access_token": access_token,
+            "amazon_seller_id": partner_id,
+        }
     )
     return seller

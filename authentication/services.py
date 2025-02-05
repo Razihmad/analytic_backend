@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from authentication.selectors import create_seller, get_or_create_user
+from authentication.selectors import get_or_create_seller, get_or_create_user
 from base.exception import ServiceException
 from utils.amazon_login import amazon_login
 from utils.google_authetication import google_oauth
@@ -55,4 +55,4 @@ def get_user_data_from_google_code(*, code: Optional[str]) -> Dict:
 
 
 def create_amazon_seller(*, partner_id: str, refresh_token: str, marketplace_id: str, user: User, access_token: str):
-    return create_seller(partner_id=partner_id, refresh_token=refresh_token, marketplace_id=marketplace_id, user=user, access_token=access_token)
+    return get_or_create_seller(partner_id=partner_id, refresh_token=refresh_token, marketplace_id=marketplace_id, user=user, access_token=access_token)
