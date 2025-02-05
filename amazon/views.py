@@ -23,5 +23,6 @@ class FetchSellerCentralDataAPI(APIView):
 
     def get(self, request):
         from amazon.tasks import fetch_seller_central_data
-        fetch_seller_central_data.delay()
+        user_id = request.user.id
+        fetch_seller_central_data.delay(user_id=user_id)
         return status_200(message="We are preparing your data for visualization")

@@ -48,6 +48,9 @@ class AmazonCallback(APIView):
             user=request.user
         )
         print(seller)
+        set_cache_for_refresh_and_access_token(
+            refresh_token=response["refresh_token"], access_token=response["access_token"], user_id=request.user.id
+        )
         return status_200(
             data={"state": marketplace_id, "spapi_code": spapi_oauth_code, "partner_id": selling_partner_id, "response": response, "seller_data": seller}
         )

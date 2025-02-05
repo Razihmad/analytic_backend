@@ -1,10 +1,13 @@
 from typing import Dict, Optional
+from amazon.selectors import get_seller_by_user_id
 from authentication.selectors import get_or_create_seller, get_or_create_user
+from base.decorators import cache_function
 from base.exception import ServiceException
 from utils.amazon_login import amazon_login
 from utils.google_authetication import google_oauth
 
 
+from django.core.cache import cache
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -56,3 +59,22 @@ def get_user_data_from_google_code(*, code: Optional[str]) -> Dict:
 
 def create_amazon_seller(*, partner_id: str, refresh_token: str, marketplace_id: str, user: User, access_token: str):
     return get_or_create_seller(partner_id=partner_id, refresh_token=refresh_token, marketplace_id=marketplace_id, user=user, access_token=access_token)
+
+
+def set_cache_for_refresh_and_access_token(*, refresh_token: str, access_token: str, user_id: int):
+    cache.set(f"sc_access_token_{user_id}", access_token, timeout=3600)
+    cache.set(f"sc_refresh_token_{user_id}", refresh_token, timeout=24 * 60 * 60)
+
+
+@cache_function(cache_config_key="SC_ACCESS_TOKEN")
+def get_access_token(*, user_id: int) -> str:
+    refresh_token = get_refresh_token(user_id=user_id)
+    response = amazon_login.generate_access_token(refresh_token=refresh_token)
+    access_token = response["access_token"]
+    return access_token
+
+
+@cache_function(cache_config_key="SC_REFRESH_TOKEN")
+def get_and_set_refresh_token(*, user_id: int) -> str:
+    seller = get_seller_by_user_id(user_id=user_id)
+    return seller.refresh_token
