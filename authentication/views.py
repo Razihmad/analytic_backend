@@ -15,7 +15,8 @@ from authentication.services import (
     get_amazon_login_uri,
     get_jwt_access_token,
     get_refresh_token,
-    get_user_data_from_google_code
+    get_user_data_from_google_code,
+    set_cache_for_refresh_and_access_token
 )
 
 
@@ -47,10 +48,7 @@ class AmazonCallback(APIView):
             access_token=response["access_token"],
             user=request.user
         )
-        print(seller)
-        set_cache_for_refresh_and_access_token(
-            refresh_token=response["refresh_token"], access_token=response["access_token"], user_id=request.user.id
-        )
+
         return status_200(
             data={"state": marketplace_id, "spapi_code": spapi_oauth_code, "partner_id": selling_partner_id, "response": response, "seller_data": seller}
         )
