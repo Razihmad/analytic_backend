@@ -21,9 +21,16 @@ class LoginWithAmazon:
         marketplace = getattr(Marketplaces, country_code.upper())
         marketplace_id = marketplace.marketplace_id
         base_url = marketplace_data.value
-        url = f"{base_url}/apps/authorize/consent?application_id={self.app_id}&state={marketplace_id}"
+        query_params = {
+            "application_id": self.app_id,
+            "state": marketplace_id
+        }
         if self.environment != Environment.PRODUCTION.value:
-            url += "&verion=beta"
+            query_params["version"] = "beta"
+        path = "/apps/authorize/consent"
+        from urllib.parse import urlencode, urljoin
+        query_string = urlencode(query_params)
+        url = urljoin(base_url, path + "?" + query_string)
         return url
 
     def url_for_access_and_refresh_token(self, code: Optional[str] = None, refresh_token: Optional[str] = None) -> str:
