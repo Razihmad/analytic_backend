@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from amazon.services import start_fetching_seller_central_data
 from base.response import status_200
 
 # Create your views here.
@@ -22,7 +23,6 @@ class FetchSellerCentralDataAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        from amazon.tasks import fetch_seller_central_data
         user_id = request.user.id
-        fetch_seller_central_data.delay(user_id=user_id)
+        start_fetching_seller_central_data(user_id=user_id)
         return status_200(message="We are preparing your data for visualization")

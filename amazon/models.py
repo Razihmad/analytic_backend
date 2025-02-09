@@ -18,6 +18,7 @@ class MarketPlace(models.Model):
 class Seller(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     marketplace_id = models.CharField(max_length=255)
+    marketplace = models.CharField(max_length=255)
     store_name = models.CharField(max_length=255, null=True, blank=True)
     refresh_token = models.CharField(max_length=500)
     access_token = models.CharField(max_length=500)
