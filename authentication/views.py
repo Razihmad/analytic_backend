@@ -16,7 +16,6 @@ from authentication.services import (
     get_jwt_access_token,
     get_refresh_token,
     get_user_data_from_google_code,
-    set_cache_for_refresh_and_access_token
 )
 
 

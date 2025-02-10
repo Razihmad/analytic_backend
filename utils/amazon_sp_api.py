@@ -1,13 +1,16 @@
 import gzip
 import json
+import logging
+from typing import Dict
+
 
 import requests
-from typing import Dict
 from sp_api.base import Marketplaces
-# from sp_api.base import ReportType
 
 
 import utils.datetime as dt
+
+logger = logging.getLogger(__name__)
 
 
 class AmazonSpAPI:
@@ -32,7 +35,6 @@ class AmazonSpAPI:
     def create_report(self, access_token: str, marketplace: str, report_type: str, data: Dict):
         base_url = self.get_base_url(marketplace)
         marketplace_id = self.get_marketplace_id(marketplace)
-        # region = self.get_region(marketplace)
         headers = self._get_headers(access_token)
         url = f"{base_url}/reports/2021-06-30/reports"
         data.update({
@@ -54,6 +56,8 @@ class AmazonSpAPI:
         headers = self._get_headers(access_token)
         url = f"{base_url}/reports/2021-06-30/documents/{document_id}"
         response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            
         return response.json()
 
     def get_data_by_url(self, url: str):

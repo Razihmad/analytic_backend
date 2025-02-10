@@ -16,7 +16,9 @@ def testing_tasks():
 
 
 @shared_task
-def fetch_seller_central_report_data_by_date(*, user_id: int, seller_id: int, marketplace: str, start_datetime: str, end_datetime: str):
+def fetch_seller_central_report_data_by_date(
+    *, user_id: int, seller_id: int, marketplace: str, start_datetime: str, end_datetime: str
+):
     from authentication.services import get_access_token
 
     logger.info(f"Fetching Seller Central data for {user_id=}")
@@ -39,7 +41,9 @@ def fetch_seller_central_report_data_by_date(*, user_id: int, seller_id: int, ma
 
 
 @shared_task
-def get_report_and_process_data(*, user_id: int, seller_id: int, report_id: str, access_token: str, marketplace_id: str):
+def get_report_and_process_data(
+    *, user_id: int, seller_id: int, report_id: str, access_token: str, marketplace_id: str
+):
 
     response = amazon_sp_api.get_report_by_id(
         access_token=access_token, report_id=report_id, marketplace=marketplace_id
@@ -61,7 +65,9 @@ def get_report_and_process_data(*, user_id: int, seller_id: int, report_id: str,
 
 
 @shared_task
-def process_report_document(*, access_token: str, document_id: str, marketplace: str, user_id: int, seller_id: int):
+def process_report_document(
+    *, access_token: str, document_id: str, marketplace: str, user_id: int, seller_id: int
+):
     from amazon.services import prepare_and_bulk_create_sales_data
     response = amazon_sp_api.get_report_document_by_id(
         access_token=access_token, document_id=document_id, marketplace=marketplace
