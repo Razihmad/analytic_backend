@@ -192,7 +192,7 @@ CELERY_BROKER_URL = env.str("CELERY_BROKER_URL", default="amqp://localhost")
 ## Logging ##
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': False,
+    'disable_existing_loggers': True,
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',

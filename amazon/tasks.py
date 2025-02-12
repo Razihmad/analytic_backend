@@ -1,10 +1,12 @@
 import logging
 
 from celery import shared_task
+from django.core.cache import cache
 from sp_api.base import ReportType, ReportStatus, Granularity
 
 
 from utils.amazon_sp_api import amazon_sp_api
+from utils.utils import get_cache_key_and_timeout
 
 
 logger = logging.getLogger(__name__)
@@ -48,6 +50,7 @@ def get_report_and_process_data(
     response = amazon_sp_api.get_report_by_id(
         access_token=access_token, report_id=report_id, marketplace=marketplace_id
     )
+    logger.info(f"{user_id=}, {seller_id=}, {response=}, {report_id=}")
     status = response.get("processingStatus")
     while status == ReportStatus.IN_PROGRESS.value:
         return get_report_and_process_data.retry(countdown=5)
@@ -60,6 +63,9 @@ def get_report_and_process_data(
             user_id=user_id,
             seller_id=seller_id,
         )
+    if status == ReportStatus.CANCELLED.value:
+        key, ttl = get_cache_key_and_timeout("REPORT_CANCELLED", seller_id=seller_id)
+        cache.set(key, status, timeout=ttl)
 
     logger.error(f"Report failed for {user_id=}, {response=}, {status=}, {seller_id=}")
 

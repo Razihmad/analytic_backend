@@ -56,8 +56,6 @@ class AmazonSpAPI:
         headers = self._get_headers(access_token)
         url = f"{base_url}/reports/2021-06-30/documents/{document_id}"
         response = requests.get(url, headers=headers)
-        if response.status_code != 200:
-            
         return response.json()
 
     def get_data_by_url(self, url: str):

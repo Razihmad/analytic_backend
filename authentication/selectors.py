@@ -5,7 +5,7 @@ from amazon.models import Seller
 
 
 def get_or_create_user(*, email: str, extra_data: Dict) -> Tuple[User, bool]:
-    return User.objects.get_or_create(email=email, defaults=extra_data)
+    return User.objects.get_or_create(email=email, username=email, defaults=extra_data)
 
 
 def get_or_create_seller(*, partner_id: str, refresh_token: str, access_token: str, marketplace_id: str, user: User):

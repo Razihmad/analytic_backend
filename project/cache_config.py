@@ -7,4 +7,8 @@ CACHE_NAMES = {
         "key": "sc-refresh-token-{user_id}",
         "timeout": 24 * 60 * 60,
     },
+    "REPORT_CANCELLED": {
+        "key": "is-report-cancelled-{seller_id}",
+        "timeout": 24 * 60 * 60,
+    },
 }
