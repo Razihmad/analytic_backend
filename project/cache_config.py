@@ -3,7 +3,7 @@ CACHE_NAMES = {
         "key": "sc-access-token-{user_id}",
         "timeout": 3600,
     },
-    "SCC_REFRESH_TOKEN": {
+    "SC_REFRESH_TOKEN": {
         "key": "sc-refresh-token-{user_id}",
         "timeout": 24 * 60 * 60,
     },

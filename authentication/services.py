@@ -68,7 +68,7 @@ def set_cache_for_refresh_and_access_token(*, refresh_token: str, access_token: 
 
 @cache_function(cache_config_key="SC_ACCESS_TOKEN")
 def get_access_token(*, user_id: int) -> str:
-    refresh_token = get_refresh_token(user_id=user_id)
+    refresh_token = get_and_set_refresh_token(user_id=user_id)
     response = amazon_login.generate_access_token(refresh_token=refresh_token)
     access_token = response["access_token"]
     return access_token

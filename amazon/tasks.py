@@ -19,7 +19,7 @@ def testing_tasks():
 
 @shared_task
 def fetch_seller_central_report_data_by_date(
-    *, user_id: int, seller_id: int, marketplace: str, start_datetime: str, end_datetime: str
+    user_id: int, seller_id: int, marketplace: str, start_datetime: str, end_datetime: str
 ):
     from authentication.services import get_access_token
 
@@ -39,16 +39,16 @@ def fetch_seller_central_report_data_by_date(
     )
     logger.info(f"Report created for {user_id=}, {response=}, {start_datetime=}, {end_datetime=}")
     report_id = response.get("reportId")
-    get_report_and_process_data.delay(user_id=user_id, seller_id=seller_id, report_id=report_id)
+    get_report_and_process_data.delay(user_id=user_id, seller_id=seller_id, report_id=report_id, access_token=access_token, marketplace_id=marketplace)
 
 
 @shared_task
 def get_report_and_process_data(
-    *, user_id: int, seller_id: int, report_id: str, access_token: str, marketplace_id: str
+    *, user_id: int, seller_id: int, report_id: str, access_token: str, marketplace: str
 ):
 
     response = amazon_sp_api.get_report_by_id(
-        access_token=access_token, report_id=report_id, marketplace=marketplace_id
+        access_token=access_token, report_id=report_id, marketplace=marketplace
     )
     logger.info(f"{user_id=}, {seller_id=}, {response=}, {report_id=}")
     status = response.get("processingStatus")
@@ -59,7 +59,7 @@ def get_report_and_process_data(
         return process_report_document.delay(
             access_token=access_token,
             document_id=report_document_id,
-            marketplace=marketplace_id,
+            marketplace=marketplace,
             user_id=user_id,
             seller_id=seller_id,
         )
