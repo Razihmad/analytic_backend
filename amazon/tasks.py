@@ -46,15 +46,15 @@ def fetch_seller_central_report_data_by_date(
 
 @shared_task
 def get_report_and_process_data(
-    *, user_id: int, seller_id: int, report_id: str, access_token: str, marketplace: str
+    user_id: int, seller_id: int, report_id: str, access_token: str, marketplace: str
 ):
 
     response = amazon_sp_api.get_report_by_id(
         access_token=access_token, report_id=report_id, marketplace=marketplace
     )
-    logger.info(f"{user_id=}, {seller_id=}, {response=}, {report_id=}")
+    logger.info(f"[get_report_and_process_data] {user_id=}, {seller_id=}, {response=}, {report_id=}")
     status = response.get("processingStatus")
-    while status == ReportStatus.IN_PROGRESS.value:
+    while status in [ReportStatus.IN_PROGRESS.value, ReportStatus.IN_QUEUE.value]:
         return get_report_and_process_data.retry(countdown=5)
     if status == ReportStatus.DONE.value:
         report_document_id = response.get("reportDocumentId")
@@ -70,7 +70,7 @@ def get_report_and_process_data(
 
 @shared_task
 def process_report_document(
-    *, access_token: str, document_id: str, marketplace: str, user_id: int, seller_id: int
+    access_token: str, document_id: str, marketplace: str, user_id: int, seller_id: int
 ):
     from amazon.services import prepare_and_bulk_create_sales_data
     response = amazon_sp_api.get_report_document_by_id(
