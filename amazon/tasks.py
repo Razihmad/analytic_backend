@@ -39,7 +39,9 @@ def fetch_seller_central_report_data_by_date(
     )
     logger.info(f"Report created for {user_id=}, {response=}, {start_datetime=}, {end_datetime=}")
     report_id = response.get("reportId")
-    get_report_and_process_data.delay(user_id=user_id, seller_id=seller_id, report_id=report_id, access_token=access_token, marketplace_id=marketplace)
+    get_report_and_process_data.apply_async(
+        args=[user_id, seller_id, report_id, access_token, marketplace]
+    )
 
 
 @shared_task
@@ -56,12 +58,8 @@ def get_report_and_process_data(
         return get_report_and_process_data.retry(countdown=5)
     if status == ReportStatus.DONE.value:
         report_document_id = response.get("reportDocumentId")
-        return process_report_document.delay(
-            access_token=access_token,
-            document_id=report_document_id,
-            marketplace=marketplace,
-            user_id=user_id,
-            seller_id=seller_id,
+        return process_report_document.apply_async(
+            args=[access_token, report_document_id, marketplace, user_id, seller_id]
         )
     if status == ReportStatus.CANCELLED.value:
         key, ttl = get_cache_key_and_timeout("REPORT_CANCELLED", seller_id=seller_id)

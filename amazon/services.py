@@ -47,4 +47,3 @@ def start_fetching_seller_central_data(*, user_id: int):
         count += 1
         if count == 2:
             break
-

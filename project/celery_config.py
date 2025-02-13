@@ -19,4 +19,16 @@ task_routes = {
         "queue": "process_report",
         "routing_key": "report",
     },
+    "amazon.tasks.fetch_seller_central_report_data_by_date": {
+        "queue": "process_report",
+        "routing_key": "report",
+    },
+    "amazon.tasks.get_report_and_process_data": {
+        "queue": "process_report",
+        "routing_key": "report",
+    },
+    "amazon.tasks.process_report_document": {
+        "queue": "process_report",
+        "routing_key": "report",
+    },
 }
