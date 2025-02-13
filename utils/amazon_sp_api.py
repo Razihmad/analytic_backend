@@ -62,7 +62,7 @@ class AmazonSpAPI:
         response = requests.get(url)
         decompressed_data = gzip.decompress(response.content)
         json_data = decompressed_data.decode('utf-8')
-        parsed_data = json.load(json_data)
+        parsed_data = json.loads(json_data)
         return parsed_data
 
 
