@@ -19,12 +19,12 @@ def testing_tasks():
 
 @shared_task
 def fetch_seller_central_report_data_by_date(
-    user_id: int, seller_id: int, marketplace: str, start_datetime: str, end_datetime: str
+    user_id: int, seller_id: int, marketplace: str, start_datetime: str, end_datetime: str, amazon_seller_id
 ):
     from authentication.services import get_access_token
 
     logger.info(f"Fetching Seller Central data for {user_id=}")
-    access_token = get_access_token(user_id=user_id)
+    access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
     report_type = ReportType.GET_SALES_AND_TRAFFIC_REPORT.value
 
     response = amazon_sp_api.create_report(
@@ -72,6 +72,7 @@ def get_report_and_process_data(
 def process_report_document(
     access_token: str, document_id: str, marketplace: str, user_id: int, seller_id: int
 ):
+    import utils.datetime as dt
     from amazon.services import prepare_and_bulk_create_sales_data
     response = amazon_sp_api.get_report_document_by_id(
         access_token=access_token, document_id=document_id, marketplace=marketplace
@@ -93,3 +94,4 @@ def process_report_document(
         }
         final_data.append(asin_sale)
     prepare_and_bulk_create_sales_data(data=final_data)
+    logger.info(f"finsihed report time {dt.now(with_tz=True)=}")

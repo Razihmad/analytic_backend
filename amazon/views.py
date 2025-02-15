@@ -28,6 +28,6 @@ class FetchSellerCentralDataAPI(APIView):
 
     def get(self, request):
         user_id = request.user.id
-        start_fetching_seller_central_data(user_id=user_id)
+        amazon_seller_id = request.GET.get("selling_partner_id")
+        start_fetching_seller_central_data(user_id=user_id, amazon_seller_id=amazon_seller_id)
         return status_200(message="We are preparing your data for visualization")
-
