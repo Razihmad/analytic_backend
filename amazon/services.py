@@ -41,20 +41,7 @@ def start_fetching_seller_central_data(*, user_id: int, amazon_seller_id: str):
         raise ServiceException("seller does not exists")
 
     marketplace = seller.marketplace
-    current_date = (dt.now(with_tz=True).date() - timedelta(days=1))
-    key, _ = get_cache_key_and_timeout("REPORT_CANCELLED", seller_id=seller.id)
-    status = cache.get(key, ReportStatus.IN_PROGRESS.value)
-    count = 0
     logger.info(f"start time {dt.now(with_tz=True)=}")
-    while status != ReportStatus.CANCELLED.value:
-        logger.info(f"start fetching data for {seller.id=}, {user_id=}, {current_date=}")
-        countdown = 0
-        if count % 10 == 0:
-            countdown = 1
-        start_date = (current_date - timedelta(days=1))
-        fetch_seller_central_report_data_by_date.apply_async(
-            args=[user_id, seller.id, marketplace, current_date.strftime("%Y-%m-%d"), current_date.strftime("%Y-%m-%d"), amazon_seller_id],
-            countdown=countdown,
-        )
-        current_date = start_date
-        count += 1
+    fetch_seller_central_report_data_by_date.apply_async(
+        args=[user_id, seller.id, marketplace, amazon_seller_id],
+    )

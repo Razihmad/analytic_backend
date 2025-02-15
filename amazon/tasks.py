@@ -1,10 +1,12 @@
 import logging
+from datetime import timedelta
 
 from celery import shared_task
 from django.core.cache import cache
 from sp_api.base import ReportType, ReportStatus, Granularity
 
 
+import utils.datetime as dt
 from utils.amazon_sp_api import amazon_sp_api
 from utils.utils import get_cache_key_and_timeout
 
@@ -19,53 +21,58 @@ def testing_tasks():
 
 @shared_task
 def fetch_seller_central_report_data_by_date(
-    user_id: int, seller_id: int, marketplace: str, start_datetime: str, end_datetime: str, amazon_seller_id
+    user_id: int, seller_id: int, marketplace: str, amazon_seller_id: str
 ):
     from authentication.services import get_access_token
 
-    logger.info(f"Fetching Seller Central data for {user_id=}")
-    access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
-    report_type = ReportType.GET_SALES_AND_TRAFFIC_REPORT.value
+    status = ReportStatus.IN_PROGRESS.value
+    start_date = dt.now(with_tz=True).date() - timedelta(days=1)
+    count = 0
 
-    response = amazon_sp_api.create_report(
-        access_token=access_token,
-        marketplace=marketplace,
-        report_type=report_type,
-        data={
-            "reportOptions": {"dateGranularity": Granularity.DAY.value, "asinGranularity": "SKU"},
-            "dataStartTime": start_datetime,
-            "dataEndTime": end_datetime,
-        },
-    )
-    logger.info(f"Report created for {user_id=}, {response=}, {start_datetime=}, {end_datetime=}")
-    report_id = response.get("reportId")
-    get_report_and_process_data.apply_async(
-        args=[user_id, seller_id, report_id, access_token, marketplace]
-    )
+    while status != ReportStatus.CANCELLED.value:
+        if count == 20:
+            break
+        start_date_formatting = start_date.strftime("%Y-%m-%d")
+
+        logger.info(f"Fetching Seller Central data for {user_id=}")
+        access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+        report_type = ReportType.GET_SALES_AND_TRAFFIC_REPORT.value
+
+        response = amazon_sp_api.create_report(
+            access_token=access_token,
+            marketplace=marketplace,
+            report_type=report_type,
+            data={
+                "reportOptions": {"dateGranularity": Granularity.DAY.value, "asinGranularity": "SKU"},
+                "dataStartTime": start_date_formatting,
+                "dataEndTime": start_date_formatting,
+            },
+        )
+        start_date = start_date - timedelta(days=1)
+        logger.info(f"Report created for {user_id=}, {response=}, {start_date=}")
+        report_id = response.get("reportId")
+        status = get_report_and_process_data(user_id, seller_id, report_id, access_token, marketplace)
+        count += 1
 
 
-@shared_task
 def get_report_and_process_data(
     user_id: int, seller_id: int, report_id: str, access_token: str, marketplace: str
 ):
-
+    logger.info(f"[get_report_and_process_data] {user_id=}, {seller_id=}, {report_id=},{marketplace=}")
     response = amazon_sp_api.get_report_by_id(
         access_token=access_token, report_id=report_id, marketplace=marketplace
     )
     logger.info(f"[get_report_and_process_data] {user_id=}, {seller_id=}, {response=}, {report_id=}")
     status = response.get("processingStatus")
     while status in [ReportStatus.IN_PROGRESS.value, ReportStatus.IN_QUEUE.value]:
-        return get_report_and_process_data.retry(countdown=5)
+        return get_report_and_process_data(user_id, seller_id, report_id, access_token, marketplace)
     if status == ReportStatus.DONE.value:
         report_document_id = response.get("reportDocumentId")
-        return process_report_document.apply_async(
+        process_report_document.apply_async(
             args=[access_token, report_document_id, marketplace, user_id, seller_id]
         )
-    if status == ReportStatus.CANCELLED.value:
-        key, ttl = get_cache_key_and_timeout("REPORT_CANCELLED", seller_id=seller_id)
-        cache.set(key, status, timeout=ttl)
 
-    logger.error(f"Report failed for {user_id=}, {response=}, {status=}, {seller_id=}")
+    return status
 
 
 @shared_task
