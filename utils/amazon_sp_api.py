@@ -41,7 +41,9 @@ class AmazonSpAPI:
             "reportType": report_type,
             "marketplaceIds": [marketplace_id]
         })
+        logger.info(f"{base_url=}, {access_token=}, {marketplace=}, {data=}")
         response = requests.post(url, headers=headers, json=data)
+        logger.info(f"{response=}")
         return response.json()
 
     def get_report_by_id(self, access_token: str, report_id: str, marketplace: str):
