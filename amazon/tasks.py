@@ -64,8 +64,9 @@ def get_report_and_process_data(
     )
     logger.info(f"[get_report_and_process_data] {user_id=}, {seller_id=}, {response=}, {report_id=}")
     status = response.get("processingStatus")
-    while status in [ReportStatus.IN_PROGRESS.value, ReportStatus.IN_QUEUE.value]:
-        return get_report_and_process_data(user_id, seller_id, report_id, access_token, marketplace)
+    if status in [ReportStatus.IN_PROGRESS.value, ReportStatus.IN_QUEUE.value]:
+        return get_report_and_process_data(user_id=user_id, seller_id=seller_id, report_id=report_id, access_token=access_token, marketplace=marketplace)
+
     if status == ReportStatus.DONE.value:
         report_document_id = response.get("reportDocumentId")
         process_report_document.apply_async(
