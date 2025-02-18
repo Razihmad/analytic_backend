@@ -81,16 +81,15 @@ class GoogleLoginCallback(APIView):
 
 class AmazonAdsLogin(APIView):
     def get(self, request, *args, **kwargs):
-        country = request.GET.get("country", "India")
         country_code = request.GET.get("country_code", "IN")
-        url, region = get_amazon_ads_login_uri(country=country, country_code=country_code)
-        request.sessions["region"] = region
-        return redirect(url)
+        url, region = get_amazon_ads_login_uri(country_code=country_code)
+        request.session["region"] = region
+        return status_200(message="success", data={"url": url})
 
 
 class AmazonAdsCallback(APIView):
     def get(self, request, *args, **kwargs):
         code = request.GET.get("code")
-        region = request.sessions["region"]
+        region = request.session["region"]
         response = get_access_and_refresh_token_for_ads(code=code, region=region)
         return status_200(message="success", data=response)
