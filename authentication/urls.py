@@ -12,5 +12,6 @@ urlpatterns = [
     ## authorize login with google
     path("oauth/google/login/", GoogleLogin.as_view(), name="google_login"),
     path("oauth/google/login/callback/", GoogleLoginCallback.as_view(), name="google_login_callback"),
-
+    path("oauth/amazon-ads/login/", AmazonAdsLogin.as_view(), name="amazon-ads-login"),
+    path("oauth/amazon-ads/callback/", AmazonAdsCallback.as_view(), name="amazon-ads-callback"),
 ]

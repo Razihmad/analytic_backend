@@ -1,3 +1,6 @@
+import json
+import xmltodict
+
 from project.cache_config import CACHE_NAMES
 
 
@@ -9,3 +12,8 @@ def get_cache_key_and_timeout(dict_identifier, **kwargs):
     else:
         cache_timeout = cache_dict["timeout"]
     return cache_key, cache_timeout
+
+
+def convert_xml_to_json(*, xml_data):
+    data = xmltodict.parse(xml_data)
+    return json.dumps(data)

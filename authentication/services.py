@@ -7,7 +7,6 @@ from utils.amazon_login import amazon_login
 from utils.google_authetication import google_oauth
 
 
-from django.core.cache import cache
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -73,3 +72,7 @@ def get_access_token(*, user_id: int , amazon_seller_id: int) -> str:
 def get_and_set_refresh_token(*, user_id: int, amazon_seller_id: int) -> str:
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     return seller.refresh_token
+
+
+def get_amazon_ads_login_uri(*, country_code: str, country: str):
+    pass

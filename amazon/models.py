@@ -46,3 +46,29 @@ class SellerCentralSale(models.Model):
 
     def __str__(self) -> str:
         return f"{self.seller.amazon_seller_id}"
+
+
+class SellerCentralTraffic(models.Model):
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE)
+    sessions_date = models.DateField()
+    child_asin = models.CharField(max_length=255)
+    sku = models.CharField(max_length=255)
+    browser_sessions = models.IntegerField()
+    mobile_app_sessions = models.IntegerField()
+    browser_page_views = models.IntegerField()
+    mobile_app_page_views = models.IntegerField()
+    unit_sessions_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class SellerCentralReturn(models.Model):
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE)
+    asin = models.CharField(max_length=255)
+    return_request_date = models.DateField()
+    return_delivery_date = models.DateField()
+    return_type = models.CharField(max_length=255)
+    refund_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    return_quantity = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)

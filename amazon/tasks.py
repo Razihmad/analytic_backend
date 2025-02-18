@@ -2,14 +2,12 @@ import logging
 from datetime import timedelta
 
 from celery import shared_task
-from django.core.cache import cache
 from sp_api.base import ReportType, ReportStatus, Granularity
 
-
+from authentication.services import get_access_token
 import utils.datetime as dt
 from utils.amazon_sp_api import amazon_sp_api
-from utils.utils import get_cache_key_and_timeout
-
+from utils.utils import convert_xml_to_json
 
 logger = logging.getLogger(__name__)
 
@@ -23,19 +21,12 @@ def testing_tasks():
 def fetch_seller_central_report_data_by_date(
     user_id: int, seller_id: int, marketplace: str, amazon_seller_id: str
 ):
-    from authentication.services import get_access_token
-
+    logger.info(f"Fetching Seller Central data for {user_id=}")
     status = ReportStatus.IN_PROGRESS.value
     start_date = dt.now(with_tz=True).date() - timedelta(days=1)
-    count = 0
-
+    access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
     while status != ReportStatus.CANCELLED.value:
-        if count == 20:
-            break
         start_date_formatting = start_date.strftime("%Y-%m-%d")
-
-        logger.info(f"Fetching Seller Central data for {user_id=}")
-        access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
         report_type = ReportType.GET_SALES_AND_TRAFFIC_REPORT.value
 
         response = amazon_sp_api.create_report(
@@ -48,20 +39,24 @@ def fetch_seller_central_report_data_by_date(
                 "dataEndTime": start_date_formatting,
             },
         )
+        is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
+        if is_token_expire:
+            access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
         start_date = start_date - timedelta(days=1)
-        logger.info(f"Report created for {user_id=}, {response=}, {start_date=}")
         report_id = response.get("reportId")
-        status = get_report_and_process_data(user_id, seller_id, report_id, access_token, marketplace)
-        count += 1
+        status = get_report_and_process_data(user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id)
 
 
 def get_report_and_process_data(
-    user_id: int, seller_id: int, report_id: str, access_token: str, marketplace: str
+    user_id: int, seller_id: int, report_id: str, access_token: str, marketplace: str, amazon_seller_id: str, report_type: str
 ):
     logger.info(f"[get_report_and_process_data] {user_id=}, {seller_id=}, {report_id=},{marketplace=}")
     response = amazon_sp_api.get_report_by_id(
         access_token=access_token, report_id=report_id, marketplace=marketplace
     )
+    is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
+    if is_token_expire:
+        access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
     logger.info(f"[get_report_and_process_data] {user_id=}, {seller_id=}, {response=}, {report_id=}")
     status = response.get("processingStatus")
     if status in [ReportStatus.IN_PROGRESS.value, ReportStatus.IN_QUEUE.value]:
@@ -69,27 +64,38 @@ def get_report_and_process_data(
 
     if status == ReportStatus.DONE.value:
         report_document_id = response.get("reportDocumentId")
-        process_report_document.apply_async(
-            args=[access_token, report_document_id, marketplace, user_id, seller_id]
+        fetch_report_document.apply_async(
+            args=[access_token, report_document_id, marketplace, user_id, seller_id, amazon_seller_id, report_type]
         )
 
     return status
 
 
 @shared_task
-def process_report_document(
-    access_token: str, document_id: str, marketplace: str, user_id: int, seller_id: int
+def fetch_report_document(
+    access_token: str, document_id: str, marketplace: str, user_id: int, seller_id: int, amazon_seller_id: str, report_type
 ):
-    import utils.datetime as dt
-    from amazon.services import prepare_and_bulk_create_sales_data
     response = amazon_sp_api.get_report_document_by_id(
         access_token=access_token, document_id=document_id, marketplace=marketplace
     )
+    is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
+    if is_token_expire:
+        access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+        fetch_report_document.retry(countdown=1)
     logger.info(f"Report document fetched for {user_id=}, {response=}")
     url = response.get("url")
+    process_report_document_and_create_entry.apply_async(args=[url, seller_id])
+    process_xml_report_document_and_create_entry.apply_async(args=[url, seller_id])
+
+
+@shared_task
+def process_report_document_and_create_entry(url, seller_id):
+    from amazon.services import prepare_and_bulk_create_sales_data, prepare_and_bulk_create_traffic_data
+
     data = amazon_sp_api.get_data_by_url(url=url)
     date = data["reportSpecification"]["dataStartTime"]
-    final_data = []
+    saels_data = []
+    traffice_data = []
     for data in data["salesAndTrafficByAsin"]:
         asin_sale = {
             "seller_id": seller_id,
@@ -100,6 +106,70 @@ def process_report_document(
             "ordered_product_sales": data["salesByAsin"]["orderedProductSales"]["amount"],
             "items_ordered": data["salesByAsin"]["totalOrderItems"],
         }
-        final_data.append(asin_sale)
-    prepare_and_bulk_create_sales_data(data=final_data)
+        asin_traffic = {
+            "seller_id": seller_id,
+            "sessions_date": date,
+            "child_asin": data["childAsin"],
+            "sku": data["sku"],
+            "browser_sessions": data[""],
+            "mobile_app_sessions": data[""],
+            "browser_page_views": data[""],
+            "mobile_app_page_views": data[""],
+            "unit_sessions_percentage": data[""]
+        }
+        traffice_data.append(asin_traffic)
+        saels_data.append(asin_sale)
+    prepare_and_bulk_create_sales_data(data=saels_data)
+    prepare_and_bulk_create_traffic_data(data=traffice_data)
     logger.info(f"finsihed report time {dt.now(with_tz=True)=}")
+
+
+@shared_task
+def fetch_seller_central_return_report_data_by_date(
+    user_id: int, seller_id: int, marketplace: str, amazon_seller_id: str
+):
+    logger.info(f"Fetching Seller Central data for {user_id=}")
+    status = ReportStatus.IN_PROGRESS.value
+    start_date = dt.now(with_tz=True).date() - timedelta(days=1)
+    access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    while status != ReportStatus.CANCELLED.value:
+        data_start_time = start_date
+        data_end_time = (start_date - timedelta(days=59))
+        report_type = ReportType.GET_XML_RETURNS_DATA_BY_RETURN_DATE.value
+
+        response = amazon_sp_api.create_report(
+            access_token=access_token,
+            marketplace=marketplace,
+            report_type=report_type,
+            data={
+                "dataStartTime": data_start_time.strftime("%Y-%m-%d"),
+                "dataEndTime": data_end_time.strftime("%Y-%m-%d"),
+            },
+        )
+        is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
+        if is_token_expire:
+            access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+        start_date = data_end_time
+        report_id = response.get("reportId")
+        status = get_report_and_process_data(user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id)
+
+
+@shared_task
+def process_xml_report_document_and_create_entry(url: str, seller_id: int):
+    from amazon.services import prepare_bulk_create_return_data
+    xml_report = amazon_sp_api.get_xml_report_by_url(url=url)
+    data = convert_xml_to_json(xml_data=xml_report)
+    data = data["AmazonEnvelope"]["Message"]["return_details"]
+    return_report_data = []
+    for return_data in data:
+        return_report = {
+            "seller_id": seller_id,
+            "return_request_date": return_data["return_request_date"],
+            "asin": return_data["item_details"]["asin"],
+            "return_delivery_date": return_data["return_delivery_date"],
+            "return_type": return_data["return_type"],
+            "refund_amount": return_data["refund_amount"],
+            "return_quantity": int(return_data["item_details"]["return_quantity"]),
+        }
+        return_report_data.append(return_report)
+    prepare_bulk_create_return_data(data=return_report_data)

@@ -22,3 +22,10 @@ class BaseEndpoint(Enum):
     SSINGAPORE = "https://sellercentral.amazon.sg"
     AUSTRAILIA = "https://sellercentral.amazon.com.au"
     JAPAN = "https://sellercentral.amazon.co.jp"
+
+
+AMAZON_ADS_LOGIN_BASE_URL = {
+    "eu-west-1": "https://eu.account.amazon.com/ap/oa",
+    "us-east-1": "https://www.amazon.com/ap/oa",
+    "us-west-2": "https://apac.account.amazon.com/ap/oa",
+}

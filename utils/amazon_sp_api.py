@@ -32,7 +32,7 @@ class AmazonSpAPI:
             "x-amz-date": dt.now(with_tz=True).strftime('%Y%m%dT%H%M%SZ'),
         }
 
-    def create_report(self, access_token: str, marketplace: str, report_type: str, data: Dict):
+    def create_report(self, access_token: str, marketplace: str, report_type: str, data: Dict) -> Dict:
         base_url = self.get_base_url(marketplace)
         marketplace_id = self.get_marketplace_id(marketplace)
         headers = self._get_headers(access_token)
@@ -43,7 +43,6 @@ class AmazonSpAPI:
         })
         logger.info(f"{base_url=}, {access_token=}, {marketplace=}, {data=}")
         response = requests.post(url, headers=headers, json=data)
-        logger.info(f"{response=}")
         return response.json()
 
     def get_report_by_id(self, access_token: str, report_id: str, marketplace: str):
@@ -66,6 +65,20 @@ class AmazonSpAPI:
         json_data = decompressed_data.decode('utf-8')
         parsed_data = json.loads(json_data)
         return parsed_data
+
+    def is_access_token_expired(self, response: Dict) -> bool:
+        errors = response.get("errors", [])
+        if errors:
+            code = errors[0]["code"]
+            details = errors[0]["details"]
+            if code == "Unauthorized" and details == "The access token you provided has expired.":
+                logger.error(f"token  has expired {code=}, {details=}")
+                return True
+        return False
+
+    def get_xml_report_by_url(self, url: str):
+        response = requests.get(url)
+        return response.text
 
 
 amazon_sp_api = AmazonSpAPI()
