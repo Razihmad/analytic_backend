@@ -23,4 +23,7 @@ class AmazonAds:
         base_url = self._get_base_url(region=region)
         endpoint = "/v2/profiles"
         response = requests.get(url=base_url + endpoint, headers=headers)
-        return response
+        return response.json()
+
+
+amazon_ads_api = AmazonAds()
