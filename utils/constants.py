@@ -29,3 +29,15 @@ AMAZON_ADS_LOGIN_BASE_URL = {
     "us-east-1": "https://www.amazon.com/ap/oa",
     "us-west-2": "https://apac.account.amazon.com/ap/oa",
 }
+
+AMAZON_ADS_TOKEN_BASE_URL = {
+    "eu-west-1": "https://api.amazon.co.uk/auth/o2/token",
+    "us-east-1": "https://api.amazon.com/auth/o2/token",
+    "us-west-2": "https://api.amazon.co.jp/auth/o2/token",
+}
+
+AMAZON_ADS_API_BASE_ENDPOINT = {
+    "eu-west-1": "https://advertising-api-eu.amazon.com",
+    "us-east-1": "https://advertising-api.amazon.com",
+    "us-west-2": "https://advertising-api-fe.amazon.com",
+}

@@ -2,7 +2,7 @@
 from django.urls import path
 
 # Authentication
-from authentication.views import AmazonLogin, AmazonCallback, GoogleLogin, GoogleLoginCallback
+from authentication.views import AmazonAdsCallback, AmazonAdsLogin, AmazonLogin, AmazonCallback, GoogleLogin, GoogleLoginCallback
 
 urlpatterns = [
     ## authorize amazon seller central

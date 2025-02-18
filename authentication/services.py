@@ -1,14 +1,15 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 from amazon.selectors import get_seller_by_user_id
 from authentication.selectors import get_or_create_seller, get_or_create_user
 from base.decorators import cache_function
 from base.exception import ServiceException
 from utils.amazon_login import amazon_login
 from utils.google_authetication import google_oauth
-
+from utils.amazon_ads_login import amazon_ads_login
 
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
+from sp_api.base import Marketplaces
 
 
 def get_amazon_login_uri(*, country: str, country_code: str):
@@ -74,5 +75,13 @@ def get_and_set_refresh_token(*, user_id: int, amazon_seller_id: int) -> str:
     return seller.refresh_token
 
 
-def get_amazon_ads_login_uri(*, country_code: str, country: str):
-    pass
+def get_amazon_ads_login_uri(*, country_code: str) -> Tuple[str, str]:
+    marketplace = getattr(Marketplaces, country_code.upper())
+    region = marketplace.region
+    url = amazon_ads_login.generate_login_url(region=region)
+    return url, region
+
+
+def get_access_and_refresh_token_for_ads(*, code: str, region: str) -> Dict:
+    response = amazon_ads_login.generate_access_and_refresh_tokens(code=code, region=region)
+    return response

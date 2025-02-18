@@ -12,6 +12,7 @@ from authentication.services import (
     create_amazon_seller,
     create_user_by_google_data,
     generate_google_login_url,
+    get_access_and_refresh_token_for_ads,
     get_amazon_ads_login_uri,
     get_amazon_login_uri,
     get_jwt_access_token,
@@ -82,10 +83,14 @@ class AmazonAdsLogin(APIView):
     def get(self, request, *args, **kwargs):
         country = request.GET.get("country", "India")
         country_code = request.GET.get("country_code", "IN")
-        url = get_amazon_ads_login_uri(country=country, country_code=country_code)
+        url, region = get_amazon_ads_login_uri(country=country, country_code=country_code)
+        request.sessions["region"] = region
         return redirect(url)
 
 
 class AmazonAdsCallback(APIView):
     def get(self, request, *args, **kwargs):
-        pass
+        code = request.GET.get("code")
+        region = request.sessions["region"]
+        response = get_access_and_refresh_token_for_ads(code=code, region=region)
+        return status_200(message="success", data=response)
