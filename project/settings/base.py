@@ -36,7 +36,7 @@ DEBUG = env.bool("DEBUG", True)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
-INTERNAL_APPS = ["amazon", "authentication"]
+INTERNAL_APPS = ["amazon", "authentication", "amazon_ads"]
 
 EXTERNAL_APPS = ["rest_framework",]
 
