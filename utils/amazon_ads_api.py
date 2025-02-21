@@ -1,3 +1,4 @@
+from typing import Dict, Optional
 import requests
 from django.conf import settings
 
@@ -12,13 +13,16 @@ class AmazonAds:
     def _get_base_url(self, region: str) -> str:
         return AMAZON_ADS_API_BASE_ENDPOINT[region]
 
-    def _get_headers(self, access_token: str):
-        return {
+    def _get_headers(self, access_token: str, profile_id: Optional[str]) -> Dict:
+        headers = {
             "Authorization": f"Bearer {access_token}",
             "Amazon-Advertising-API-ClientId": self.client_id,
         }
+        if profile_id:
+            headers["Amazon-Advertising-API-Scope"] = profile_id
+        return headers
 
-    def get_ads_profile(self, access_token: str, region: str) -> str:
+    def get_ads_profile(self, access_token: str, region: str) -> Dict:
         headers = self._get_headers(access_token=access_token)
         base_url = self._get_base_url(region=region)
         endpoint = "/v2/profiles"

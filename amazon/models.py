@@ -21,7 +21,6 @@ class Seller(models.Model):
     marketplace = models.CharField(max_length=255)
     store_name = models.CharField(max_length=255, null=True, blank=True)
     refresh_token = models.CharField(max_length=500)
-    access_token = models.CharField(max_length=500)
     amazon_seller_id = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
