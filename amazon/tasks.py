@@ -6,7 +6,7 @@ from sp_api.base import ReportType, ReportStatus, Granularity
 
 from authentication.services import get_access_token
 import utils.datetime as dt
-from utils.amazon_sp_api import amazon_sp_api
+from amazon.utils.amazon_sp_api import amazon_sp_api
 from utils.utils import convert_xml_to_json
 
 logger = logging.getLogger(__name__)

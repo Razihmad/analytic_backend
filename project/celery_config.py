@@ -12,6 +12,11 @@ task_queues = (
         Exchange("process_report", type="direct"),
         routing_key="report",
     ),
+    Queue(
+        "process_ads_report",
+        Exchange("process_ads_report", type="direct"),
+        routing_key="ads_report",
+    ),
 )
 
 task_routes = {

@@ -4,10 +4,10 @@ from amazon_ads.selectors import get_ads_profile_by_user_and_seller_id
 from authentication.selectors import bulk_create_profiles, get_or_create_seller, get_or_create_user
 from base.decorators import cache_function
 from base.exception import ServiceException
-from utils.amazon_login import amazon_login
-from utils.google_authetication import google_oauth
-from utils.amazon_ads_login import amazon_ads_login
-from utils.amazon_ads_api import amazon_ads_api
+from authentication.utils.amazon_login import amazon_login
+from authentication.utils.google_authentication import google_oauth
+from authentication.utils.amazon_ads_login import amazon_ads_login
+from amazon_ads.utils.amazon_ads_api import amazon_ads_api
 
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
