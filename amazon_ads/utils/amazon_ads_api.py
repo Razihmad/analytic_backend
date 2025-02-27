@@ -59,7 +59,7 @@ class AmazonAds:
         }
         return data
 
-    def get_report(self, access_token: str, region: str, profile_id: str, data: Dict) -> Dict:
+    def create_report(self, access_token: str, region: str, profile_id: str, data: Dict) -> Dict:
         headers = self._get_headers(access_token=access_token, profile_id=profile_id)
         base_url = self._get_base_url(region=region)
         endpoint = "/reporting/reports"
