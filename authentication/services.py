@@ -28,7 +28,7 @@ def generate_google_login_url():
     return google_oauth.create_google_login_url()
 
 
-def create_user_by_google_data(*, data: Dict) -> User:
+def create_user_by_google_data(*, data: Dict) -> Tuple[User, bool]:
     email = data.pop("email", None)
     if not email:
         raise ServiceException("No email exists")
@@ -65,7 +65,7 @@ def create_amazon_seller(*, partner_id: str, refresh_token: str, marketplace_id:
 
 
 @cache_function(cache_config_key="SC_ACCESS_TOKEN")
-def get_access_token(*, user_id: int , amazon_seller_id: int) -> str:
+def get_access_token(*, user_id: int , amazon_seller_id: str) -> str:
     refresh_token = get_and_set_refresh_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
     response = amazon_login.generate_access_token(refresh_token=refresh_token)
     access_token = response["access_token"]
@@ -73,7 +73,7 @@ def get_access_token(*, user_id: int , amazon_seller_id: int) -> str:
 
 
 @cache_function(cache_config_key="SC_REFRESH_TOKEN")
-def get_and_set_refresh_token(*, user_id: int, amazon_seller_id: int) -> str:
+def get_and_set_refresh_token(*, user_id: int, amazon_seller_id: str) -> str:
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     return seller.refresh_token
 
@@ -90,11 +90,11 @@ def get_access_and_refresh_token_for_ads(*, code: str, region: str) -> Dict:
     return response
 
 
-def get_amazon_ads_profie_data(*, region: str, access_token: str):
+def get_amazon_ads_profie_data(*, region: str, access_token: str) -> List[Dict]:
     return amazon_ads_api.get_ads_profile(access_token=access_token, region=region)
 
 
-def generate_token_and_get_ads_profile_data(*, code: str, region: str):
+def generate_token_and_get_ads_profile_data(*, code: str, region: str) -> Tuple[str, List[Dict]]:
     response = get_access_and_refresh_token_for_ads(code=code, region=region)
     access_token = response["access_token"]
     refresh_token = response["refresh_token"]
@@ -120,18 +120,25 @@ def bulk_create_ads_profile(*, profiles: List[Dict]):
 
 
 @cache_function(cache_config_key="ADS_ACCESS_TOKEN")
-def get_ads_access_token(*, user_id: int, amazon_seller_id: int):
-    access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
-    return access_token
+def get_ads_access_token(*, user_id: int, amazon_seller_id: str, region: str) -> str:
+    refresh_token = get_ads_refresh_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    access_token = amazon_ads_login.generate_access_token_using_refresh_token(
+        refresh_token=refresh_token, region=region
+    )
+    return access_token["access_token"]
 
 
 @cache_function(cache_config_key="ADS_REFRESH_TOKEN")
-def get_ads_refresh_token(*, user_id: int, amazon_seller_id: int):
+def get_ads_refresh_token(*, user_id: int, amazon_seller_id: str) -> str:
     profile = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not profile:
+        raise ServiceException("No profile found")
     return profile.refresh_token
 
 
 @cache_function(cache_config_key="ADS_PROFILE_ID")
-def get_ads_profile_id(*, user_id: int, amazon_seller_id: int):
+def get_ads_profile_id(*, user_id: int, amazon_seller_id: str) -> str:
     profile = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not profile:
+        raise ServiceException("No profile found")
     return profile.profile_id

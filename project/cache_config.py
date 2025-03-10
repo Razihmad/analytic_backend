@@ -8,7 +8,7 @@ CACHE_NAMES = {
         "timeout": 24 * 60 * 60,
     },
     "ADS_ACCESS_TOKEN": {
-        "key": "ads-access-token-{user_id}-{amazon_seller_id}",
+        "key": "ads-access-token-{user_id}-{amazon_seller_id}-{region}",
         "timeout": 3600,
     },
     "ADS_REFRESH_TOKEN": {

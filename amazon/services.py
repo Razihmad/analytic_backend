@@ -78,3 +78,15 @@ def prepare_bulk_create_return_data(*, data: List[Dict]):
         for return_data in data
     ]
     bulk_create_return_data(data=return_objects)
+
+
+def get_sales_data(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str):
+    if not amazon_seller_id:
+        raise ServiceException("amazon seller id is missing")
+
+    seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException("seller does not exists")
+
+    marketplace = seller.marketplace
+    logger.info(f"start time {dt.now(with_tz=True)=}")

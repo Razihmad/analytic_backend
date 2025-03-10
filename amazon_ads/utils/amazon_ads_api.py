@@ -26,7 +26,7 @@ class AmazonAds:
             headers["Amazon-Advertising-API-Scope"] = profile_id
         return headers
 
-    def get_ads_profile(self, access_token: str, region: str) -> Dict:
+    def get_ads_profile(self, access_token: str, region: str) -> List[Dict]:
         headers = self._get_headers(access_token=access_token)
         base_url = self._get_base_url(region=region)
         endpoint = "/v2/profiles"
