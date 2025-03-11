@@ -2,11 +2,20 @@ import logging
 from typing import Dict, List
 
 
+from amazon.serializers import process_total_and_sales_data, serialize_seller_central_sales, serialize_seller_central_traffic
+from amazon.tasks import fetch_seller_central_report_data_by_date, fetch_seller_central_return_report_data_by_date
+from amazon_ads.services import get_ads_sales, verify_and_get_ads_profile
 from base.exception import ServiceException
 import utils.datetime as dt
-from amazon.models import SellerCentralSale, SellerCentralTraffic, SellerCentralReturn
-from amazon.selectors import bulk_create_return_data, bulk_create_seller_central_sales, get_seller_by_user_id, bulk_create_seller_central_traffic
-from amazon.tasks import fetch_seller_central_report_data_by_date, fetch_seller_central_return_report_data_by_date
+from amazon.models import Seller, SellerCentralSale, SellerCentralTraffic, SellerCentralReturn
+from amazon.selectors import (
+    bulk_create_return_data,
+    bulk_create_seller_central_sales,
+    get_seller_by_user_id,
+    bulk_create_seller_central_traffic,
+    get_seller_central_sales_data,
+    get_seller_central_traffic_data
+)
 
 
 logger = logging.getLogger(__name__)
@@ -57,10 +66,10 @@ def start_fetching_seller_central_data(*, user_id: int, amazon_seller_id: str):
     marketplace = seller.marketplace
     logger.info(f"start time {dt.now(with_tz=True)=}")
     fetch_seller_central_report_data_by_date.apply_async(
-        args=[user_id, seller.id, marketplace, amazon_seller_id]
+        args=[user_id, seller.pk, marketplace, amazon_seller_id]
     )
     fetch_seller_central_return_report_data_by_date.apply_async(
-        args=[user_id, seller.id, marketplace, amazon_seller_id]
+        args=[user_id, seller.pk, marketplace, amazon_seller_id]
     )
 
 
@@ -80,7 +89,21 @@ def prepare_bulk_create_return_data(*, data: List[Dict]):
     bulk_create_return_data(data=return_objects)
 
 
-def get_sales_data(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str):
+def get_total_sales(*, seller: Seller, start_date: str, end_date: str) -> List[Dict]:
+    logger.info(f"{seller.user_id=}, {seller.id=} {seller.amazon_seller_id=}, {start_date=}, {end_date=}")
+    total_sales = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date)
+    total_sales_data = serialize_seller_central_sales(sales=total_sales)
+    return total_sales_data
+
+
+def get_total_traffic(*, seller: Seller, start_date: str, end_date: str) -> List[Dict]:
+    logger.info(f"{seller.pk=}, {start_date=}, {end_date=}")
+    total_traffic = get_seller_central_traffic_data(seller=seller, start_date=start_date, end_date=end_date)
+    total_traffic_data = serialize_seller_central_traffic(traffics=total_traffic)
+    return total_traffic_data
+
+
+def verify_and_get_seller(*, user_id: int, amazon_seller_id: str) -> Seller:
     if not amazon_seller_id:
         raise ServiceException("amazon seller id is missing")
 
@@ -88,5 +111,29 @@ def get_sales_data(*, user_id: int, amazon_seller_id: str, start_date: str, end_
     if not seller:
         raise ServiceException("seller does not exists")
 
-    marketplace = seller.marketplace
-    logger.info(f"start time {dt.now(with_tz=True)=}")
+    return seller
+
+
+def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str) -> Dict:
+    logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
+    prev_start_date, prev_end_date = dt.get_previous_period_of_dates(start_date=start_date, end_date=end_date)
+    seller = verify_and_get_seller(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    current_period_total_sales = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
+    prev_period_total_sales = get_total_sales(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
+    ads_profile = verify_and_get_ads_profile(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    current_period_ads_sales = get_ads_sales(
+        ads_profile=ads_profile, start_date=start_date, end_date=end_date
+    )
+    prev_period_ads_sales = get_ads_sales(
+        ads_profile=ads_profile, start_date=prev_start_date, end_date=prev_end_date
+    )
+    current_period_report = process_total_and_sales_data(
+        total_sales=current_period_total_sales, ads_sale=current_period_ads_sales
+    )
+    previos_period_report = process_total_and_sales_data(
+        total_sales=prev_period_total_sales, ads_sale=prev_period_ads_sales
+    )
+    # report = get_delta_and_percentage(
+    #     current_period_report=current_period_report, previos_period_report=previos_period_report
+    # )
+    return {"current_period": current_period_report, "previos_period": previos_period_report}
