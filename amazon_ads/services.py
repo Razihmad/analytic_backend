@@ -74,17 +74,19 @@ def prepare_campaing_level_data_for_upsert(*, data: List[Dict], user_id: int, ad
     return bulk_upsert_data
 
 
-def get_ads_sales(*, ads_profile: AmazonAdsAccount, start_date: datetime.date, end_date: datetime.date):
+def get_ads_sales(*, ads_profile: Optional[AmazonAdsAccount], start_date: datetime.date, end_date: datetime.date) -> List:
+    if not ads_profile:
+        return []
     logger.info(f"{ads_profile.user_id=}, {ads_profile.amazon_seller_id=}, {start_date=}, {end_date=}")
     ads_sales = get_ads_sales_data(profile=ads_profile, start_date=start_date, end_date=end_date)
     ads_sales_data = serialize_ads_sales_data(sales=ads_sales)
     return ads_sales_data
 
 
-def verify_and_get_ads_profile(*, user_id: int, amazon_seller_id: Optional[str]) -> AmazonAdsAccount:
-    if not amazon_seller_id:
-        raise ServiceException("amazon seller id is missing")
+def verify_and_get_ads_profile(*, user_id: int, amazon_seller_id: Optional[str]) -> Optional[AmazonAdsAccount]:
+    # if not amazon_seller_id:
+    #     raise ServiceException("amazon seller id is missing")
     ads_profile = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
-    if not ads_profile:
-        raise ServiceException("ads profile does not exists")
+    # if not ads_profile:
+    #     raise ServiceException("ads profile does not exists")
     return ads_profile

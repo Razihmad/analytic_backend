@@ -125,6 +125,7 @@ def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date_str
     current_period_total_sales = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
     prev_period_total_sales = get_total_sales(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
     ads_profile = verify_and_get_ads_profile(user_id=user_id, amazon_seller_id=amazon_seller_id)
+
     current_period_ads_sales = get_ads_sales(
         ads_profile=ads_profile, start_date=start_date, end_date=end_date
     )
