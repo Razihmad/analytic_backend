@@ -33,14 +33,15 @@ def get_values_delta_and_percentage_change(*, previous_report: Dict, current_rep
         prev_value = previous_report[key]
         curr_value = current_report[key]
         absolute_change = curr_value - prev_value
+        percentage_change = 0
         if prev_value != 0:
             percentage_change = (absolute_change / prev_value) * 100
-        else:
-            percentage_change = float('inf')  # Infinite change if previous value is zero
         changes[key] = {
             'previous': prev_value,
             'current': curr_value,
             'absolute_change': absolute_change,
-            'percentage_change': percentage_change
+            'percentage_change': percentage_change,
+            "color": "green" if percentage_change > 0 else "red",
+            "arrow": "up" if percentage_change > 0 else "down"
         }
     return changes

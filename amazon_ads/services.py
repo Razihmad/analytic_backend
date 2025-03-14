@@ -84,9 +84,7 @@ def get_ads_sales(*, ads_profile: Optional[AmazonAdsAccount], start_date: dateti
 
 
 def verify_and_get_ads_profile(*, user_id: int, amazon_seller_id: Optional[str]) -> Optional[AmazonAdsAccount]:
-    # if not amazon_seller_id:
-    #     raise ServiceException("amazon seller id is missing")
+    if not amazon_seller_id:
+        return
     ads_profile = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
-    # if not ads_profile:
-    #     raise ServiceException("ads profile does not exists")
     return ads_profile

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class TryApi(APIView):
-    def get(self, request):
+    def post(self, request):
         return status_200(message="Hello World", data={"name": "Razi"})
 
 
@@ -38,9 +38,10 @@ class SalesAPI(APIView):
     @handle_exception
     def post(self, request):
         user_id = request.user.id
-        amazon_seller_id = request.POST.get("amazon_seller_id")
-        start_date = request.POST.get("start_date", str(dt.now(with_tz=True).date() - timedelta(days=8)))
-        end_date = request.POST.get("end_date", str(dt.now(with_tz=True).date() - timedelta(days=1)))
+        logger.info(request.data)
+        amazon_seller_id = request.data.get("amazon_seller_id")
+        start_date = request.data.get("start_date", str(dt.now(with_tz=True).date() - timedelta(days=8)))
+        end_date = request.data.get("end_date", str(dt.now(with_tz=True).date() - timedelta(days=1)))
         report = get_sales_report_data(
             user_id=user_id, amazon_seller_id=amazon_seller_id, start_date_str=start_date, end_date_str=end_date
         )
