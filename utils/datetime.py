@@ -70,7 +70,7 @@ def get_seconds_passed_in_a_day():
     return seconds_passed
 
 
-def convert_str_to_date(*, date_str: str, date_format: str = "%Y-%m-%d"):
+def convert_str_to_date(*, date_str: str, date_format: str = "%Y-%m-%d") -> date:
     return datetime.strptime(date_str, date_format)
 
 

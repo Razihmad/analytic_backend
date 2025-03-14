@@ -1,4 +1,5 @@
 import logging
+import datetime
 from typing import Dict, List
 
 
@@ -16,6 +17,7 @@ from amazon.selectors import (
     get_seller_central_sales_data,
     get_seller_central_traffic_data
 )
+from utils.utils import get_values_delta_and_percentage_change
 
 
 logger = logging.getLogger(__name__)
@@ -89,14 +91,14 @@ def prepare_bulk_create_return_data(*, data: List[Dict]):
     bulk_create_return_data(data=return_objects)
 
 
-def get_total_sales(*, seller: Seller, start_date: str, end_date: str) -> List[Dict]:
+def get_total_sales(*, seller: Seller, start_date: datetime.date, end_date: datetime.date) -> List[Dict]:
     logger.info(f"{seller.user_id=}, {seller.id=} {seller.amazon_seller_id=}, {start_date=}, {end_date=}")
     total_sales = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date)
     total_sales_data = serialize_seller_central_sales(sales=total_sales)
     return total_sales_data
 
 
-def get_total_traffic(*, seller: Seller, start_date: str, end_date: str) -> List[Dict]:
+def get_total_traffic(*, seller: Seller, start_date: datetime.date, end_date: datetime.date) -> List[Dict]:
     logger.info(f"{seller.pk=}, {start_date=}, {end_date=}")
     total_traffic = get_seller_central_traffic_data(seller=seller, start_date=start_date, end_date=end_date)
     total_traffic_data = serialize_seller_central_traffic(traffics=total_traffic)
@@ -114,8 +116,10 @@ def verify_and_get_seller(*, user_id: int, amazon_seller_id: str) -> Seller:
     return seller
 
 
-def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str) -> Dict:
-    logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
+def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date_str: str, end_date_str: str) -> Dict:
+    logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date_str=}, {end_date_str=}")
+    start_date = dt.convert_str_to_date(date_str=start_date_str)
+    end_date = dt.convert_str_to_date(date_str=end_date_str)
     prev_start_date, prev_end_date = dt.get_previous_period_of_dates(start_date=start_date, end_date=end_date)
     seller = verify_and_get_seller(user_id=user_id, amazon_seller_id=amazon_seller_id)
     current_period_total_sales = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
@@ -133,7 +137,7 @@ def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date: st
     previos_period_report = process_total_and_sales_data(
         total_sales=prev_period_total_sales, ads_sale=prev_period_ads_sales
     )
-    # report = get_delta_and_percentage(
-    #     current_period_report=current_period_report, previos_period_report=previos_period_report
-    # )
-    return {"current_period": current_period_report, "previos_period": previos_period_report}
+    report = get_values_delta_and_percentage_change(
+        previous_report=previos_period_report, current_report=current_period_report
+    )
+    return report

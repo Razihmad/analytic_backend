@@ -43,26 +43,38 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
     total_sales_data = defaultdict(
         total_revenue=0,
         ads_revenue=0,
+        organic_revenue=0,
         total_orders=0,
         total_units=0,
         ads_unit=0,
-        ads_orders=0,
+        organic_unit=0,
         total_aov=0,
         ads_spend=0,
+        tacos=0,
+        ads_roas=0,
+        total_roas=0,
+        acos=0,
     )
+
     for sale in total_sales:
         total_sales_data["total_revenue"] += sale["ordered_product_sales"]
         total_sales_data["total_orders"] += sale["items_ordered"]
         total_sales_data["total_units"] += sale["units_ordered"]
 
-    total_sales_data["total_aov"] = int(total_sales_data["total_revenue"] / total_sales_data["total_orders"])
+    total_sales_data["organic_revenue"] = total_sales_data["total_revenue"] - total_sales_data["ads_revenue"]
+    if total_sales_data["total_orders"] != 0:
+        total_sales_data["total_aov"] = int(total_sales_data["total_revenue"] / total_sales_data["total_orders"])
 
     for sale in ads_sale:
         total_sales_data["ads_revenue"] += sale["sales"]
         total_sales_data["ads_spend"] += sale["spend"]
-    total_sales_data["tacos"] = int(total_sales_data["ads_spend"] / total_sales_data["total_revenue"])  # confirm it first
-    total_sales_data["acos"] = int(total_sales_data["ads_spend"] / total_sales_data["ads_revenue"])  # confirm it first
-    total_sales_data["ads_roas"] = int(total_sales_data["ads_revenue"] / total_sales_data["ads_spend"])
-    total_sales_data["total_roas"] = int(total_sales_data["total_revenue"] / total_sales_data["ads_spend"])
+
+    if total_sales_data["total_revenue"]:
+        total_sales_data["tacos"] = int(total_sales_data["ads_spend"] / total_sales_data["total_revenue"])  # confirm it first
+    if total_sales_data["ads_revenue"]:
+        total_sales_data["acos"] = int(total_sales_data["ads_spend"] / total_sales_data["ads_revenue"])  # confirm it first
+    if total_sales_data["ads_spend"]:
+        total_sales_data["ads_roas"] = int(total_sales_data["ads_revenue"] / total_sales_data["ads_spend"])
+        total_sales_data["total_roas"] = int(total_sales_data["total_revenue"] / total_sales_data["ads_spend"])
 
     return total_sales_data

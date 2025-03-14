@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Optional
 
 from django.db.models import QuerySet
@@ -17,5 +18,5 @@ def bulk_upsert_amazon_ads_campaign_sales(*, data: List[AmazonAdsSaleCampaign]):
     return AmazonAdsSaleCampaign.objects.bulk_create(data, ignore_conflicts=True)
 
 
-def get_ads_sales_data(*, profile: AmazonAdsAccount, start_date: str, end_date: str) -> QuerySet[AmazonAdsSaleAsin]:
+def get_ads_sales_data(*, profile: AmazonAdsAccount, start_date: datetime.date, end_date: datetime.date) -> QuerySet[AmazonAdsSaleAsin]:
     return AmazonAdsSaleAsin.objects.filter(amazon_ads=profile, sales_date__gte=start_date, sales_date__lte=end_date)

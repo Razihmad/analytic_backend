@@ -1,4 +1,5 @@
 import logging
+import datetime
 from django.contrib.auth.models import User
 
 from amazon_ads.selectors import get_ads_profile_by_user_and_seller_id, get_ads_sales_data
@@ -73,7 +74,7 @@ def prepare_campaing_level_data_for_upsert(*, data: List[Dict], user_id: int, ad
     return bulk_upsert_data
 
 
-def get_ads_sales(*, ads_profile: AmazonAdsAccount, start_date: str, end_date: str):
+def get_ads_sales(*, ads_profile: AmazonAdsAccount, start_date: datetime.date, end_date: datetime.date):
     logger.info(f"{ads_profile.user_id=}, {ads_profile.amazon_seller_id=}, {start_date=}, {end_date=}")
     ads_sales = get_ads_sales_data(profile=ads_profile, start_date=start_date, end_date=end_date)
     ads_sales_data = serialize_ads_sales_data(sales=ads_sales)

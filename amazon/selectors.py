@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Optional
 
 from django.db.models import QuerySet
@@ -20,9 +21,9 @@ def bulk_create_return_data(*, data: List[SellerCentralReturn]):
     return SellerCentralReturn.objects.bulk_create(data, ignore_conflicts=True)
 
 
-def get_seller_central_sales_data(*, seller: Seller, start_date: str, end_date: str) -> QuerySet[SellerCentralSale]:
+def get_seller_central_sales_data(*, seller: Seller, start_date: datetime.date, end_date: datetime.date) -> QuerySet[SellerCentralSale]:
     return SellerCentralSale.objects.filter(seller=seller, sales_date__gte=start_date, sales_date__lte=end_date)
 
 
-def get_seller_central_traffic_data(*, seller: Seller, start_date: str, end_date: str) -> QuerySet[SellerCentralTraffic]:
+def get_seller_central_traffic_data(*, seller: Seller, start_date: datetime.date, end_date: datetime.date) -> QuerySet[SellerCentralTraffic]:
     return SellerCentralTraffic.objects.filter(seller=seller, sessions_date__gte=start_date, sessions_date__lte=end_date)
