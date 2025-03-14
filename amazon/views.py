@@ -5,7 +5,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from base.decorators import handle_exception
 import utils.datetime as dt
-from amazon.services import get_sales_report_data, start_fetching_seller_central_data
+from amazon.services import get_available_regions, get_sales_report_data, start_fetching_seller_central_data
 from base.response import status_200
 
 # Create your views here.
@@ -46,3 +46,13 @@ class SalesAPI(APIView):
             user_id=user_id, amazon_seller_id=amazon_seller_id, start_date_str=start_date, end_date_str=end_date
         )
         return status_200(message="Sales Data", data={"report": report})
+
+
+class GetRegionsAPI(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @handle_exception
+    def post(self, request):
+        regions = get_available_regions()
+        return status_200(message="Regions", data={"regions": regions})

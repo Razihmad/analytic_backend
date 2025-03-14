@@ -71,3 +71,16 @@ class SellerCentralReturn(models.Model):
     return_quantity = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class RegionDetail(models.Model):
+    marketplace_id = models.CharField(max_length=255)
+    country = models.CharField(max_length=255)
+    country_code = models.CharField(max_length=255)
+    region = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"{self.marketplace_id} | {self.region}"

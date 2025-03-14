@@ -1,7 +1,8 @@
 from typing import Dict, List
 
 from django.db.models import QuerySet
-from amazon.models import SellerCentralSale, SellerCentralTraffic
+from django.db.models.manager import BaseManager
+from amazon.models import SellerCentralSale, SellerCentralTraffic, RegionDetail
 from collections import defaultdict
 
 
@@ -78,3 +79,17 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
         total_sales_data["total_roas"] = int(total_sales_data["total_revenue"] / total_sales_data["ads_spend"])
 
     return total_sales_data
+
+
+def serialize_regions_details(*, regions: BaseManager[RegionDetail]) -> List[Dict]:
+    serialized_regions = []
+    for region in regions:
+        serialized_regions.append(
+            {
+                "country": region.country,
+                "country_code": region.country_code,
+                "region": region.region,
+                "marketplce_id": region.marketplace_id
+            }
+        )
+    return serialized_regions
