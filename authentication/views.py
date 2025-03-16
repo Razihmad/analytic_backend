@@ -84,7 +84,7 @@ class GoogleLogin(APIView):
 
 class GoogleLoginCallback(APIView):
     def post(self, request, *args, **kwargs):
-        code = request.GET.get("code", None)
+        code = request.data.get("code", None)
         user_data = get_user_data_from_google_code(code=code)
         user, is_created = create_user_by_google_data(data=user_data)
         access_token = get_jwt_access_token(user=user)

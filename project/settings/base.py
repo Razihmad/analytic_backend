@@ -38,7 +38,7 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 INTERNAL_APPS = ["amazon", "authentication", "amazon_ads"]
 
-EXTERNAL_APPS = ["rest_framework",]
+EXTERNAL_APPS = ["rest_framework", "corsheaders"]
 
 DEFAULT_APPS = [
     "django.contrib.admin",
@@ -62,7 +62,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "project.urls"
 
