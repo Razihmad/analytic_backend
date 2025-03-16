@@ -1,11 +1,12 @@
 # Third Party
 from django.shortcuts import redirect
 from rest_framework.views import APIView
-# from rest_framework_simplejwt.authentication import JWTAuthentication
-# from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 # Base Package
 from authentication.serializers import serialized_ads_profile_data
+from base.decorators import handle_exception
 from base.response import status_200
 
 # Authentication
@@ -25,10 +26,11 @@ from authentication.services import (
 
 # Create your views here.
 class AmazonLogin(APIView):
-    # authentication_classes = [JWTAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    @handle_exception
+    def post(self, request):
         country = request.GET.get("country", "India")
         country_code = request.GET.get("country_code", "IN")
         url = get_amazon_login_uri(country=country, country_code=country_code)
@@ -36,10 +38,11 @@ class AmazonLogin(APIView):
 
 
 class AmazonCallback(APIView):
-    # authentication_classes = [JWTAuthentication]
-    # permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
+    @handle_exception
+    def post(self, request):
         selling_partner_id = request.GET.get("selling_partner_id")
         spapi_oauth_code = request.GET.get("spapi_oauth_code")
         marketplace_id = request.GET.get("state")
@@ -80,7 +83,7 @@ class GoogleLogin(APIView):
 
 
 class GoogleLoginCallback(APIView):
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         code = request.GET.get("code", None)
         user_data = get_user_data_from_google_code(code=code)
         user, is_created = create_user_by_google_data(data=user_data)
@@ -89,6 +92,9 @@ class GoogleLoginCallback(APIView):
 
 
 class AmazonAdsLogin(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
         country_code = request.GET.get("country_code", "IN")
         url, region = get_amazon_ads_login_uri(country_code=country_code)
@@ -97,7 +103,10 @@ class AmazonAdsLogin(APIView):
 
 
 class AmazonAdsCallback(APIView):
-    def get(self, request, *args, **kwargs):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
         code = request.GET.get("code")
         region = request.session["region"]
         refresh_token, profiles = generate_token_and_get_ads_profile_data(code=code, region=region)
