@@ -4,6 +4,7 @@ from typing import List, Optional
 from django.db.models import QuerySet
 from django.db.models.manager import BaseManager
 from amazon.models import Seller, SellerCentralSale, SellerCentralTraffic, SellerCentralReturn, RegionDetail
+from django.contrib.auth.models import User
 
 
 def get_seller_by_user_id(*, user_id: int, amazon_seller_id: str) -> Optional[Seller]:
@@ -32,3 +33,7 @@ def get_seller_central_traffic_data(*, seller: Seller, start_date: datetime.date
 
 def get_regions() -> BaseManager[RegionDetail]:
     return RegionDetail.objects.all()
+
+
+def is_seller_central_account_exist(*, user: User) -> bool:
+    return Seller.objects.filter(user=user).exists()

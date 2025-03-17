@@ -5,6 +5,8 @@ from urllib.parse import urlencode
 import requests
 from django.conf import settings
 
+from base.exception import ServiceException
+
 logger = logging.getLogger(__name__)
 
 
@@ -43,9 +45,9 @@ class GoogleOAuth:
         }
 
         response = requests.post(self.access_token_obtain_url, data=data)
-
+        logger.info(f"{response.text=}, {response.status_code=}")
         if not response.ok:
-            raise Exception('Failed to obtain access token from Google.')
+            raise ServiceException('Failed to obtain access token from Google.')
 
         access_token = response.json()['access_token']
 

@@ -1,6 +1,6 @@
 from typing import Dict, Optional, Tuple
-from amazon.selectors import get_seller_by_user_id
-from amazon_ads.selectors import get_ads_profile_by_user_and_seller_id
+from amazon.selectors import get_seller_by_user_id, is_seller_central_account_exist
+from amazon_ads.selectors import get_ads_profile_by_user_and_seller_id, is_amazon_ads_account_exist
 from authentication.selectors import bulk_create_profiles, get_or_create_seller, get_or_create_user
 from base.decorators import cache_function
 from base.exception import ServiceException
@@ -142,3 +142,11 @@ def get_ads_profile_id(*, user_id: int, amazon_seller_id: str) -> str:
     if not profile:
         raise ServiceException("No profile found")
     return profile.profile_id
+
+
+def is_seller_account_exist(*, user: User) -> bool:
+    return is_seller_central_account_exist(user=user)
+
+
+def is_ads_account_exist(*, user: User) -> bool:
+    return is_amazon_ads_account_exist(user=user)

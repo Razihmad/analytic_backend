@@ -22,6 +22,8 @@ from authentication.services import (
     get_jwt_access_token,
     get_refresh_token,
     get_user_data_from_google_code,
+    is_ads_account_exist,
+    is_seller_account_exist,
 )
 
 
@@ -85,12 +87,21 @@ class GoogleLogin(APIView):
 
 
 class GoogleLoginCallback(APIView):
+
+    @handle_exception
     def post(self, request, *args, **kwargs):
         code = request.data.get("code", None)
         user_data = get_user_data_from_google_code(code=code)
         user, is_created = create_user_by_google_data(data=user_data)
+        is_seller_exist = is_seller_account_exist(user=user)
+        is_ads_acc_exist = is_ads_account_exist(user=user)
         access_token = get_jwt_access_token(user=user)
-        return status_200(message="Login successful", data={"is_new_user": is_created, "access_token": access_token})
+        return status_200(
+            message="Login successful",
+            data={
+                "is_new_user": is_created and is_seller_exist and is_ads_acc_exist, "access_token": access_token
+            }
+        )
 
 
 class AmazonAdsLogin(APIView):
