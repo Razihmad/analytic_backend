@@ -1,3 +1,5 @@
+import logging
+
 # Third Party
 from django.shortcuts import redirect
 from rest_framework.views import APIView
@@ -25,6 +27,9 @@ from authentication.services import (
     is_ads_account_exist,
     is_seller_account_exist,
 )
+
+
+logger = logging.getLogger(__name__)
 
 
 # Create your views here.
@@ -95,11 +100,12 @@ class GoogleLoginCallback(APIView):
         user, is_created = create_user_by_google_data(data=user_data)
         is_seller_exist = is_seller_account_exist(user=user)
         is_ads_acc_exist = is_ads_account_exist(user=user)
+        logger.info(f"Is seller exist: {is_seller_exist=}, {is_ads_acc_exist=}")
         access_token = get_jwt_access_token(user=user)
         return status_200(
             message="Login successful",
             data={
-                "is_new_user": is_created and is_seller_exist and is_ads_acc_exist, "access_token": access_token
+                "is_new_user": is_created and (not is_seller_exist and not is_ads_acc_exist), "access_token": access_token
             }
         )
 
