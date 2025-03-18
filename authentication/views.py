@@ -105,7 +105,7 @@ class GoogleLoginCallback(APIView):
         return status_200(
             message="Login successful",
             data={
-                "is_new_user": is_created and (not is_seller_exist and not is_ads_acc_exist), "access_token": access_token
+                "is_new_user": is_created or (not is_seller_exist or not is_ads_acc_exist), "access_token": access_token
             }
         )
 
