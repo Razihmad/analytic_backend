@@ -1,15 +1,19 @@
+# Standard Package
+import logging
 from datetime import timedelta
+
+# Third party
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
-from base.decorators import handle_exception
+# local
 import utils.datetime as dt
+from amazon.tasks import fetch_sales_report_by_date_range
+from base.decorators import handle_exception
 from amazon.services import get_available_regions, get_sales_report_data, start_fetching_seller_central_data
-from base.response import status_200
+from base.response import status_200, status_400
 
-# Create your views here.
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -56,3 +60,20 @@ class GetRegionsAPI(APIView):
     def post(self, request):
         regions = get_available_regions()
         return status_200(message="Regions", data={"regions": regions})
+
+
+class FetchSalesReportByDate(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @handle_exception
+    def post(self, request):
+        user_id = request.user.id
+        amazon_seller_id = request.data.get("amazon_seller_id")
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
+        if not start_date or not end_date or start_date > end_date:
+            return status_400(message="start data should be lesser than end date")
+        fetch_sales_report_by_date_range.apply_asyn(args=[user_id, amazon_seller_id, start_date, end_date])
+        return status_200(message="Sales Data", data={})

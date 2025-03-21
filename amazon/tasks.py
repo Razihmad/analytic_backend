@@ -4,6 +4,7 @@ from datetime import timedelta
 from celery import shared_task
 from sp_api.base import ReportType, ReportStatus, Granularity
 
+from amazon.selectors import get_seller_by_user_id
 from authentication.services import get_access_token
 import utils.datetime as dt
 from amazon.utils.amazon_sp_api import amazon_sp_api
@@ -173,3 +174,60 @@ def process_xml_report_document_and_create_entry(url: str, seller_id: int):
         }
         return_report_data.append(return_report)
     prepare_bulk_create_return_data(data=return_report_data)
+
+
+@shared_task
+def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_date: str, end_date: str):
+    access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    marketplace = seller.marketplace
+    start_date = dt.convert_str_to_date(start_date)
+    end_date = dt.convert_str_to_date(end_date)
+    while start_date <= end_date:
+        report_type = ReportType.GET_SALES_AND_TRAFFIC_REPORT.value
+        response = amazon_sp_api.create_report(
+            access_token=access_token,
+            marketplace=marketplace,
+            report_type=report_type,
+            data={
+                "reportOptions": {"dateGranularity": Granularity.DAY.value, "asinGranularity": "SKU"},
+                "dataStartTime": start_date - timedelta(days=1),
+                "dataEndTime": start_date,
+            },
+        )
+        is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
+        if is_token_expire:
+            access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+        start_date = start_date + timedelta(days=1)
+        report_id = response.get("reportId")
+        get_report_and_process_data_task.apply_async(args=[user_id, amazon_seller_id, report_id, access_token, marketplace, amazon_seller_id])
+
+
+@shared_task
+def get_report_and_process_data_task(
+    user_id: int, seller_id: int, report_id: str, access_token: str, marketplace: str, amazon_seller_id: str, report_type: str
+):
+    logger.info(f"[get_report_and_process_data] {user_id=}, {seller_id=}, {report_id=},{marketplace=}")
+    response = amazon_sp_api.get_report_by_id(
+        access_token=access_token, report_id=report_id, marketplace=marketplace
+    )
+    is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
+    if is_token_expire:
+        access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    logger.info(f"[get_report_and_process_data] {user_id=}, {seller_id=}, {response=}, {report_id=}")
+    status = response.get("processingStatus")
+    if status in [ReportStatus.IN_PROGRESS.value, ReportStatus.IN_QUEUE.value]:
+        return get_report_and_process_data_task.apply_async(
+            args=[
+                user_id, seller_id, report_id, access_token, marketplace
+            ],
+            countdown=20
+        )
+
+    if status == ReportStatus.DONE.value:
+        report_document_id = response.get("reportDocumentId")
+        fetch_report_document.apply_async(
+            args=[access_token, report_document_id, marketplace, user_id, seller_id, amazon_seller_id, report_type]
+        )
+
+    return status

@@ -1,15 +1,18 @@
+# Standard Library
 import logging
 import datetime
+from typing import List, Optional, Dict
+
+# Third Party Stuff
 from django.contrib.auth.models import User
 
+# Local
 from amazon_ads.selectors import get_ads_profile_by_user_and_seller_id, get_ads_sales_data
 from amazon_ads.serializers import serialize_ads_sales_data
 from amazon_ads.tasks import (
     start_fetching_ad_sales_data_by_campaign, start_fetcing_ad_sales_data_by_asin
 )
 from base.exception import ServiceException
-from typing import List, Optional
-from typing import Dict
 from amazon_ads.models import AmazonAdsAccount, AmazonAdsSaleAsin, AmazonAdsSaleCampaign
 
 logger = logging.getLogger(__name__)
@@ -74,7 +77,7 @@ def prepare_campaing_level_data_for_upsert(*, data: List[Dict], user_id: int, ad
     return bulk_upsert_data
 
 
-def get_ads_sales(*, ads_profile: Optional[AmazonAdsAccount], start_date: datetime.date, end_date: datetime.date) -> List:
+def get_ads_sales(*, ads_profile: Optional[AmazonAdsAccount], start_date: datetime.date, end_date: datetime.date) -> List[Dict]:
     if not ads_profile:
         return []
     logger.info(f"{ads_profile.user_id=}, {ads_profile.amazon_seller_id=}, {start_date=}, {end_date=}")
