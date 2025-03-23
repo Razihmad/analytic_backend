@@ -114,8 +114,9 @@ class AmazonAdsLogin(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        country_code = request.GET.get("country_code", "IN")
+    @handle_exception
+    def post(self, request):
+        country_code = request.data.get("country_code", "IN")
         url, region = get_amazon_ads_login_uri(country_code=country_code)
         request.session["region"] = region
         return redirect(url)
@@ -125,6 +126,7 @@ class AmazonAdsCallback(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
+    @handle_exception
     def post(self, request, *args, **kwargs):
         code = request.data.get("code")
         region = request.session["region"]

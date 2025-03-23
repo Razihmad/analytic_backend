@@ -19,6 +19,7 @@ redis = "^5.2.1"
 psycopg2-binary = "^2.9.10"
 xmltodict = "^0.14.2"
 django-cors-headers = "^4.7.0"
+pydantic = "^2.10.6"
 
 
 [build-system]
