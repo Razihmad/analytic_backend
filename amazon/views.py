@@ -84,7 +84,7 @@ class GetAmazonProfileData(APIView):
     permission_classes = [IsAuthenticated]
 
     @handle_exception
-    def get(self, request):
+    def post(self, request):
         user = request.user
         accounts_profile = get_amazon_accounts_profile(user=user)
         return status_200(message="Profiles", data={"accounts": accounts_profile})
