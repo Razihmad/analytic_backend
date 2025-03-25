@@ -24,8 +24,7 @@ from authentication.services import (
     get_jwt_access_token,
     get_refresh_token,
     get_user_data_from_google_code,
-    is_ads_account_exist,
-    is_seller_account_exist,
+    is_seller_and_ads_account_exist,
 )
 
 
@@ -98,8 +97,7 @@ class GoogleLoginCallback(APIView):
         code = request.data.get("code", None)
         user_data = get_user_data_from_google_code(code=code)
         user, is_created = create_user_by_google_data(data=user_data)
-        is_seller_exist = is_seller_account_exist(user=user)
-        is_ads_acc_exist = is_ads_account_exist(user=user)
+        is_seller_exist, is_ads_acc_exist = is_seller_and_ads_account_exist(user=user)
         logger.info(f"Is seller exist: {is_seller_exist=}, {is_ads_acc_exist=}")
         access_token = get_jwt_access_token(user=user)
         return status_200(

@@ -2,7 +2,6 @@ from typing import Dict, List, Tuple
 from django.contrib.auth.models import User
 
 from amazon.models import Seller
-from amazon_ads.models import AmazonAdsAccount
 
 
 def get_or_create_user(*, email: str, extra_data: Dict) -> Tuple[User, bool]:
@@ -13,6 +12,7 @@ def get_or_create_seller(*, partner_id: str, refresh_token: str, marketplace_id:
     seller, _ = Seller.objects.get_or_create(
         user=user,
         marketplace_id=marketplace_id,
+        amazon_seller_id=partner_id,
         defaults={
             "refresh_token": refresh_token,
             "amazon_seller_id": partner_id,
@@ -21,5 +21,5 @@ def get_or_create_seller(*, partner_id: str, refresh_token: str, marketplace_id:
     return seller
 
 
-def bulk_create_profiles(*, data: List[AmazonAdsAccount]) -> List[AmazonAdsAccount]:
-    return AmazonAdsAccount.objects.bulk_create(data, ignore_conflicts=True)
+def bulk_create_profiles(*, data: List[Seller], update_fields: List[str]) -> List[Seller]:
+    return Seller.objects.bulk_create(data, update_conflicts=True, update_fields=update_fields)

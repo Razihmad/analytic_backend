@@ -77,3 +77,15 @@ class FetchSalesReportByDate(APIView):
             return status_400(message="start data should be lesser than end date")
         fetch_sales_report_by_date_range.apply_asyn(args=[user_id, amazon_seller_id, start_date, end_date])
         return status_200(message="Sales Data", data={})
+
+
+class GetAmazonProfileData(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @handle_exception
+    def get(self, request):
+        user = request.user
+        ads_profiles = get_amzon_ads_profile(user=user)
+        amazon_profiles = user.amazon_profiles.all()
+        return status_200(message="Profiles", data={"ads_profiles": ads_profiles, "amazon_profiles": amazon_profiles})

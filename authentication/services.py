@@ -1,6 +1,7 @@
 from typing import Dict, Optional, Tuple
-from amazon.selectors import get_seller_by_user_id, is_seller_central_account_exist
-from amazon_ads.selectors import get_ads_profile_by_user_and_seller_id, is_amazon_ads_account_exist
+from amazon.models import Seller
+from amazon.selectors import get_amazon_accounts_by_user_id, get_seller_by_user_id
+from amazon_ads.selectors import get_ads_profile_by_user_and_seller_id
 from authentication.selectors import bulk_create_profiles, get_or_create_seller, get_or_create_user
 from base.decorators import cache_function
 from base.exception import ServiceException
@@ -103,29 +104,30 @@ def generate_token_and_get_ads_profile_data(*, code: str, region: str) -> Tuple[
 
 
 def bulk_create_ads_profile(*, profiles: List[Dict]):
-    from amazon_ads.models import AmazonAdsAccount
     data = []
     for profile in profiles:
-        data.append(AmazonAdsAccount(
-            user_id=profile["user_id"],
-            store_name=profile["store_name"],
-            refresh_token=profile["refresh_token"],
-            marketplace_id=profile["marketplace_id"],
-            country_code=profile["country_code"],
-            currency_code=profile["currency_code"],
-            amazon_seller_id=profile["amazon_seller_id"],
-            profile_id=profile["profile_id"],
-        ))
-    bulk_create_profiles(data=data)
+        data.append(
+            Seller(
+                user_id=profile["user_id"],
+                store_name=profile["store_name"],
+                ads_refresh_token=profile["refresh_token"],
+                marketplace_id=profile["marketplace_id"],
+                amazon_seller_id=profile["amazon_seller_id"],
+                profile_id=profile["profile_id"],
+                country_code=profile["country_code"]
+            )
+        )
+
+    bulk_create_profiles(data=data, update_fields=["ads_refresh_token", "profile_id", "store_name", "country_code"])
 
 
 @cache_function(cache_config_key="ADS_ACCESS_TOKEN")
 def get_ads_access_token(*, user_id: int, amazon_seller_id: str, region: str) -> str:
     refresh_token = get_ads_refresh_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
-    access_token = amazon_ads_login.generate_access_token_using_refresh_token(
+    tokens = amazon_ads_login.generate_access_token_using_refresh_token(
         refresh_token=refresh_token, region=region
     )
-    return access_token["access_token"]
+    return tokens["access_token"]
 
 
 @cache_function(cache_config_key="ADS_REFRESH_TOKEN")
@@ -133,7 +135,7 @@ def get_ads_refresh_token(*, user_id: int, amazon_seller_id: str) -> str:
     profile = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not profile:
         raise ServiceException("No profile found")
-    return profile.refresh_token
+    return profile.ads_refresh_token
 
 
 @cache_function(cache_config_key="ADS_PROFILE_ID")
@@ -144,9 +146,13 @@ def get_ads_profile_id(*, user_id: int, amazon_seller_id: str) -> str:
     return profile.profile_id
 
 
-def is_seller_account_exist(*, user: User) -> bool:
-    return is_seller_central_account_exist(user=user)
-
-
-def is_ads_account_exist(*, user: User) -> bool:
-    return is_amazon_ads_account_exist(user=user)
+def is_seller_and_ads_account_exist(*, user: User) -> bool:
+    amazon_accounts =  get_amazon_accounts_by_user_id(user_id=user.id)
+    amazon_account = amazon_accounts.first()
+    if not amazon_account:
+        return False, False
+    if amazon_account and amazon_account.ads_refresh_token:
+        return True, True
+    if amazon_account and not amazon_account.ads_refresh_token:
+        return True, False
+    return False, False
