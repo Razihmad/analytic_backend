@@ -11,7 +11,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 import utils.datetime as dt
 from amazon.tasks import fetch_sales_report_by_date_range
 from base.decorators import handle_exception
-from amazon.services import get_available_regions, get_sales_report_data, start_fetching_seller_central_data
+from amazon.services import get_amazon_accounts_profile, get_available_regions, get_sales_report_data, start_fetching_seller_central_data
 from base.response import status_200, status_400
 
 
@@ -86,6 +86,5 @@ class GetAmazonProfileData(APIView):
     @handle_exception
     def get(self, request):
         user = request.user
-        ads_profiles = get_amzon_ads_profile(user=user)
-        amazon_profiles = user.amazon_profiles.all()
-        return status_200(message="Profiles", data={"ads_profiles": ads_profiles, "amazon_profiles": amazon_profiles})
+        accounts_profile = get_amazon_accounts_profile(user=user)
+        return status_200(message="Profiles", data={"accounts": accounts_profile})

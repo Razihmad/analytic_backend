@@ -36,3 +36,7 @@ def get_regions() -> BaseManager[RegionDetail]:
 
 def get_amazon_accounts_by_user_id(*, user_id: int) -> QuerySet[Seller]:
     return Seller.objects.filter(user_id=user_id)
+
+
+def get_amazon_accounts_profile_by_user_id(*, user_id: int):
+    return Seller.objects.filter(user_id=user_id).values("amazon_seller_id", "marketplace_id", "id", "user_id", "country_code", "store_name")

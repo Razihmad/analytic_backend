@@ -3,7 +3,7 @@ import datetime
 from typing import Dict, List
 
 
-from amazon.serializers import process_total_and_sales_data, serialize_regions_details, serialize_seller_central_sales, serialize_seller_central_traffic
+from amazon.serializers import process_total_and_sales_data, serialize_amazon_profile_account, serialize_regions_details, serialize_seller_central_sales, serialize_seller_central_traffic
 from amazon.tasks import fetch_seller_central_report_data_by_date, fetch_seller_central_return_report_data_by_date
 from amazon_ads.services import get_ads_sales, verify_and_get_ads_profile
 from base.exception import ServiceException
@@ -12,6 +12,7 @@ from amazon.models import Seller, SellerCentralSale, SellerCentralTraffic, Selle
 from amazon.selectors import (
     bulk_create_return_data,
     bulk_create_seller_central_sales,
+    get_amazon_accounts_profile_by_user_id,
     get_regions,
     get_seller_by_user_id,
     bulk_create_seller_central_traffic,
@@ -149,3 +150,9 @@ def get_available_regions() -> List[Dict]:
     regions = get_regions()
     serialized_regions = serialize_regions_details(regions=regions)
     return serialized_regions
+
+
+def get_amazon_accounts_profile(*, user_id: int) -> List[Dict]:
+    accounts = get_amazon_accounts_profile_by_user_id()
+    serialized_accounts = [serialize_amazon_profile_account(profile=profile) for profile in accounts]
+    return serialized_accounts

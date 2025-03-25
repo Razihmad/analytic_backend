@@ -2,7 +2,7 @@ from typing import Dict, List
 
 from django.db.models import QuerySet
 from django.db.models.manager import BaseManager
-from amazon.models import SellerCentralSale, SellerCentralTraffic, RegionDetail
+from amazon.models import Seller, SellerCentralSale, SellerCentralTraffic, RegionDetail
 from collections import defaultdict
 
 
@@ -93,3 +93,12 @@ def serialize_regions_details(*, regions: BaseManager[RegionDetail]) -> List[Dic
             }
         )
     return serialized_regions
+
+
+def serialize_amazon_profile_account(*, profile: Seller):
+    return {
+        "amazon_seller_id": profile.amazon_seller_id,
+        "marketplace_id": profile.marketplace_id,
+        "store_name": profile.store_name,
+        "country_code": profile.country_code,
+    }
