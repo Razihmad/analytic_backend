@@ -153,6 +153,6 @@ def get_available_regions() -> List[Dict]:
 
 
 def get_amazon_accounts_profile(*, user_id: int) -> List[Dict]:
-    accounts = get_amazon_accounts_profile_by_user_id()
+    accounts = get_amazon_accounts_profile_by_user_id(user_id=user_id)
     serialized_accounts = [serialize_amazon_profile_account(profile=profile) for profile in accounts]
     return serialized_accounts
