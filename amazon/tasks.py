@@ -66,7 +66,7 @@ def get_report_and_process_data(
     if status == ReportStatus.DONE.value:
         report_document_id = response.get("reportDocumentId")
         fetch_report_document.apply_async(
-            args=[access_token, report_document_id, marketplace, user_id, seller_id, amazon_seller_id, report_type]
+            args=[access_token, report_document_id, marketplace, user_id, seller_id, amazon_seller_id]
         )
 
     return status
@@ -74,7 +74,7 @@ def get_report_and_process_data(
 
 @shared_task
 def fetch_report_document(
-    access_token: str, document_id: str, marketplace: str, user_id: int, seller_id: int, amazon_seller_id: str, report_type
+    access_token: str, document_id: str, marketplace: str, user_id: int, seller_id: int, amazon_seller_id: str,
 ):
     response = amazon_sp_api.get_report_document_by_id(
         access_token=access_token, document_id=document_id, marketplace=marketplace
@@ -200,12 +200,12 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
             access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
         start_date = start_date + timedelta(days=1)
         report_id = response.get("reportId")
-        get_report_and_process_data_task.apply_async(args=[user_id, amazon_seller_id, report_id, access_token, marketplace, amazon_seller_id])
+        get_report_and_process_data_task.apply_async(args=[user_id, seller.id, report_id, access_token, marketplace, amazon_seller_id])
 
 
 @shared_task
 def get_report_and_process_data_task(
-    user_id: int, seller_id: int, report_id: str, access_token: str, marketplace: str, amazon_seller_id: str, report_type: str
+    user_id: int, seller_id: int, report_id: str, access_token: str, marketplace: str, amazon_seller_id: str
 ):
     logger.info(f"[get_report_and_process_data] {user_id=}, {seller_id=}, {report_id=},{marketplace=}")
     response = amazon_sp_api.get_report_by_id(
@@ -227,7 +227,7 @@ def get_report_and_process_data_task(
     if status == ReportStatus.DONE.value:
         report_document_id = response.get("reportDocumentId")
         fetch_report_document.apply_async(
-            args=[access_token, report_document_id, marketplace, user_id, seller_id, amazon_seller_id, report_type]
+            args=[access_token, report_document_id, marketplace, user_id, seller_id, amazon_seller_id]
         )
 
     return status
