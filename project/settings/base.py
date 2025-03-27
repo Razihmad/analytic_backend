@@ -200,7 +200,7 @@ CELERY_QUEUES = celery_config.task_queues
 CELERY_ROUTES = celery_config.task_routes
 CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_BROKER_URL = env.str("CELERY_BROKER_URL", default="amqp://localhost")
-
+print("CELERY_BROKER_URL", CELERY_BROKER_URL)
 ## Logging ##
 LOGGING = {
     'version': 1,

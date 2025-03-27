@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @shared_task
 def testing_tasks():
-    print("Testing tasks")
+    logger.info("This is only for testin purpose")
 
 
 @shared_task
