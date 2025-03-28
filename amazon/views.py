@@ -77,7 +77,7 @@ class FetchSalesReportByDate(APIView):
         logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
         if not start_date or not end_date or start_date > end_date:
             return status_400(message="start data should be lesser than end date")
-        fetch_sales_report_by_date_range.apply_asyn(args=[user_id, amazon_seller_id, start_date, end_date])
+        fetch_sales_report_by_date_range.apply_asyn(args=[user_id, amazon_seller_id, start_date, end_date], queue="process_report")
         return status_200(message="Sales Data", data={})
 
 

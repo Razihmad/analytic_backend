@@ -27,10 +27,10 @@ def start_fetching_amazon_ads_data(*, amazon_seller_id: str, user: User):
         raise ServiceException("ads profile does not exists")
     start_fetcing_ad_sales_data_by_asin.apply_async(args=[
         ads_profile.country_code, user.pk, amazon_seller_id, ads_profile.profile_id, ads_profile.pk
-    ])
+    ], queue="process_report")
     start_fetching_ad_sales_data_by_campaign.apply_async(args=[
         ads_profile.country_code, user.pk, amazon_seller_id, ads_profile.profile_id, ads_profile.pk
-    ])
+    ], queue="process_report")
 
 
 def prepare_data_to_bulk_upsert(*, data: List[Dict], user_id: int, ad_account_id: int) -> List[AmazonAdsSaleAsin]:
@@ -112,5 +112,6 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
             country_code,
             ads_profile.profile_id,
             user_id,
-        ]
+        ],
+        queue="process_report"
     )

@@ -197,7 +197,7 @@ CELERY_DEFAULT_EXCHANGE = celery_config.task_default_exchange
 CELERY_DEFAULT_EXCHANGE_TYPE = celery_config.task_default_exchange_type
 CELERY_DEFAULT_ROUTING_KEY = celery_config.task_default_routing_key
 CELERY_QUEUES = celery_config.task_queues
-CELERY_ROUTES = celery_config.task_routes
+CELERY_TASK_ROUTES = celery_config.task_routes
 CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_BROKER_URL = env.str("CELERY_BROKER_URL", default="amqp://localhost")
 print("CELERY_BROKER_URL", CELERY_BROKER_URL)

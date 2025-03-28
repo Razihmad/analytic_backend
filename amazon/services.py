@@ -70,10 +70,10 @@ def start_fetching_seller_central_data(*, user_id: int, amazon_seller_id: str):
     marketplace = seller.marketplace
     logger.info(f"start time {dt.now(with_tz=True)=}")
     fetch_seller_central_report_data_by_date.apply_async(
-        args=[user_id, seller.pk, marketplace, amazon_seller_id]
+        args=[user_id, seller.pk, marketplace, amazon_seller_id], queue="process_report"
     )
     fetch_seller_central_return_report_data_by_date.apply_async(
-        args=[user_id, seller.pk, marketplace, amazon_seller_id]
+        args=[user_id, seller.pk, marketplace, amazon_seller_id], queue="process_report"
     )
 
 

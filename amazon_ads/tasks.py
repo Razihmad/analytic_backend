@@ -88,7 +88,8 @@ def create_ads_data_report_by_date(
         args=[
             user_id, amazon_seller_id, region, report_id, profile_id, amazon_ad_id, report_type
         ],
-        countdown=300
+        countdown=300,
+        queue="process_report"
     )
 
 
@@ -113,13 +114,14 @@ def start_tasks_to_check_report_status(
             args=[
                 user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type
             ],
-            countdown=300
+            countdown=300,
+            queue="process_report"
         )
 
     elif status == ReportStatus.COMPLETED.value:
         print(f"report is completed,{user_id=}, {report_id=}")
         url = response.get("url")
-        download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type])
+        download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type], queue="process_report")
 
 
 @shared_task
@@ -188,7 +190,13 @@ def start_fetching_ad_sales_data_by_campaign(
         if not report_id:
             print(f"report_id not found, {response=}")
             continue
-        start_tasks_to_check_report_status.apply_async(args=[user_id, amazon_seller_id, region, report_id, profile_id, amazon_ad_id, report_type], countdown=300)
+        start_tasks_to_check_report_status.apply_async(
+            args=[
+                user_id, amazon_seller_id, region, report_id, profile_id, amazon_ad_id, report_type
+            ],
+            countdown=300,
+            queue="process_report"
+        )
         i += 1
 
 
