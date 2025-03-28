@@ -178,8 +178,11 @@ def process_xml_report_document_and_create_entry(url: str, seller_id: int):
 
 @shared_task
 def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_date: str, end_date: str):
+    logger.info(f"Fetching Seller Central data for {user_id=}")
     access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    logger.info(f"{access_token=}, {user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    logger.info(f"{seller=}")
     marketplace = seller.marketplace
     start_date = dt.convert_str_to_date(start_date)
     end_date = dt.convert_str_to_date(end_date)
