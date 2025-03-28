@@ -195,8 +195,8 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
             report_type=report_type,
             data={
                 "reportOptions": {"dateGranularity": Granularity.DAY.value, "asinGranularity": "SKU"},
-                "dataStartTime": start_date - timedelta(days=1),
-                "dataEndTime": start_date,
+                "dataStartTime": str(start_date - timedelta(days=1)),
+                "dataEndTime": str(start_date),
             },
         )
         logger.info(f"{response=}")
