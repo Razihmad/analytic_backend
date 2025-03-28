@@ -226,7 +226,7 @@ def get_report_and_process_data_task(
     if status in [ReportStatus.IN_PROGRESS.value, ReportStatus.IN_QUEUE.value]:
         return get_report_and_process_data_task.apply_async(
             args=[
-                user_id, seller_id, report_id, access_token, marketplace
+                user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id
             ],
             countdown=20,
             queue="process_report"
