@@ -183,6 +183,7 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
     marketplace = seller.marketplace
     start_date = dt.convert_str_to_date(start_date)
     end_date = dt.convert_str_to_date(end_date)
+    logger.info(f"{access_token=}, {seller=}, {marketplace=}, {amazon_seller_id=}, {user_id=}, {start_date=}, {end_date=}")
     while start_date <= end_date:
         report_type = ReportType.GET_SALES_AND_TRAFFIC_REPORT.value
         response = amazon_sp_api.create_report(
@@ -200,6 +201,7 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
             access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
         start_date = start_date + timedelta(days=1)
         report_id = response.get("reportId")
+        logger.info(f"{user_id=}, {report_id=}")
         get_report_and_process_data_task.apply_async(args=[user_id, seller.id, report_id, access_token, marketplace, amazon_seller_id], queue="process_report")
 
 
