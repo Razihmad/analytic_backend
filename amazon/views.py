@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class TryApi(APIView):
     def post(self, request):
         from amazon.tasks import testing_tasks
-        testing_tasks.apply_async()
+        testing_tasks.apply_async(queue="process_report")
         return status_200(message="Hello World", data={"name": "Razi"})
 
 
