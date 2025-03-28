@@ -184,8 +184,8 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     logger.info(f"{seller=}")
     marketplace = seller.marketplace
-    start_date = dt.convert_str_to_date(start_date)
-    end_date = dt.convert_str_to_date(end_date)
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
     logger.info(f"{access_token=}, {seller=}, {marketplace=}, {amazon_seller_id=}, {user_id=}, {start_date=}, {end_date=}")
     while start_date <= end_date:
         report_type = ReportType.GET_SALES_AND_TRAFFIC_REPORT.value
@@ -199,12 +199,13 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
                 "dataEndTime": start_date,
             },
         )
+        logger.info(f"{response=}")
         is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
         if is_token_expire:
             access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
         start_date = start_date + timedelta(days=1)
         report_id = response.get("reportId")
-        logger.info(f"{user_id=}, {report_id=}")
+        logger.info(f"{user_id=}, {report_id=}, {start_date=}")
         get_report_and_process_data_task.apply_async(args=[user_id, seller.id, report_id, access_token, marketplace, amazon_seller_id], queue="process_report")
 
 
