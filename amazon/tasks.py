@@ -86,7 +86,8 @@ def fetch_report_document(
     logger.info(f"Report document fetched for {user_id=}, {response=}")
     url = response.get("url")
     process_report_document_and_create_entry.apply_async(args=[url, seller_id], queue="process_report")
-    process_xml_report_document_and_create_entry.apply_async(args=[url, seller_id], queue="process_report")
+    # process_xml_report_document_and_create_entry.apply_async(args=[url, seller_id], queue="process_report")
+    # process_xml_report_document_and_create_entry(url, seller_id)
 
 
 @shared_task
@@ -112,11 +113,11 @@ def process_report_document_and_create_entry(url, seller_id):
             "sessions_date": date,
             "child_asin": data["childAsin"],
             "sku": data["sku"],
-            "browser_sessions": data[""],
-            "mobile_app_sessions": data[""],
-            "browser_page_views": data[""],
-            "mobile_app_page_views": data[""],
-            "unit_sessions_percentage": data[""]
+            "browser_sessions": data["trafficByAsin"]["browserSessions"],
+            "mobile_app_sessions": data["trafficByAsin"]["mobileAppSessions"],
+            "browser_page_views": data["trafficByAsin"]["browserPageViews"],
+            "mobile_app_page_views": data["trafficByAsin"]["mobileAppPageViews"],
+            "unit_sessions_percentage": data["trafficByAsin"]["unitSessionPercentage"]
         }
         traffice_data.append(asin_traffic)
         saels_data.append(asin_sale)

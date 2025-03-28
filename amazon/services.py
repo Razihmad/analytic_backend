@@ -47,7 +47,7 @@ def prepare_and_bulk_create_traffic_data(*, data: List[Dict]):
             seller_id=traffic["seller_id"],
             child_asin=traffic["child_asin"],
             sku=traffic["sku"],
-            session_date=traffic["session_date"],
+            sessions_date=traffic["sessions_date"],
             browser_sessions=traffic["browser_sessions"],
             mobile_app_sessions=traffic["mobile_app_sessions"],
             browser_page_views=traffic["browser_page_views"],
