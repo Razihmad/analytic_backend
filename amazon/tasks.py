@@ -85,7 +85,7 @@ def fetch_report_document(
         fetch_report_document.retry(countdown=1)
     logger.info(f"Report document fetched for {user_id=}, {response=}")
     url = response.get("url")
-    process_report_document_and_create_entry.apply_async(args=[url, seller_id], queue="process_report")
+    process_report_document_and_create_entry.apply_async(args=[url, seller_id], queue="process_report", countdown=2)
     # process_xml_report_document_and_create_entry.apply_async(args=[url, seller_id], queue="process_report")
     # process_xml_report_document_and_create_entry(url, seller_id)
 
@@ -207,7 +207,7 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
         start_date = start_date + timedelta(days=1)
         report_id = response.get("reportId")
         logger.info(f"{user_id=}, {report_id=}, {start_date=}")
-        get_report_and_process_data_task.apply_async(args=[user_id, seller.id, report_id, access_token, marketplace, amazon_seller_id], queue="process_report")
+        get_report_and_process_data_task.apply_async(args=[user_id, seller.id, report_id, access_token, marketplace, amazon_seller_id], queue="process_report", countdown=2)
 
 
 @shared_task
@@ -235,7 +235,7 @@ def get_report_and_process_data_task(
     if status == ReportStatus.DONE.value:
         report_document_id = response.get("reportDocumentId")
         fetch_report_document.apply_async(
-            args=[access_token, report_document_id, marketplace, user_id, seller_id, amazon_seller_id], queue="process_report"
+            args=[access_token, report_document_id, marketplace, user_id, seller_id, amazon_seller_id], queue="process_report", countdown=2
         )
 
     return status
