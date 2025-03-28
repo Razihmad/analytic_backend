@@ -117,7 +117,6 @@ def start_tasks_to_check_report_status(
             countdown=300,
             queue="process_report"
         )
-
     elif status == ReportStatus.COMPLETED.value:
         print(f"report is completed,{user_id=}, {report_id=}")
         url = response.get("url")
@@ -210,17 +209,17 @@ def start_fetching_amazon_ads_by_date_range(
     ad_account_id: int,
     user_id: int
 ):
-    start_date = dt.convert_str_to_date(start_date)
-    end_date = dt.convert_str_to_date(end_date)
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
     region = get_region_by_country_code(country_code=country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     create_ads_data_report_by_date(
-        start_date=start_date,
-        end_date=end_date,
-        region=region,
+        start_date=start_date.strftime("%Y-%m-%d"),
+        end_date=end_date.strftime("%Y-%m-%d"),
         access_token=access_token,
-        amazon_ad_id=ad_account_id,
-        amazon_seller_id=amazon_seller_id,
+        region=region,
         profile_id=profile_id,
         user_id=user_id,
+        amazon_seller_id=amazon_seller_id,
+        amazon_ad_id=ad_account_id,
     )

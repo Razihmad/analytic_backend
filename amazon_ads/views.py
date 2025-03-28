@@ -31,5 +31,5 @@ class FetchAdsReportByDate(APIView):
         user = request.user
         start_date = request.data.get("start_date")
         end_date = request.data.get("end_date")
-        validate_incoming_data(amazon_seller_id=amazon_seller_id, start_date=start_date, end_date=end_date)
+        # validate_incoming_data(amazon_seller_id=amazon_seller_id, start_date=start_date, end_date=end_date)
         fetch_ads_data_by_date(user_id=user.id, amazon_seller_id=amazon_seller_id, start_date=start_date, end_date=end_date)

@@ -100,7 +100,7 @@ def validate_incoming_data(*, amazon_seller_id: str, start_date: str, end_date: 
 
 
 def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str):
-    ads_profile = get_ads_profile_by_user_and_seller_id(user_id=user.pk, amazon_seller_id=amazon_seller_id)
+    ads_profile = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not ads_profile:
         raise ServiceException(f"no ads profile for {user_id=}, {amazon_seller_id=}")
     country_code = ads_profile.country_code
@@ -111,6 +111,7 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
             end_date,
             country_code,
             ads_profile.profile_id,
+            ads_profile.id,
             user_id,
         ],
         queue="process_report"

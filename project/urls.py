@@ -21,5 +21,6 @@ from django.urls import include, path
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("authenticate/", include("authentication.urls")),
-    path("amazon/", include("amazon.urls"))
+    path("amazon/", include("amazon.urls")),
+    path("amazon_ads/", include("amazon_ads.urls")),
 ]
