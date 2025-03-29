@@ -290,7 +290,6 @@ def create_ads_campaign_data_report_by_date(
         "impressions",
         "clicks",
         "cost",
-        "cost",
         "spend",
         "sales1d",
         "sales7d",

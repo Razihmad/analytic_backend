@@ -117,14 +117,6 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
         ],
         queue="process_report"
     )
-
-
-def fetch_ads_campaign_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str):
-    ads_profile = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
-    if not ads_profile:
-        raise ServiceException(f"no ads profile for {user_id=}, {amazon_seller_id=}")
-    logger.info(f"{ads_profile=}")
-    country_code = ads_profile.country_code
     start_fetching_amazon_ads_campaign_by_date_range.apply_async(
         args=[
             amazon_seller_id,
