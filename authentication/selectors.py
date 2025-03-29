@@ -9,7 +9,7 @@ def get_or_create_user(*, email: str, extra_data: Dict) -> Tuple[User, bool]:
 
 
 def get_or_create_seller(*, partner_id: str, refresh_token: str, marketplace_id: str, user: User):
-    seller, _ = Seller.objects.get_or_create(
+    seller, _ = Seller.objects.update_or_create(
         user=user,
         marketplace_id=marketplace_id,
         amazon_seller_id=partner_id,
