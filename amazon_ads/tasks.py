@@ -240,3 +240,97 @@ def start_fetching_amazon_ads_by_date_range(
         amazon_seller_id=amazon_seller_id,
         ad_account_id=ad_account_id,
     )
+
+
+@shared_task
+def start_fetching_amazon_ads_campaign_by_date_range(
+    amazon_seller_id: str,
+    start_date: str,
+    end_date: str,
+    country_code: str,
+    profile_id: str,
+    ad_account_id: int,
+    user_id: int
+):
+    logger.info(f"start_fetching_amazon_ads_by_date_range, {start_date=}, {end_date=}, {ad_account_id=}, {profile_id=}")
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    region = get_region_by_country_code(country_code=country_code)
+    access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    create_ads_campaign_data_report_by_date(
+        start_date=start_date,
+        end_date=end_date,
+        access_token=access_token,
+        region=region,
+        profile_id=profile_id,
+        user_id=user_id,
+        amazon_seller_id=amazon_seller_id,
+        ad_account_id=ad_account_id,
+    )
+
+
+def create_ads_campaign_data_report_by_date(
+    *,
+    start_date: date,
+    end_date: date,
+    access_token: str,
+    region: str,
+    profile_id: str,
+    user_id: int,
+    amazon_seller_id: str,
+    ad_account_id: int
+):
+    report_type = AdsReportTypeId.SP_CAMPAIGN.value
+    group_by = GroupBy.CAMPAIGN.value
+    columns = [
+        "date",
+        "costPerClick",
+        "clickThroughRate",
+        "campaignName",
+        "impressions",
+        "clicks",
+        "cost",
+        "cost",
+        "spend",
+        "sales1d",
+        "sales7d",
+        "sales14d",
+        "unitsSoldClicks1d",
+        "unitsSoldClicks7d",
+        "unitsSoldClicks14d",
+        "campaignBiddingStrategy",
+        "campaignStatus",
+        "campaignId",
+        "purchases1d",
+        "purchases7d",
+        "purchases14d"
+    ]
+    ad_product = AdProduct.SPONSORED_PRODUCTS.value
+    time_unit = "DAILY"
+
+    logger.info(f"creating report for {start_date=}, {end_date=}, {region=}")
+    data = amazon_ads_api.prepare_payload_for_report(
+        report_type=report_type,
+        name=f"{report_type} | {start_date}-{end_date}",
+        start_date=start_date.strftime("%Y-%m-%d"),
+        end_date=end_date.strftime("%Y-%m-%d"),
+        group_by=[group_by],
+        columns=columns,
+        ad_product=ad_product,
+        time_unit=time_unit
+    )
+    response = amazon_ads_api.create_report(access_token=access_token, region=region, profile_id=profile_id, data=data)
+    logger.info(f"report created, {response=}, {start_date=}, {end_date}")
+    report_id = response.get("reportId")
+    logger.info(f"report_id: {report_id=}")
+    if not report_id:
+        print(f"report_id not found, {response=}")
+        return
+    logger.info(f"report_id: {user_id=}, {amazon_seller_id=}, {region=}, {report_id=}, {profile_id=}, {ad_account_id=}, {report_type=}")
+    start_tasks_to_check_report_status.apply_async(
+        args=[
+            user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type
+        ],
+        countdown=300,
+        queue="process_report"
+    )

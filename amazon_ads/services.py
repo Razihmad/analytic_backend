@@ -11,7 +11,7 @@ from amazon.models import Seller
 from amazon_ads.selectors import get_ads_profile_by_user_and_seller_id, get_ads_sales_data
 from amazon_ads.serializers import serialize_ads_sales_data
 from amazon_ads.tasks import (
-    start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetcing_ad_sales_data_by_asin
+    start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetcing_ad_sales_data_by_asin
 )
 from base.exception import ServiceException
 from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign
@@ -38,7 +38,6 @@ def prepare_data_to_bulk_upsert(*, data: List[Dict], user_id: int, ad_account_id
     for item in data:
         bulk_upsert_data.append(
             AmazonAdsSaleAsin(
-                user_id=user_id,
                 amazon_ads_id=ad_account_id,
                 asin=item["advertisedAsin"],
                 sales_date=item["date"],
@@ -60,7 +59,6 @@ def prepare_campaing_level_data_for_upsert(*, data: List[Dict], user_id: int, ad
     for item in data:
         bulk_upsert_data.append(
             AmazonAdsSaleCampaign(
-                user_id=user_id,
                 amazon_ads_id=ad_account_id,
                 campaign_name=item["campaignName"],
                 campaign_id=item["campaignId"],
@@ -108,6 +106,26 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
     logger.info(f"{ads_profile=}")
     country_code = ads_profile.country_code
     start_fetching_amazon_ads_by_date_range.apply_async(
+        args=[
+            amazon_seller_id,
+            start_date,
+            end_date,
+            country_code,
+            ads_profile.profile_id,
+            ads_profile.id,
+            user_id,
+        ],
+        queue="process_report"
+    )
+
+
+def fetch_ads_campaign_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str):
+    ads_profile = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not ads_profile:
+        raise ServiceException(f"no ads profile for {user_id=}, {amazon_seller_id=}")
+    logger.info(f"{ads_profile=}")
+    country_code = ads_profile.country_code
+    start_fetching_amazon_ads_campaign_by_date_range.apply_async(
         args=[
             amazon_seller_id,
             start_date,
