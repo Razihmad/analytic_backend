@@ -120,19 +120,18 @@ def start_tasks_to_check_report_status(
         logger.info(f"status not found, {response=}")
         return
     if status == ReportStatus.PENDING.value:
-        # return start_tasks_to_check_report_status.apply_async(
-        #     args=[
-        #         user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type
-        #     ],
-        #     countdown=300,
-        #     queue="process_report"
-        # )
-        start_tasks_to_check_report_status(user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type)
+        return start_tasks_to_check_report_status.apply_async(
+            args=[
+                user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type
+            ],
+            countdown=300,
+            queue="process_report"
+        )
     elif status == ReportStatus.COMPLETED.value:
         logger.info(f"report is completed,{user_id=}, {report_id=}")
         url = response.get("url")
-        # download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type], queue="process_report")
-        download_file_and_process_report_data(user_id, report_id, url, ad_account_id, report_type)
+        download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type], queue="process_report")
+
 
 @shared_task
 def download_file_and_process_report_data(user_id: int, report_id: str, url: str, ad_account_id: int, report_type: str):
@@ -143,10 +142,13 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
     if report_type == AdsReportTypeId.SP_ADVERTISED_PRODUCT.value:
         data = prepare_data_to_bulk_upsert(data=data, user_id=user_id, ad_account_id=ad_account_id)
         bulk_upsert_amazon_ads_sales(data=data)
+        logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
         return
     if report_type == AdsReportTypeId.SP_CAMPAIGN.value:
         data = prepare_campaing_level_data_for_upsert(data=data, user_id=user_id, ad_account_id=ad_account_id)
         bulk_upsert_amazon_ads_campaign_sales(data=data)
+        logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
+
         return
 
 
