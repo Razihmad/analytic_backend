@@ -22,4 +22,6 @@ def get_or_create_seller(*, partner_id: str, refresh_token: str, marketplace_id:
 
 
 def bulk_create_profiles(*, data: List[Seller], update_fields: List[str]) -> List[Seller]:
-    return Seller.objects.bulk_create(data, update_conflicts=True, update_fields=update_fields, unique_fields=["user", "marketplace_id", "amazon_seller_id"])
+    return Seller.objects.bulk_create(
+        data, update_conflicts=True, update_fields=update_fields, unique_fields=["user", "marketplace_id", "amazon_seller_id"]
+    )

@@ -48,7 +48,8 @@ def prepare_data_to_bulk_upsert(*, data: List[Dict], user_id: int, ad_account_id
                 impressions=item["impressions"],
                 clicks=item["clicks"],
                 spend=item["spend"],
-                cpc=item["costPerClick"],
+                orders=item["purchases1d"] + item["purchases7d"] + item["purchases14d"],
+                cpc=item["costPerClick"] if item["costPerClick"] else 0,
             )
         )
     return bulk_upsert_data

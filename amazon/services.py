@@ -127,7 +127,8 @@ def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date_str
     current_period_total_sales = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
     prev_period_total_sales = get_total_sales(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
     ads_profile = verify_and_get_ads_profile(user_id=user_id, amazon_seller_id=amazon_seller_id)
-
+    current_total_traffic = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
+    prev_total_traffiic = get_total_traffic(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
     current_period_ads_sales = get_ads_sales(
         ads_profile=ads_profile, start_date=start_date, end_date=end_date
     )
@@ -135,10 +136,10 @@ def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date_str
         ads_profile=ads_profile, start_date=prev_start_date, end_date=prev_end_date
     )
     current_period_report = process_total_and_sales_data(
-        total_sales=current_period_total_sales, ads_sale=current_period_ads_sales
+        total_sales=current_period_total_sales, ads_sale=current_period_ads_sales, traffic_data=current_total_traffic
     )
     previos_period_report = process_total_and_sales_data(
-        total_sales=prev_period_total_sales, ads_sale=prev_period_ads_sales
+        total_sales=prev_period_total_sales, ads_sale=prev_period_ads_sales, traffic_data=prev_total_traffiic,
     )
     report = get_values_delta_and_percentage_change(
         previous_report=previos_period_report, current_report=current_period_report

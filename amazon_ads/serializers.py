@@ -17,6 +17,7 @@ def serialize_ads_sales_data(*, sales: QuerySet[AmazonAdsSaleAsin]) -> List[Dict
                 "clicks": sale.clicks,
                 "spend": sale.spend,
                 "cpc": sale.cpc,
+                "orders": sale.orders,
             }
         )
     return serialized_data

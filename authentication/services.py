@@ -147,7 +147,7 @@ def get_ads_profile_id(*, user_id: int, amazon_seller_id: str) -> str:
 
 
 def is_seller_and_ads_account_exist(*, user: User) -> bool:
-    amazon_accounts =  get_amazon_accounts_by_user_id(user_id=user.id)
+    amazon_accounts = get_amazon_accounts_by_user_id(user_id=user.id)
     amazon_account = amazon_accounts.first()
     if not amazon_account:
         return False, False
