@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta, date
 
 from celery import shared_task
@@ -9,6 +10,8 @@ import utils.datetime as dt
 
 from amazon_ads.constants import AdProduct, AdsReportTypeId, GroupBy, ReportStatus
 from amazon_ads.utils.amazon_ads_api import amazon_ads_api
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -68,18 +71,21 @@ def create_ads_data_report_by_date(
     ]
     ad_product = AdProduct.SPONSORED_PRODUCTS.value
     time_unit = "DAILY"
+    logger.info(f"creating report for {start_date=}, {end_date=}, {region=}")
     data = amazon_ads_api.prepare_payload_for_report(
         report_type=report_type,
         name=f"{report_type} | {start_date}-{end_date}",
-        start_date=str(start_date),
-        end_date=str(end_date),
+        start_date=start_date.strftime("%Y-%m-%d"),
+        end_date=end_date.strftime("%Y-%m-%d"),
         group_by=[group_by],
         columns=columns,
         ad_product=ad_product,
         time_unit=time_unit
     )
     response = amazon_ads_api.create_report(access_token=access_token, region=region, profile_id=profile_id, data=data)
+    logger.info(f"report created, {response=}, {start_date=}, {end_date}")
     report_id = response.get("reportId")
+    logger.info(f"report_id: {report_id=}")
     if not report_id:
         print(f"report_id not found, {response=}")
         return
@@ -103,11 +109,13 @@ def start_tasks_to_check_report_status(
     ad_account_id: int,
     report_type: str,
 ):
+    logger.info(f"checking report status, {report_id=}")
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     response = amazon_ads_api.get_report_status_by_report_id(access_token=access_token, region=region, report_id=report_id, profile_id=profile_id)
     status = response.get("status")
+    logger.info(f"report status: {status=}, {report_id=}")
     if not status:
-        print(f"status not found, {response=}")
+        logger.info(f"status not found, {response=}")
         return
     if status == ReportStatus.PENDING.value:
         return start_tasks_to_check_report_status.apply_async(
@@ -118,7 +126,7 @@ def start_tasks_to_check_report_status(
             queue="process_report"
         )
     elif status == ReportStatus.COMPLETED.value:
-        print(f"report is completed,{user_id=}, {report_id=}")
+        logger.info(f"report is completed,{user_id=}, {report_id=}")
         url = response.get("url")
         download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type], queue="process_report")
 
@@ -209,6 +217,7 @@ def start_fetching_amazon_ads_by_date_range(
     ad_account_id: int,
     user_id: int
 ):
+    logger.info(f"start_fetching_amazon_ads_by_date_range, {start_date=}, {end_date=}, {ad_account_id=}, {profile_id=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     region = get_region_by_country_code(country_code=country_code)
