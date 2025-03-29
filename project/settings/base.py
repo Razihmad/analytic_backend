@@ -36,9 +36,9 @@ DEBUG = env.bool("DEBUG", True)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
-INTERNAL_APPS = ["amazon", "authentication"]
+INTERNAL_APPS = ["amazon", "authentication", "amazon_ads"]
 
-EXTERNAL_APPS = ["rest_framework",]
+EXTERNAL_APPS = ["rest_framework", "corsheaders"]
 
 DEFAULT_APPS = [
     "django.contrib.admin",
@@ -56,6 +56,7 @@ INSTALLED_APPS = DEFAULT_APPS + INTERNAL_APPS + EXTERNAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -63,6 +64,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = "project.urls"
 
@@ -194,10 +197,10 @@ CELERY_DEFAULT_EXCHANGE = celery_config.task_default_exchange
 CELERY_DEFAULT_EXCHANGE_TYPE = celery_config.task_default_exchange_type
 CELERY_DEFAULT_ROUTING_KEY = celery_config.task_default_routing_key
 CELERY_QUEUES = celery_config.task_queues
-CELERY_ROUTES = celery_config.task_routes
+CELERY_TASK_ROUTES = celery_config.task_routes
 CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_BROKER_URL = env.str("CELERY_BROKER_URL", default="amqp://localhost")
-
+print("CELERY_BROKER_URL", CELERY_BROKER_URL)
 ## Logging ##
 LOGGING = {
     'version': 1,

@@ -1,0 +1,44 @@
+from django.db import models
+from amazon.models import Seller
+
+# Create your models here.
+
+
+class AmazonAdsSaleAsin(models.Model):
+    amazon_ads = models.ForeignKey(Seller, on_delete=models.CASCADE)
+    asin = models.CharField(max_length=255)
+    sales_date = models.DateField()
+    sales = models.DecimalField(max_digits=10, decimal_places=2)
+    units_sold = models.IntegerField()
+    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    impressions = models.IntegerField()
+    clicks = models.IntegerField()
+    spend = models.DecimalField(max_digits=10, decimal_places=2)
+    cpc = models.DecimalField(max_digits=10, decimal_places=2)
+    orders = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['amazon_ads', 'asin', 'sales_date']
+
+
+class AmazonAdsSaleCampaign(models.Model):
+    amazon_ads = models.ForeignKey(Seller, on_delete=models.CASCADE)
+    campaign_name = models.CharField(max_length=255)
+    campaign_id = models.CharField(max_length=255)
+    sales_date = models.DateField()
+    sales = models.DecimalField(max_digits=10, decimal_places=2)
+    units_sold = models.IntegerField()
+    cost = models.DecimalField(max_digits=10, decimal_places=2)
+    impressions = models.IntegerField()
+    clicks = models.IntegerField()
+    spend = models.DecimalField(max_digits=10, decimal_places=2)
+    cpc = models.DecimalField(max_digits=10, decimal_places=2)
+    campaign_bidding_strategy = models.CharField(max_length=255, null=True, blank=True)
+    campaign_status = models.CharField(max_length=255, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['amazon_ads', 'campaign_id', 'sales_date']

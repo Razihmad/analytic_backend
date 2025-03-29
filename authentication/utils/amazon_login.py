@@ -1,10 +1,13 @@
+import logging
 import requests
-from typing import Optional
+from typing import Optional, Tuple
 
 from django.conf import settings
 from sp_api.base import Marketplaces
 from utils.constants import BaseEndpoint
 from project.constants import Environment
+
+logger = logging.getLogger(__name__)
 
 
 class LoginWithAmazon:
@@ -16,7 +19,7 @@ class LoginWithAmazon:
         self.token_base_url = self.config["AMAZON_TOKEN_BASE_URL"]
         self.environment = settings.ENVIRONMENT
 
-    def generate_login_url(self, country: str, country_code: str):
+    def generate_login_url(self, country: str, country_code: str) -> Tuple[str, str]:
         marketplace_data = getattr(BaseEndpoint, country.upper())
         marketplace = getattr(Marketplaces, country_code.upper())
         marketplace_id = marketplace.marketplace_id
@@ -31,7 +34,7 @@ class LoginWithAmazon:
         from urllib.parse import urlencode, urljoin
         query_string = urlencode(query_params)
         url = urljoin(base_url, path + "?" + query_string)
-        return url
+        return url, marketplace_id
 
     def url_for_access_and_refresh_token(self, code: Optional[str] = None, refresh_token: Optional[str] = None) -> str:
         if code:
@@ -43,7 +46,7 @@ class LoginWithAmazon:
         url = self.url_for_access_and_refresh_token(code=code)
         response = requests.post(url)
         if response.status_code != 200:
-            print("error", response.text)
+            logger.error("error", response.text)
             raise Exception("Error while generating refresh token")
 
         return response.json()
@@ -52,7 +55,7 @@ class LoginWithAmazon:
         url = self.url_for_access_and_refresh_token(refresh_token=refresh_token)
         response = requests.post(url)
         if response.status_code != 200:
-            print("error", response.text)
+            logger.error("error", response.text)
             raise Exception("Error while generating access token")
 
         return response.json()

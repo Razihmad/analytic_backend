@@ -3,26 +3,16 @@ from django.db import models
 
 
 # Create your models here.
-class MarketPlace(models.Model):
-    name = models.CharField(max_length=255)
-    marketplace_id = models.CharField(max_length=255, unique=True)
-    country_code = models.CharField(max_length=255)
-    currency_code = models.CharField(max_length=255)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.name + f"| {self.marketplace_id}"
-
-
 class Seller(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     marketplace_id = models.CharField(max_length=255)
-    marketplace = models.CharField(max_length=255)
+    marketplace = models.CharField(max_length=255, null=True)
     store_name = models.CharField(max_length=255, null=True, blank=True)
-    refresh_token = models.CharField(max_length=500)
-    access_token = models.CharField(max_length=500)
+    refresh_token = models.CharField(max_length=500, null=True)
+    ads_refresh_token = models.CharField(max_length=500, null=True, blank=True)
+    profile_id = models.CharField(max_length=255, null=True)
     amazon_seller_id = models.CharField(max_length=255)
+    country_code = models.CharField(max_length=255, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -30,7 +20,7 @@ class Seller(models.Model):
         return f"{self.user.username}  {self.amazon_seller_id}"
 
     class Meta:
-        unique_together = ['user', 'marketplace_id']
+        unique_together = ['user', 'marketplace_id', "amazon_seller_id"]
 
 
 class SellerCentralSale(models.Model):
@@ -72,3 +62,14 @@ class SellerCentralReturn(models.Model):
     return_quantity = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class RegionDetail(models.Model):
+    marketplace_id = models.CharField(max_length=255)
+    country = models.CharField(max_length=255)
+    country_code = models.CharField(max_length=255)
+    region = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self) -> str:
+        return f"{self.marketplace_id} | {self.region}"
