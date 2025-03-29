@@ -42,7 +42,7 @@ class AmazonLogin(APIView):
         country_code = request.GET.get("country_code", "IN")
         url, marketplace_id = get_amazon_login_uri(country=country, country_code=country_code)
         request.session["state"] = marketplace_id
-        return redirect(url)
+        return status_200(message="Login successful", data={"url": url})
 
 
 class AmazonCallback(APIView):
@@ -117,7 +117,7 @@ class AmazonAdsLogin(APIView):
         country_code = request.data.get("country_code", "IN")
         url, region = get_amazon_ads_login_uri(country_code=country_code)
         request.session["region"] = region
-        return redirect(url)
+        return status_200(message="Login successful", data={"url": url})
 
 
 class AmazonAdsCallback(APIView):
