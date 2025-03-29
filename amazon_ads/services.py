@@ -74,6 +74,7 @@ def prepare_campaing_level_data_for_upsert(*, data: List[Dict], user_id: int, ad
                 cpc=item["costPerClick"],
                 campaign_bidding_strategy=item["campaignBiddingStrategy"],
                 campaign_status=item["campaignStatus"],
+                orders=item["purchases1d"] + item["purchases7d"] + item["purchases14d"],
             )
         )
     return bulk_upsert_data

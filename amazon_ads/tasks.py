@@ -30,7 +30,7 @@ def start_fetcing_ad_sales_data_by_asin(
             access_token=access_token,
             region=region,
             profile_id=profile_id,
-            amazon_ad_id=amazon_ad_id,
+            ad_account_id=amazon_ad_id,
             amazon_seller_id=amazon_seller_id,
             user_id=user_id
         )
@@ -47,7 +47,7 @@ def create_ads_data_report_by_date(
     profile_id: str,
     user_id: int,
     amazon_seller_id: str,
-    amazon_ad_id: int
+    ad_account_id: int
 ):
     report_type = AdsReportTypeId.SP_ADVERTISED_PRODUCT.value
     group_by = GroupBy.ADVERTISER.value
@@ -60,7 +60,6 @@ def create_ads_data_report_by_date(
         "impressions",
         "clicks",
         "cost",
-        "cost",
         "spend",
         "sales1d",
         "sales7d",
@@ -68,6 +67,9 @@ def create_ads_data_report_by_date(
         "unitsSoldClicks1d",
         "unitsSoldClicks7d",
         "unitsSoldClicks14d",
+        "purchases1d",
+        "purchases7d",
+        "purchases14d"
     ]
     ad_product = AdProduct.SPONSORED_PRODUCTS.value
     time_unit = "DAILY"
@@ -89,10 +91,10 @@ def create_ads_data_report_by_date(
     if not report_id:
         print(f"report_id not found, {response=}")
         return
-
+    logger.info(f"report_id: {user_id=}, {amazon_seller_id=}, {region=}, {report_id=}, {profile_id=}, {ad_account_id=}, {report_type=}")
     start_tasks_to_check_report_status.apply_async(
         args=[
-            user_id, amazon_seller_id, region, report_id, profile_id, amazon_ad_id, report_type
+            user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type
         ],
         countdown=300,
         queue="process_report"
@@ -118,18 +120,19 @@ def start_tasks_to_check_report_status(
         logger.info(f"status not found, {response=}")
         return
     if status == ReportStatus.PENDING.value:
-        return start_tasks_to_check_report_status.apply_async(
-            args=[
-                user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type
-            ],
-            countdown=300,
-            queue="process_report"
-        )
+        # return start_tasks_to_check_report_status.apply_async(
+        #     args=[
+        #         user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type
+        #     ],
+        #     countdown=300,
+        #     queue="process_report"
+        # )
+        start_tasks_to_check_report_status(user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type)
     elif status == ReportStatus.COMPLETED.value:
         logger.info(f"report is completed,{user_id=}, {report_id=}")
         url = response.get("url")
-        download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type], queue="process_report")
-
+        # download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type], queue="process_report")
+        download_file_and_process_report_data(user_id, report_id, url, ad_account_id, report_type)
 
 @shared_task
 def download_file_and_process_report_data(user_id: int, report_id: str, url: str, ad_account_id: int, report_type: str):
@@ -173,6 +176,9 @@ def start_fetching_ad_sales_data_by_campaign(
         "campaignBiddingStrategy",
         "campaignStatus",
         "campaignId",
+        "purchases1d",
+        "purchases7d",
+        "purchases14d"
     ]
     ad_product = AdProduct.SPONSORED_PRODUCTS.value
     time_unit = "DAILY"
@@ -223,12 +229,12 @@ def start_fetching_amazon_ads_by_date_range(
     region = get_region_by_country_code(country_code=country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     create_ads_data_report_by_date(
-        start_date=start_date.strftime("%Y-%m-%d"),
-        end_date=end_date.strftime("%Y-%m-%d"),
+        start_date=start_date,
+        end_date=end_date,
         access_token=access_token,
         region=region,
         profile_id=profile_id,
         user_id=user_id,
         amazon_seller_id=amazon_seller_id,
-        amazon_ad_id=ad_account_id,
+        ad_account_id=ad_account_id,
     )
