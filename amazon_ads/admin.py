@@ -12,6 +12,7 @@ class AmazonAdsSaleAsinAdmin(admin.ModelAdmin):
     list_filter = ('amazon_ads', 'sales_date')
     search_fields = ('asin',)
     ordering = ('-sales_date',)
+    readonly_fields = ("amazon_ads",)
 
 
 @admin.register(AmazonAdsSaleCampaign)
@@ -20,3 +21,4 @@ class AmazonAdsSaleCampaignAdmin(admin.ModelAdmin):
     list_filter = ('amazon_ads', 'sales_date')
     search_fields = ('campaign_name', 'campaign_id')
     ordering = ('-sales_date',)
+    readonly_fields = ("amazon_ads",)

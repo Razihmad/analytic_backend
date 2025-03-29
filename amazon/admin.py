@@ -10,6 +10,7 @@ class SellerCentralSaleAdmin(admin.ModelAdmin):
     list_filter = ('seller', 'sales_date')
     search_fields = ('child_asin', 'parent_asin')
     ordering = ('-sales_date',)
+    readonly_fields = ("seller",)
 
 
 @admin.register(SellerCentralTraffic)
@@ -18,6 +19,7 @@ class SellerCentralTrafficAdmin(admin.ModelAdmin):
     list_filter = ('seller', 'sessions_date')
     search_fields = ('child_asin', 'sku')
     ordering = ('-sessions_date',)
+    readonly_fields = ("seller", )
 
 
 @admin.register(Seller)
@@ -26,6 +28,7 @@ class SellerAdmin(admin.ModelAdmin):
     list_filter = ('user', 'marketplace')
     search_fields = ('amazon_seller_id', 'store_name')
     ordering = ('-created_at',)
+    readonly_fields = ("user",)
 
 
 @admin.register(RegionDetail)
