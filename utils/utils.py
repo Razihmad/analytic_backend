@@ -40,7 +40,7 @@ def get_values_delta_and_percentage_change(*, previous_report: Dict, current_rep
             'previous': prev_value,
             'current': curr_value,
             'absolute_change': absolute_change,
-            'percentage_change': percentage_change,
+            'percentage_change': round(percentage_change, 2),
             "color": "green" if percentage_change > 0 else "red",
             "arrow": "up" if percentage_change > 0 else "down"
         }
