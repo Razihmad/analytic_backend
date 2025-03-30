@@ -11,7 +11,13 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 import utils.datetime as dt
 from amazon.tasks import fetch_sales_report_by_date_range
 from base.decorators import handle_exception
-from amazon.services import get_amazon_accounts_profile, get_available_regions, get_sales_report_data, start_fetching_seller_central_data
+from amazon.services import (
+    get_amazon_accounts_profile,
+    get_available_regions,
+    get_sales_report_data,
+    get_seller_asins,
+    start_fetching_seller_central_data
+)
 from base.response import status_200, status_400
 
 
@@ -48,8 +54,9 @@ class SalesAPI(APIView):
         amazon_seller_id = request.data.get("amazon_seller_id")
         start_date = request.data.get("start_date", str(dt.now(with_tz=True).date() - timedelta(days=8)))
         end_date = request.data.get("end_date", str(dt.now(with_tz=True).date() - timedelta(days=1)))
+        asins = request.data.get("asins")
         report = get_sales_report_data(
-            user_id=user_id, amazon_seller_id=amazon_seller_id, start_date_str=start_date, end_date_str=end_date
+            user_id=user_id, amazon_seller_id=amazon_seller_id, start_date_str=start_date, end_date_str=end_date, asins=asins
         )
         return status_200(message="Sales Data", data={"report": report})
 
@@ -90,3 +97,15 @@ class GetAmazonProfileData(APIView):
         user = request.user
         accounts_profile = get_amazon_accounts_profile(user_id=user.id)
         return status_200(message="Profiles", data={"accounts": accounts_profile})
+
+
+class FetchSellerAsin(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @handle_exception
+    def post(self, request):
+        user = request.user
+        amazon_seller_id = request.data.get("amazon_seller_id")
+        asins = get_seller_asins(user_id=user.id, amazon_seller_id=amazon_seller_id)
+        return status_200(message="Fetching Asin", data={"asins": asins})

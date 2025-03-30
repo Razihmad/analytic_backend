@@ -1,6 +1,6 @@
 import logging
 import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 
 from amazon.serializers import process_total_and_sales_data, serialize_amazon_profile_account, serialize_regions_details, serialize_seller_central_sales, serialize_seller_central_traffic
@@ -12,6 +12,7 @@ from amazon.models import Seller, SellerCentralSale, SellerCentralTraffic, Selle
 from amazon.selectors import (
     bulk_create_return_data,
     bulk_create_seller_central_sales,
+    get_all_asins_of_seller,
     get_amazon_accounts_profile_by_user_id,
     get_regions,
     get_seller_by_user_id,
@@ -33,8 +34,8 @@ def prepare_and_bulk_create_sales_data(*, data: List[Dict]):
             parent_asin=sale["parent_asin"],
             sales_date=sale["sales_date"],
             units_ordered=sale["units_ordered"],
-            ordered_product_sales=sale["ordered_product_sales"],
-            items_ordered=sale["items_ordered"],
+            sales=sale["ordered_product_sales"],
+            orders=sale["items_ordered"],
         )
         for sale in data
     ]
@@ -93,9 +94,9 @@ def prepare_bulk_create_return_data(*, data: List[Dict]):
     bulk_create_return_data(data=return_objects)
 
 
-def get_total_sales(*, seller: Seller, start_date: datetime.date, end_date: datetime.date) -> List[Dict]:
-    logger.info(f"{seller.user_id=}, {seller.id=} {seller.amazon_seller_id=}, {start_date=}, {end_date=}")
-    total_sales = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date)
+def get_total_sales(*, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]] = None) -> List[Dict]:
+    logger.info(f"{seller.user_id=}, {seller.id=} {seller.amazon_seller_id=}, {start_date=}, {end_date=}, {asins=}")
+    total_sales = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date, asins=asins)
     total_sales_data = serialize_seller_central_sales(sales=total_sales)
     return total_sales_data
 
@@ -118,22 +119,24 @@ def verify_and_get_seller(*, user_id: int, amazon_seller_id: str) -> Seller:
     return seller
 
 
-def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date_str: str, end_date_str: str) -> Dict:
+def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date_str: str, end_date_str: str, asins: Optional[str] = None) -> Dict:
     logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date_str=}, {end_date_str=}")
     start_date = dt.convert_str_to_date(date_str=start_date_str)
     end_date = dt.convert_str_to_date(date_str=end_date_str)
+    asins = asins.split(",") if asins else None
     prev_start_date, prev_end_date = dt.get_previous_period_of_dates(start_date=start_date, end_date=end_date)
     seller = verify_and_get_seller(user_id=user_id, amazon_seller_id=amazon_seller_id)
-    current_period_total_sales = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
-    prev_period_total_sales = get_total_sales(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
+    current_period_total_sales = get_total_sales(seller=seller, start_date=start_date, end_date=end_date, asins=asins)
+    prev_period_total_sales = get_total_sales(seller=seller, start_date=prev_start_date, end_date=prev_end_date, asins=asins)
     ads_profile = verify_and_get_ads_profile(user_id=user_id, amazon_seller_id=amazon_seller_id)
     current_total_traffic = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
     prev_total_traffiic = get_total_traffic(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
+
     current_period_ads_sales = get_ads_sales(
-        ads_profile=ads_profile, start_date=start_date, end_date=end_date
+        ads_profile=ads_profile, start_date=start_date, end_date=end_date, asins=asins
     )
     prev_period_ads_sales = get_ads_sales(
-        ads_profile=ads_profile, start_date=prev_start_date, end_date=prev_end_date
+        ads_profile=ads_profile, start_date=prev_start_date, end_date=prev_end_date, asins=asins
     )
     current_period_report = process_total_and_sales_data(
         total_sales=current_period_total_sales, ads_sale=current_period_ads_sales, traffic_data=current_total_traffic
@@ -157,3 +160,11 @@ def get_amazon_accounts_profile(*, user_id: int) -> List[Dict]:
     accounts = get_amazon_accounts_profile_by_user_id(user_id=user_id)
     serialized_accounts = [serialize_amazon_profile_account(profile=profile) for profile in accounts]
     return serialized_accounts
+
+
+def get_seller_asins(*, user_id: int, amazon_seller_id: str):
+    seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException("seller does not exists")
+    asins = get_all_asins_of_seller(seller_id=seller.id)
+    return asins

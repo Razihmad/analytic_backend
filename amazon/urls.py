@@ -6,6 +6,7 @@ from amazon.views import (
     GetRegionsAPI,
     FetchSalesReportByDate,
     GetAmazonProfileData,
+    FetchSellerAsin,
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path("getRegions/", GetRegionsAPI.as_view(), name="get-regions"),
     path("fetchDataByDate/", FetchSalesReportByDate.as_view(), name="fetch-by-date"),
     path("getProfileData/", GetAmazonProfileData.as_view(), name="get-profile-data"),
+    path("getSellerAsins/", FetchSellerAsin.as_view(), name="get-seller-asins"),
 ]

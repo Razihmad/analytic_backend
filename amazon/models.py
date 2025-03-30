@@ -29,8 +29,8 @@ class SellerCentralSale(models.Model):
     parent_asin = models.CharField(max_length=255)
     sales_date = models.DateField()
     units_ordered = models.IntegerField()
-    ordered_product_sales = models.FloatField()
-    items_ordered = models.IntegerField()
+    sales = models.FloatField()
+    orders = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -50,6 +50,14 @@ class SellerCentralTraffic(models.Model):
     unit_sessions_percentage = models.DecimalField(max_digits=5, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def total_sessions(self):
+        return self.browser_sessions + self.mobile_app_sessions
+
+    @property
+    def total_page_views(self):
+        return self.browser_page_views + self.mobile_app_page_views
 
 
 class SellerCentralReturn(models.Model):

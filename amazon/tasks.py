@@ -108,8 +108,8 @@ def process_report_document_and_create_entry(url, seller_id):
             "parent_asin": data["parentAsin"],
             "child_asin": data["childAsin"],
             "units_ordered": data["salesByAsin"]["unitsOrdered"],
-            "ordered_product_sales": data["salesByAsin"]["orderedProductSales"]["amount"],
-            "items_ordered": data["salesByAsin"]["totalOrderItems"],
+            "sales": data["salesByAsin"]["orderedProductSales"]["amount"],
+            "orders": data["salesByAsin"]["totalOrderItems"],
         }
         asin_traffic = {
             "seller_id": seller_id,

@@ -15,8 +15,8 @@ def serialize_seller_central_sales(*, sales: QuerySet[SellerCentralSale]) -> Lis
                 "parent_asin": sale.parent_asin,
                 "sales_date": sale.sales_date,
                 "units_ordered": sale.units_ordered,
-                "ordered_product_sales": sale.ordered_product_sales,
-                "items_ordered": sale.items_ordered,
+                "sales": sale.sales,
+                "orders": sale.orders,
             }
         )
     return result
@@ -82,8 +82,8 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
         total_sales_data["total_traffic"] += traffic["browser_sessions"] + traffic["mobile_app_sessions"]
 
     for sale in total_sales:
-        total_sales_data["total_revenue"] += sale["ordered_product_sales"]
-        total_sales_data["total_orders"] += sale["items_ordered"]
+        total_sales_data["total_revenue"] += sale["sales"]
+        total_sales_data["total_orders"] += sale["orders"]
         total_sales_data["total_units"] += sale["units_ordered"]
 
     for sale in ads_sale:
