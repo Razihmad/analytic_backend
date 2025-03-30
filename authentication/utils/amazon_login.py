@@ -4,6 +4,7 @@ from typing import Optional, Tuple
 
 from django.conf import settings
 from sp_api.base import Marketplaces
+from base.exception import ServiceException
 from utils.constants import BaseEndpoint
 from project.constants import Environment
 
@@ -47,7 +48,7 @@ class LoginWithAmazon:
         response = requests.post(url)
         if response.status_code != 200:
             logger.error("error", response.text)
-            raise Exception("Error while generating refresh token")
+            raise ServiceException("Error while generating refresh token")
 
         return response.json()
 
@@ -56,7 +57,7 @@ class LoginWithAmazon:
         response = requests.post(url)
         if response.status_code != 200:
             logger.error("error", response.text)
-            raise Exception("Error while generating access token")
+            raise ServiceException("Error while generating access token")
 
         return response.json()
 

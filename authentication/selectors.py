@@ -1,15 +1,17 @@
+import logging
 from typing import Dict, List, Tuple
 from django.contrib.auth.models import User
 
 from amazon.models import Seller
 
+logger = logging.getLogger(__name__)
 
 def get_or_create_user(*, email: str, extra_data: Dict) -> Tuple[User, bool]:
     return User.objects.get_or_create(email=email, username=email, defaults=extra_data)
 
 
 def get_or_create_seller(*, partner_id: str, refresh_token: str, marketplace_id: str, user: User):
-    seller, _ = Seller.objects.update_or_create(
+    seller, is_created = Seller.objects.update_or_create(
         user=user,
         marketplace_id=marketplace_id,
         amazon_seller_id=partner_id,
@@ -18,6 +20,7 @@ def get_or_create_seller(*, partner_id: str, refresh_token: str, marketplace_id:
             "amazon_seller_id": partner_id,
         }
     )
+    logger.info(f"{seller=}, {is_created=}, {seller.refresh_token=}")
     return seller
 
 

@@ -1,3 +1,5 @@
+import logging
+
 from typing import Dict, Optional, Tuple
 from amazon.models import Seller
 from amazon.selectors import get_amazon_accounts_by_user_id, get_seller_by_user_id
@@ -14,6 +16,8 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from sp_api.base import Marketplaces
 from typing import List
+
+logger = logging.getLogger(__name__)
 
 
 def get_amazon_login_uri(*, country: str, country_code: str):
@@ -62,6 +66,7 @@ def get_user_data_from_google_code(*, code: Optional[str]) -> Dict:
 
 
 def create_amazon_seller(*, partner_id: str, refresh_token: str, marketplace_id: str, user: User, access_token: str):
+    logger.info(f"{partner_id=}, {refresh_token=}, {marketplace_id=}")
     return get_or_create_seller(partner_id=partner_id, refresh_token=refresh_token, marketplace_id=marketplace_id, user=user)
 
 

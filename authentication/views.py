@@ -55,6 +55,7 @@ class AmazonCallback(APIView):
         spapi_oauth_code = request.data.get("spapi_oauth_code")
         marketplace_id = request.data.get("state")
         state = request.session["state"]
+        logger.info(f"{selling_partner_id=}, {spapi_oauth_code=}, {state=}, {marketplace_id=}")
         if state != marketplace_id:
             raise ServiceException("Invalid state")
         response = get_refresh_token(code=spapi_oauth_code)
