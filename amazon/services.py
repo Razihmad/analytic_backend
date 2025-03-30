@@ -3,7 +3,13 @@ import datetime
 from typing import Dict, List, Optional
 
 
-from amazon.serializers import process_total_and_sales_data, serialize_amazon_profile_account, serialize_regions_details, serialize_seller_central_sales, serialize_seller_central_traffic
+from amazon.serializers import (
+    process_total_and_sales_data,
+    serialize_amazon_profile_account,
+    serialize_regions_details,
+    serialize_seller_central_sales,
+    serialize_seller_central_traffic
+)
 from amazon.tasks import fetch_seller_central_report_data_by_date, fetch_seller_central_return_report_data_by_date
 from amazon_ads.services import get_ads_sales, verify_and_get_ads_profile
 from base.exception import ServiceException
