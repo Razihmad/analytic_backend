@@ -53,10 +53,10 @@ class SalesAPI(APIView):
         start_date = request.data.get("start_date", str(dt.now(with_tz=True).date() - timedelta(days=8)))
         end_date = request.data.get("end_date", str(dt.now(with_tz=True).date() - timedelta(days=1)))
         asins = request.data.get("asins")
-        report = get_sales_report_data(
+        report, performer_asins = get_sales_report_data(
             user_id=user_id, amazon_seller_id=amazon_seller_id, start_date_str=start_date, end_date_str=end_date, asins=asins
         )
-        return status_200(message="Sales Data", data={"report": report})
+        return status_200(message="Sales Data", data={"report": report, "performer_asins": performer_asins})
 
 
 class GetRegionsAPI(APIView):

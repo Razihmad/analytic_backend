@@ -1,3 +1,4 @@
+from collections import defaultdict
 import logging
 import datetime
 from typing import Dict, List, Optional
@@ -152,7 +153,8 @@ def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date_str
     report = get_values_delta_and_percentage_change(
         previous_report=previos_period_report, current_report=current_period_report
     )
-    return report
+    performer_asins = get_top_performer_asins(sales_data=current_period_total_sales)
+    return report, performer_asins
 
 
 def get_available_regions() -> List[Dict]:
@@ -173,3 +175,24 @@ def get_seller_asins(*, user_id: int, amazon_seller_id: str):
         raise ServiceException("seller does not exists")
     asins = get_all_asins_of_seller(seller_id=seller.id)
     return asins
+
+
+def get_top_performer_asins(*, sales_data: List[Dict]):
+    total_sales = 0
+    asin_wise_sales = defaultdict(int)
+    for data in sales_data:
+        total_sales += data["sales"]
+        asin_wise_sales[data["child_asin"]] += data["sales"]
+    cur_sales = 0
+    top_asins = []
+    for asin in sorted(asin_wise_sales.keys(), reverse=True):
+        sales = asin_wise_sales[asin]
+        cur_sales += sales
+        top_asins.append(asin)
+        if cur_sales >= total_sales * 0.8:
+            break
+    performer_asin_with_sales = {
+        asin: asin_wise_sales[asin] for asin in top_asins
+    }
+
+    return performer_asin_with_sales
