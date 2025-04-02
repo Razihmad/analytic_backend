@@ -26,8 +26,9 @@ logger = logging.getLogger(__name__)
 
 class TryApi(APIView):
     def post(self, request):
-        from amazon.tasks import testing_tasks
-        testing_tasks.apply_async(queue="process_report")
+        from amazon.tasks import process_report_document_and_create_entry
+        process_report_document_and_create_entry(seller_id=11, url="https://tortuga-prod-eu.s3-eu-west-1.amazonaws.com/2627db28-4931-4453-9135-d59781a3c08f.amzn1.tortuga.4.eu.T32EZU1W27SB2O?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20250402T175007Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=AKIAX2ZVOZFBL5WTTNVZ%2F20250402%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Signature=faa42354cd928aa4d726e451982d262f059cb4ad23109ccc8896ce6198186993")
+        # testing_tasks.apply_async(queue="process_report")
         return status_200(message="Hello World", data={"name": "Razi"})
 
 

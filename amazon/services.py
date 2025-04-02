@@ -40,8 +40,8 @@ def prepare_and_bulk_create_sales_data(*, data: List[Dict]):
             parent_asin=sale["parent_asin"],
             sales_date=sale["sales_date"],
             units_ordered=sale["units_ordered"],
-            sales=sale["ordered_product_sales"],
-            orders=sale["items_ordered"],
+            sales=sale["sales"],
+            orders=sale["orders"],
         )
         for sale in data
     ]
