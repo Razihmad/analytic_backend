@@ -19,7 +19,7 @@ def handle_exception(func: callable) -> callable:
         except ServiceException as se:
             return status_400(message=str(se))
         except Exception as e:
-            logger.error(f"Unexpected error occurred: {e}")
+            logger.error(f"Unexpected error occurred: {e=}")
             return status_500(message="Something went wrong")
     return wrapper
 

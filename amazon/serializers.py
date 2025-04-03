@@ -66,7 +66,8 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
         cpc=0,
         total_cr=0,
         ad_cr=0,
-        organic_cr=0
+        organic_cr=0,
+        ctr=0,
     )
     # TODO: here also need to add cpm rpc cpo ctr CR% CPA
     # traffice are sessions in seller central and clicks in ads
