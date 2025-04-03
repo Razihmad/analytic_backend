@@ -126,11 +126,21 @@ def verify_and_get_seller(*, user_id: int, amazon_seller_id: str) -> Seller:
     return seller
 
 
-def get_sales_report_data(*, user_id: int, amazon_seller_id: str, start_date_str: str, end_date_str: str, asins: Optional[str] = None) -> Dict:
+def get_sales_report_data(
+    *,
+    user_id: int,
+    amazon_seller_id: str,
+    start_date_str: str,
+    end_date_str: str,
+    asins: Optional[str] = None,
+    prev_start_date: str,
+    prev_end_date: str,
+) -> Dict:
     logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date_str=}, {end_date_str=}")
     start_date = dt.convert_str_to_date(date_str=start_date_str)
     end_date = dt.convert_str_to_date(date_str=end_date_str)
-    prev_start_date, prev_end_date = dt.get_previous_period_of_dates(start_date=start_date, end_date=end_date)
+    prev_start_date = dt.convert_str_to_date(date_str=prev_start_date)
+    prev_end_date = dt.convert_str_to_date(date_str=prev_end_date)
     seller = verify_and_get_seller(user_id=user_id, amazon_seller_id=amazon_seller_id)
     current_period_total_sales = get_total_sales(seller=seller, start_date=start_date, end_date=end_date, asins=asins)
     prev_period_total_sales = get_total_sales(seller=seller, start_date=prev_start_date, end_date=prev_end_date, asins=asins)

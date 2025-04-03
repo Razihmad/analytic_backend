@@ -52,9 +52,17 @@ class SalesAPI(APIView):
         amazon_seller_id = request.data.get("amazon_seller_id")
         start_date = request.data.get("start_date", str(dt.now(with_tz=True).date() - timedelta(days=8)))
         end_date = request.data.get("end_date", str(dt.now(with_tz=True).date() - timedelta(days=1)))
+        prev_start_date = request.data.get("prev_start_date", str(dt.now(with_tz=True).date() - timedelta(days=16)))
+        prev_end_date = request.data.get("prev_end_date", str(dt.now(with_tz=True).date() - timedelta(days=9)))
         asins = request.data.get("asins")
         report, performer_asins = get_sales_report_data(
-            user_id=user_id, amazon_seller_id=amazon_seller_id, start_date_str=start_date, end_date_str=end_date, asins=asins
+            user_id=user_id,
+            amazon_seller_id=amazon_seller_id,
+            start_date_str=start_date,
+            end_date_str=end_date,
+            asins=asins,
+            prev_start_date=prev_start_date,
+            prev_end_date=prev_end_date,
         )
         return status_200(message="Sales Data", data={"report": report, "performer_asins": performer_asins})
 
