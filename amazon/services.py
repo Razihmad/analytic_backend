@@ -192,7 +192,11 @@ def get_top_performer_asins(*, sales_data: List[Dict]):
         if cur_sales >= total_sales * 0.8:
             break
     performer_asin_with_sales = {
-        asin: asin_wise_sales[asin] for asin in top_asins
+        asin: get_percentage(cur_value=asin_wise_sales[asin], total_value=total_sales) for asin in top_asins
     }
 
     return performer_asin_with_sales
+
+
+def get_percentage(*, cur_value: int, total_value: int):
+    return round((cur_value / total_value) * 100, 2)
