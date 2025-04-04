@@ -38,5 +38,5 @@ def group_ad_sales_by_asin(*, sales: List[Dict]) -> List[Dict]:
         }
     )
     data.fillna(0)
-    return data.to_dict()
-
+    data = data.round(2)
+    return data.to_dict(orient="records")
