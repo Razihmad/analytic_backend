@@ -41,13 +41,13 @@ def prepare_data_to_bulk_upsert(*, data: List[Dict], user_id: int, ad_account_id
                 amazon_ads_id=ad_account_id,
                 asin=item["advertisedAsin"],
                 sales_date=item["date"],
-                sales=item["sales7d"] + item["sales1d"] + item["sales14d"],
-                units_sold=item["unitsSoldClicks1d"] + item["unitsSoldClicks7d"] + item["unitsSoldClicks14d"],
+                sales=item["sales7d"],
+                units_sold=item["unitsSoldClicks7d"],
                 cost=item["cost"],
                 impressions=item["impressions"],
                 clicks=item["clicks"],
                 spend=item["spend"],
-                orders=item["purchases1d"] + item["purchases7d"] + item["purchases14d"],
+                orders=item["purchases7d"],
                 cpc=item["costPerClick"] if item["costPerClick"] else 0,
             )
         )
