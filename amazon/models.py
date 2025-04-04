@@ -6,13 +6,13 @@ from django.db import models
 class Seller(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     marketplace_id = models.CharField(max_length=255)
-    marketplace = models.CharField(max_length=255, null=True)
+    marketplace = models.CharField(max_length=255, null=True, blank=True)
     store_name = models.CharField(max_length=255, null=True, blank=True)
-    refresh_token = models.CharField(max_length=500, null=True)
-    ads_refresh_token = models.CharField(max_length=500, null=True, blank=True)
-    profile_id = models.CharField(max_length=255, null=True)
+    refresh_token = models.TextField(null=True, blank=True)
+    ads_refresh_token = models.TextField(null=True, blank=True)
+    profile_id = models.CharField(max_length=255, null=True, blank=True)
     amazon_seller_id = models.CharField(max_length=255)
-    country_code = models.CharField(max_length=255, null=True)
+    country_code = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
