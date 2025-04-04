@@ -2,9 +2,12 @@ from typing import Dict, List
 from amazon.models import Seller
 
 
-def serialized_ads_profile_data(*, profiles: List[Dict], user_id: int, refresh_token: str):
+def serialized_ads_profile_data(*, profiles: List[Dict], user_id: int, refresh_token: str, country_code: str):
     seraizlized_profiles = []
     for profile in profiles:
+        if profile["countryCode"] != country_code:
+            continue
+
         seraizlized_profiles.append({
             "country_code": profile["countryCode"],
             "currency_code": profile["currencyCode"],

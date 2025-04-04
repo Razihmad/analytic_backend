@@ -6,11 +6,12 @@ from amazon.models import Seller
 
 logger = logging.getLogger(__name__)
 
+
 def get_or_create_user(*, email: str, extra_data: Dict) -> Tuple[User, bool]:
     return User.objects.get_or_create(email=email, username=email, defaults=extra_data)
 
 
-def get_or_create_seller(*, partner_id: str, refresh_token: str, marketplace_id: str, user: User):
+def get_or_create_seller(*, partner_id: str, refresh_token: str, marketplace_id: str, user: User, country_code: str):
     seller, is_created = Seller.objects.update_or_create(
         user=user,
         marketplace_id=marketplace_id,
@@ -18,6 +19,8 @@ def get_or_create_seller(*, partner_id: str, refresh_token: str, marketplace_id:
         defaults={
             "refresh_token": refresh_token,
             "amazon_seller_id": partner_id,
+            "country_code": country_code,
+            "marketplace": country_code,
         }
     )
     logger.info(f"{seller=}, {is_created=}, {seller.refresh_token=}")

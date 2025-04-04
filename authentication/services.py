@@ -65,9 +65,11 @@ def get_user_data_from_google_code(*, code: Optional[str]) -> Dict:
     return user_data
 
 
-def create_amazon_seller(*, partner_id: str, refresh_token: str, marketplace_id: str, user: User, access_token: str):
+def create_amazon_seller(*, partner_id: str, refresh_token: str, marketplace_id: str, user: User, country_code: str):
     logger.info(f"{partner_id=}, {refresh_token=}, {marketplace_id=}")
-    return get_or_create_seller(partner_id=partner_id, refresh_token=refresh_token, marketplace_id=marketplace_id, user=user)
+    return get_or_create_seller(
+        partner_id=partner_id, refresh_token=refresh_token, marketplace_id=marketplace_id, user=user, country_code=country_code
+    )
 
 
 @cache_function(cache_config_key="SC_ACCESS_TOKEN")

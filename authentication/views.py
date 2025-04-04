@@ -42,6 +42,7 @@ class AmazonLogin(APIView):
         country_code = request.GET.get("country_code", "IN")
         url, marketplace_id = get_amazon_login_uri(country=country, country_code=country_code)
         request.session["state"] = marketplace_id
+        request.session["country_code"] = country_code
         return status_200(message="Login successful", data={"url": url})
 
 
@@ -55,6 +56,7 @@ class AmazonCallback(APIView):
         spapi_oauth_code = request.data.get("spapi_oauth_code")
         marketplace_id = request.data.get("state")
         state = request.session["state"]
+        country_code = request.session["country_code"]
         logger.info(f"{selling_partner_id=}, {spapi_oauth_code=}, {state=}, {marketplace_id=}")
         if state != marketplace_id:
             raise ServiceException("Invalid state")
@@ -63,8 +65,8 @@ class AmazonCallback(APIView):
             partner_id=selling_partner_id,
             refresh_token=response["refresh_token"],
             marketplace_id=marketplace_id,
-            access_token=response["access_token"],
-            user=request.user
+            user=request.user,
+            country_code=country_code,
         )
 
         return status_200(
@@ -118,6 +120,7 @@ class AmazonAdsLogin(APIView):
         country_code = request.data.get("country_code", "IN")
         url, region = get_amazon_ads_login_uri(country_code=country_code)
         request.session["region"] = region
+        request.session["ad_country_code"] = country_code
         return status_200(message="Login successful", data={"url": url})
 
 
@@ -129,7 +132,8 @@ class AmazonAdsCallback(APIView):
     def post(self, request, *args, **kwargs):
         code = request.data.get("code")
         region = request.session["region"]
+        country_code = request.session["ad_country_code"]
         refresh_token, profiles = generate_token_and_get_ads_profile_data(code=code, region=region)
-        serailzed_profiles = serialized_ads_profile_data(profiles=profiles, user_id=request.user.id, refresh_token=refresh_token)
+        serailzed_profiles = serialized_ads_profile_data(profiles=profiles, user_id=request.user.id, refresh_token=refresh_token, country_code=country_code)
         bulk_create_ads_profile(profiles=serailzed_profiles)
         return status_200(message="success", data={"is_created": True, "start_fetching_data": True})
