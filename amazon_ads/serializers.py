@@ -34,7 +34,7 @@ def group_ad_sales_by_asin(*, sales: List[Dict]) -> List[Dict]:
         {
             "sales7d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
             "costPerClick": "sum", "spend": "sum", "purchases7d": "sum",
-            "costPerClick": "sum", "data": "first", "unitsSoldClicks7d": "sum"
+            "costPerClick": "sum", "date": "first", "unitsSoldClicks7d": "sum"
         }
     )
     data.fillna(0)
