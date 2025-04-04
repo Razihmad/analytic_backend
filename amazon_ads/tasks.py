@@ -141,7 +141,7 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
     data = amazon_ads_api.get_data_by_url(url=url)
     print(f"report data fetched, {user_id=}, {report_id=}, {len(data)=}")
     if report_type == AdsReportTypeId.SP_ADVERTISED_PRODUCT.value:
-        data = group_ad_sales_by_asin()
+        data = group_ad_sales_by_asin(sales=data)
         data = prepare_data_to_bulk_upsert(data=data, user_id=user_id, ad_account_id=ad_account_id)
         logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         bulk_upsert_amazon_ads_sales(data=data)
