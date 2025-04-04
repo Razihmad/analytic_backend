@@ -33,7 +33,7 @@ def group_ad_sales_by_asin(*, sales: List[Dict]) -> List[Dict]:
     data = data.groupby("advertisedAsin", as_index=False).agg(
         {
             "sales7d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
-            "costPerClick": "sum", "clickThroughRate": "sum", "spend": "sum", "purchases7d": "sum",
+            "costPerClick": "sum", "spend": "sum", "purchases7d": "sum",
             "costPerClick": "sum", "data": "first", "unitsSoldClicks7d": "sum"
         }
     )
