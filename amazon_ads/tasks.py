@@ -4,6 +4,7 @@ from datetime import timedelta, date
 from celery import shared_task
 
 from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, bulk_upsert_amazon_ads_sales
+from amazon_ads.serializers import group_ad_sales_by_asin
 from authentication.services import get_ads_access_token
 from utils.utils import get_region_by_country_code
 import utils.datetime as dt
@@ -138,9 +139,11 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
     from amazon_ads.services import prepare_campaing_level_data_for_upsert, prepare_data_to_bulk_upsert
 
     data = amazon_ads_api.get_data_by_url(url=url)
-    print(f"report data fetched, {user_id=}, {report_id=}")
+    print(f"report data fetched, {user_id=}, {report_id=}, {len(data)=}")
     if report_type == AdsReportTypeId.SP_ADVERTISED_PRODUCT.value:
+        data = group_ad_sales_by_asin()
         data = prepare_data_to_bulk_upsert(data=data, user_id=user_id, ad_account_id=ad_account_id)
+        logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         bulk_upsert_amazon_ads_sales(data=data)
         logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
         return

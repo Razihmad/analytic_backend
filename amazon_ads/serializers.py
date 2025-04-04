@@ -1,4 +1,8 @@
+
+
+from collections import defaultdict
 from typing import Dict, List
+import pandas as pd
 from django.db.models import QuerySet
 from amazon_ads.models import AmazonAdsSaleAsin
 
@@ -21,3 +25,16 @@ def serialize_ads_sales_data(*, sales: QuerySet[AmazonAdsSaleAsin]) -> List[Dict
             }
         )
     return serialized_data
+
+
+def group_ad_sales_by_asin(*, sales: List[Dict]) -> List[Dict]:
+    data = pd.DataFrame(sales)
+    data = data
+    data = data.groupby("advertisedAsin", as_index=False).agg(
+        {
+            "sales7d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
+            "costPerClick": "sum", "clickThroughRate": "sum", "spend": "sum", "purchases7d": "sum",
+            "costPerClick": "sum", "data": "first", "unitsSoldClicks7d": "sum"
+        }
+    )
+    return data
