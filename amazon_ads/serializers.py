@@ -38,4 +38,5 @@ def group_ad_sales_by_asin(*, sales: List[Dict]) -> List[Dict]:
         }
     )
     data.fillna(0)
-    return data
+    return data.to_dict()
+
