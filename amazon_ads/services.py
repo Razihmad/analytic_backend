@@ -119,8 +119,8 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
     #     ],
     #     queue="process_report"
     # )
-    start_fetching_amazon_ads_campaign_by_date_range.apply_async(
-        args=[
+    start_fetching_amazon_ads_campaign_by_date_range(
+        *[
             amazon_seller_id,
             start_date,
             end_date,
@@ -129,5 +129,4 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
             ads_profile.id,
             user_id,
         ],
-        queue="process_report"
     )

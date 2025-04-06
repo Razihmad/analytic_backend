@@ -248,7 +248,7 @@ def start_fetching_amazon_ads_campaign_by_date_range(
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     for campaign_type in AdProduct._member_names_:
         logger.info(f"[campaign type data] {amazon_seller_id=}, {start_date=}, {end_date=}, {profile_id=}, {campaign_type=}")
-        create_ads_campaign_data_report_by_date.apply_asyc(
+        create_ads_campaign_data_report_by_date.apply_async(
             args=[
                 start_date,
                 end_date,
