@@ -259,7 +259,8 @@ def start_fetching_amazon_ads_campaign_by_date_range(
                 amazon_seller_id,
                 ad_account_id,
                 campaign_type,
-            ]
+            ],
+            queue="process_report",
         )
 
 
