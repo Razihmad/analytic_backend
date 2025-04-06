@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta, date
+from typing import Optional
 
 from celery import shared_task
 
@@ -9,7 +10,7 @@ from authentication.services import get_ads_access_token
 from utils.utils import get_region_by_country_code
 import utils.datetime as dt
 
-from amazon_ads.constants import AdProduct, AdsReportTypeId, GroupBy, ReportStatus
+from amazon_ads.constants import CAMPAIGN_COLUMNS, SP_CAMPAIGN_REPORT_COLUMNS, AdProduct, AdsReportTypeId, CampaignStatus, GroupBy, ReportStatus
 from amazon_ads.utils.amazon_ads_api import amazon_ads_api
 
 logger = logging.getLogger(__name__)
@@ -72,7 +73,7 @@ def create_ads_data_report_by_date(
         "purchases7d",
         "purchases14d"
     ]
-    ad_product = AdProduct.SPONSORED_PRODUCTS.value
+    campaign_type = AdProduct.SPONSORED_PRODUCTS.value
     time_unit = "DAILY"
     logger.info(f"creating report for {start_date=}, {end_date=}, {region=}")
     data = amazon_ads_api.prepare_payload_for_report(
@@ -82,7 +83,7 @@ def create_ads_data_report_by_date(
         end_date=end_date.strftime("%Y-%m-%d"),
         group_by=[group_by],
         columns=columns,
-        ad_product=ad_product,
+        ad_product=campaign_type,
         time_unit=time_unit
     )
     response = amazon_ads_api.create_report(access_token=access_token, region=region, profile_id=profile_id, data=data)
@@ -95,7 +96,7 @@ def create_ads_data_report_by_date(
     logger.info(f"report_id: {user_id=}, {amazon_seller_id=}, {region=}, {report_id=}, {profile_id=}, {ad_account_id=}, {report_type=}")
     start_tasks_to_check_report_status.apply_async(
         args=[
-            user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type
+            user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, campaign_type,
         ],
         countdown=300,
         queue="process_report"
@@ -111,6 +112,7 @@ def start_tasks_to_check_report_status(
     profile_id: str,
     ad_account_id: int,
     report_type: str,
+    campaign_type: str,
 ):
     logger.info(f"checking report status, {report_id=}")
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
@@ -123,7 +125,7 @@ def start_tasks_to_check_report_status(
     if status == ReportStatus.PENDING.value:
         return start_tasks_to_check_report_status.apply_async(
             args=[
-                user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type
+                user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, campaign_type,
             ],
             countdown=300,
             queue="process_report"
@@ -131,14 +133,18 @@ def start_tasks_to_check_report_status(
     elif status == ReportStatus.COMPLETED.value:
         logger.info(f"report is completed,{user_id=}, {report_id=}")
         url = response.get("url")
-        download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type], queue="process_report")
+        download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type, campaign_type], queue="process_report")
 
 
 @shared_task
-def download_file_and_process_report_data(user_id: int, report_id: str, url: str, ad_account_id: int, report_type: str):
+def download_file_and_process_report_data(user_id: int, report_id: str, url: str, ad_account_id: int, report_type: str, campaign_type: str):
     from amazon_ads.services import prepare_campaing_level_data_for_upsert, prepare_data_to_bulk_upsert
 
     data = amazon_ads_api.get_data_by_url(url=url)
+    with open(f"ad_data_{report_type}_{campaign_type}", "w") as file:
+        import json
+        json.dump(file, data, indent=4)
+
     print(f"report data fetched, {user_id=}, {report_id=}, {len(data)=}")
     if report_type == AdsReportTypeId.SP_ADVERTISED_PRODUCT.value:
         data = group_ad_sales_by_asin(sales=data)
@@ -148,7 +154,7 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
         logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
         return
     if report_type == AdsReportTypeId.SP_CAMPAIGN.value:
-        data = prepare_campaing_level_data_for_upsert(data=data, user_id=user_id, ad_account_id=ad_account_id)
+        data = prepare_campaing_level_data_for_upsert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         bulk_upsert_amazon_ads_campaign_sales(data=data)
         logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
 
@@ -162,29 +168,8 @@ def start_fetching_ad_sales_data_by_campaign(
     i = 0
     report_type = AdsReportTypeId.SP_CAMPAIGN.value
     group_by = GroupBy.CAMPAIGN.value
-    columns = [
-        "date",
-        "costPerClick",
-        "clickThroughRate",
-        "campaignName",
-        "impressions",
-        "clicks",
-        "cost",
-        "cost",
-        "spend",
-        "sales1d",
-        "sales7d",
-        "sales14d",
-        "unitsSoldClicks1d",
-        "unitsSoldClicks7d",
-        "unitsSoldClicks14d",
-        "campaignBiddingStrategy",
-        "campaignStatus",
-        "campaignId",
-        "purchases1d",
-        "purchases7d",
-        "purchases14d"
-    ]
+    columns = SP_CAMPAIGN_REPORT_COLUMNS
+    status = [CampaignStatus.ENABLED.value, CampaignStatus.PAUSED.value]
     ad_product = AdProduct.SPONSORED_PRODUCTS.value
     time_unit = "DAILY"
     current_date = dt.now(with_tz=True) - timedelta(days=1)
@@ -200,7 +185,8 @@ def start_fetching_ad_sales_data_by_campaign(
             group_by=[group_by],
             columns=columns,
             ad_product=ad_product,
-            time_unit=time_unit
+            time_unit=time_unit,
+            filters={"field": "campaignStatus", "values": status}
         )
         current_date = start_date - timedelta(days=1)
         response = amazon_ads_api.create_report(access_token=access_token, region=region, profile_id=profile_id, data=data)
@@ -210,7 +196,7 @@ def start_fetching_ad_sales_data_by_campaign(
             continue
         start_tasks_to_check_report_status.apply_async(
             args=[
-                user_id, amazon_seller_id, region, report_id, profile_id, amazon_ad_id, report_type
+                user_id, amazon_seller_id, region, report_id, profile_id, amazon_ad_id, report_type, ad_product
             ],
             countdown=300,
             queue="process_report"
@@ -260,18 +246,24 @@ def start_fetching_amazon_ads_campaign_by_date_range(
     end_date = dt.convert_str_to_date(date_str=end_date)
     region = get_region_by_country_code(country_code=country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
-    create_ads_campaign_data_report_by_date(
-        start_date=start_date,
-        end_date=end_date,
-        access_token=access_token,
-        region=region,
-        profile_id=profile_id,
-        user_id=user_id,
-        amazon_seller_id=amazon_seller_id,
-        ad_account_id=ad_account_id,
-    )
+    for campaign_type in AdProduct._member_names_:
+        logger.info(f"[campaign type data] {amazon_seller_id=}, {start_date=}, {end_date=}, {profile_id=}, {campaign_type=}")
+        create_ads_campaign_data_report_by_date.apply_asyc(
+            args=[
+                start_date,
+                end_date,
+                access_token,
+                region,
+                profile_id,
+                user_id,
+                amazon_seller_id,
+                ad_account_id,
+                campaign_type,
+            ]
+        )
 
 
+@shared_task
 def create_ads_campaign_data_report_by_date(
     *,
     start_date: date,
@@ -281,36 +273,15 @@ def create_ads_campaign_data_report_by_date(
     profile_id: str,
     user_id: int,
     amazon_seller_id: str,
-    ad_account_id: int
+    ad_account_id: int,
+    campaign_type: str,
 ):
     report_type = AdsReportTypeId.SP_CAMPAIGN.value
     group_by = GroupBy.CAMPAIGN.value
-    columns = [
-        "date",
-        "costPerClick",
-        "clickThroughRate",
-        "campaignName",
-        "impressions",
-        "clicks",
-        "cost",
-        "spend",
-        "sales1d",
-        "sales7d",
-        "sales14d",
-        "unitsSoldClicks1d",
-        "unitsSoldClicks7d",
-        "unitsSoldClicks14d",
-        "campaignBiddingStrategy",
-        "campaignStatus",
-        "campaignId",
-        "purchases1d",
-        "purchases7d",
-        "purchases14d"
-    ]
-    ad_product = AdProduct.SPONSORED_PRODUCTS.value
+    columns = CAMPAIGN_COLUMNS[campaign_type]
     time_unit = "DAILY"
 
-    logger.info(f"creating report for {start_date=}, {end_date=}, {region=}")
+    logger.info(f"creating report for {start_date=}, {end_date=}, {region=}, {campaign_type=}")
     data = amazon_ads_api.prepare_payload_for_report(
         report_type=report_type,
         name=f"{report_type} | {start_date}-{end_date}",
@@ -318,7 +289,7 @@ def create_ads_campaign_data_report_by_date(
         end_date=end_date.strftime("%Y-%m-%d"),
         group_by=[group_by],
         columns=columns,
-        ad_product=ad_product,
+        ad_product=campaign_type,
         time_unit=time_unit
     )
     response = amazon_ads_api.create_report(access_token=access_token, region=region, profile_id=profile_id, data=data)
@@ -331,7 +302,7 @@ def create_ads_campaign_data_report_by_date(
     logger.info(f"report_id: {user_id=}, {amazon_seller_id=}, {region=}, {report_id=}, {profile_id=}, {ad_account_id=}, {report_type=}")
     start_tasks_to_check_report_status.apply_async(
         args=[
-            user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type
+            user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, campaign_type,
         ],
         countdown=300,
         queue="process_report"

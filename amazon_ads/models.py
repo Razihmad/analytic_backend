@@ -38,6 +38,7 @@ class AmazonAdsSaleCampaign(models.Model):
     campaign_bidding_strategy = models.CharField(max_length=255, null=True, blank=True)
     orders = models.IntegerField(default=0)
     campaign_status = models.CharField(max_length=255, null=True, blank=True)
+    campaign_type = models.CharField(max_length=256, null=True, choices=[])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

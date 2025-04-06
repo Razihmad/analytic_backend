@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 
 # Local
 from amazon.models import Seller
+from amazon_ads.constants import AdProduct
 from amazon_ads.selectors import get_ads_profile_by_user_and_seller_id, get_ads_sales_data
 from amazon_ads.serializers import serialize_ads_sales_data
 from amazon_ads.tasks import (
@@ -54,7 +55,7 @@ def prepare_data_to_bulk_upsert(*, data: List[Dict], user_id: int, ad_account_id
     return bulk_upsert_data
 
 
-def prepare_campaing_level_data_for_upsert(*, data: List[Dict], user_id: int, ad_account_id: int) -> List[AmazonAdsSaleCampaign]:
+def prepare_campaing_level_data_for_upsert(*, data: List[Dict], ad_account_id: int, campaign_type: str) -> List[AmazonAdsSaleCampaign]:
     bulk_upsert_data = []
     for item in data:
         bulk_upsert_data.append(
@@ -63,8 +64,8 @@ def prepare_campaing_level_data_for_upsert(*, data: List[Dict], user_id: int, ad
                 campaign_name=item["campaignName"],
                 campaign_id=item["campaignId"],
                 sales_date=item["date"],
-                sales=item["sales7d"] + item["sales1d"] + item["sales14d"],
-                units_sold=item["unitsSoldClicks1d"] + item["unitsSoldClicks7d"] + item["unitsSoldClicks14d"],
+                sales=item["sales14d"] if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item["sales"],
+                units_sold=item["unitsSoldClicks14d"] if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item["unitsSoldClicks"],
                 cost=item["cost"],
                 impressions=item["impressions"],
                 clicks=item["clicks"],
@@ -72,7 +73,8 @@ def prepare_campaing_level_data_for_upsert(*, data: List[Dict], user_id: int, ad
                 cpc=item["costPerClick"],
                 campaign_bidding_strategy=item["campaignBiddingStrategy"],
                 campaign_status=item["campaignStatus"],
-                orders=item["purchases1d"] + item["purchases7d"] + item["purchases14d"],
+                orders=item["purchases14d"] if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item["purcahses"],
+                campaign_type=campaign_type,
             )
         )
     return bulk_upsert_data
@@ -117,15 +119,15 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
         ],
         queue="process_report"
     )
-    # start_fetching_amazon_ads_campaign_by_date_range.apply_async(
-    #     args=[
-    #         amazon_seller_id,
-    #         start_date,
-    #         end_date,
-    #         country_code,
-    #         ads_profile.profile_id,
-    #         ads_profile.id,
-    #         user_id,
-    #     ],
-    #     queue="process_report"
-    # )
+    start_fetching_amazon_ads_campaign_by_date_range.apply_async(
+        args=[
+            amazon_seller_id,
+            start_date,
+            end_date,
+            country_code,
+            ads_profile.profile_id,
+            ads_profile.id,
+            user_id,
+        ],
+        queue="process_report"
+    )

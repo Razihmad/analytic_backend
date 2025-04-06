@@ -42,7 +42,8 @@ class AmazonAds:
         group_by: List[str],
         columns: List[str],
         ad_product: str,
-        time_unit: str
+        time_unit: str,
+        filters: Optional[Dict] = None
     ) -> Dict:
         data = {
             "name": name,
@@ -57,6 +58,8 @@ class AmazonAds:
                 "format": "GZIP_JSON"
             },
         }
+        if filters:
+            data["configuration"]["filters"] = [filters]
         return data
 
     def create_report(self, access_token: str, region: str, profile_id: str, data: Dict) -> Dict:
