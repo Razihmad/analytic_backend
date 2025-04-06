@@ -52,4 +52,12 @@ task_routes = {
         "queue": "process_report",
         "routing_key": "report",
     },
+    "amazon_ads.tasks.start_fetching_amazon_ads_campaign_by_date_range": {
+        "queue": "proocess_report",
+        "routing_key": "report",
+    },
+    "amazon_ads.tasks.create_ads_campaign_data_report_by_date": {
+        "queue": "proocess_report",
+        "routing_key": "report",
+    },
 }
