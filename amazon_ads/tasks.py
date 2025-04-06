@@ -265,7 +265,6 @@ def start_fetching_amazon_ads_campaign_by_date_range(
 
 @shared_task
 def create_ads_campaign_data_report_by_date(
-    *,
     start_date: date,
     end_date: date,
     access_token: str,
