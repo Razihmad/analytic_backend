@@ -10,7 +10,7 @@ from authentication.services import get_ads_access_token
 from utils.utils import get_region_by_country_code
 import utils.datetime as dt
 
-from amazon_ads.constants import CAMPAIGN_COLUMNS, SP_CAMPAIGN_REPORT_COLUMNS, AdProduct, AdsReportTypeId, CampaignStatus, GroupBy, ReportStatus
+from amazon_ads.constants import CAMPAIGN_COLUMNS, CAMPAIGN_TO_REPORT_TYPE_MAPPING, SP_CAMPAIGN_REPORT_COLUMNS, AdProduct, AdsReportTypeId, CampaignStatus, GroupBy, ReportStatus
 from amazon_ads.utils.amazon_ads_api import amazon_ads_api
 
 logger = logging.getLogger(__name__)
@@ -248,9 +248,9 @@ def start_fetching_amazon_ads_campaign_by_date_range(
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     for campaign_type in AdProduct._member_names_:
         logger.info(f"[campaign type data] {amazon_seller_id=}, {start_date=}, {end_date=}, {profile_id=}, {campaign_type=}")
-        create_ads_campaign_data_report_by_date.apply_async(
+        create_ads_campaign_data_report_by_date(
             args=[
-                start_date,
+                start_date  ,
                 end_date,
                 access_token,
                 region,
@@ -260,7 +260,7 @@ def start_fetching_amazon_ads_campaign_by_date_range(
                 ad_account_id,
                 campaign_type,
             ],
-            queue="process_report",
+            queue="process_report"
         )
 
 
@@ -276,7 +276,7 @@ def create_ads_campaign_data_report_by_date(
     ad_account_id: int,
     campaign_type: str,
 ):
-    report_type = AdsReportTypeId.SP_CAMPAIGN.value
+    report_type = CAMPAIGN_TO_REPORT_TYPE_MAPPING[campaign_type]
     group_by = GroupBy.CAMPAIGN.value
     columns = CAMPAIGN_COLUMNS[campaign_type]
     time_unit = "DAILY"

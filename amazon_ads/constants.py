@@ -12,7 +12,7 @@ class GroupBy(Enum):
 
 
 class AdProduct(Enum):
-    SPONSORED_PRODUCTS = "SPONSORED_PRODUCTS"
+    # SPONSORED_PRODUCTS = "SPONSORED_PRODUCTS"
     SPONSORED_DISPLAY = "SPONSORED_DISPLAY"
     SPONSORED_BRAND = "SPONSORED_BRAND"
 
@@ -36,12 +36,12 @@ class CampaignStatus(Enum):
 
 
 CAMPAIGN_REPORT_COMMON_COLUMNS = [
-    "date", "costPerClick", "clickThroughRate", "campaignName",
-    "impressions", "clicks", "cost", "spend", "campaignBiddingStrategy",
+    "date", "campaignName",
+    "impressions", "clicks", "cost",
     "campaignStatus", "campaignId",
 ]
 SP_CAMPAIGN_REPORT_COLUMNS = CAMPAIGN_REPORT_COMMON_COLUMNS + [
-    "sales14d", "unitsSoldClicks14d", "purchases14d"
+    "sales14d", "unitsSoldClicks14d", "purchases14d", "spend", "costPerClick", "clickThroughRate", "campaignBiddingStrategy"
 ]
 SD_CAMPAIGN_REPORT_COLUMNS = CAMPAIGN_REPORT_COMMON_COLUMNS + ["sales", "unitsSoldClicks", "purchases"]
 SB_CAMPAING_REPORT_COLUMNS = SD_CAMPAIGN_REPORT_COLUMNS
@@ -51,3 +51,10 @@ CAMPAIGN_COLUMNS = {
     "SPONSORED_BRAND": SB_CAMPAING_REPORT_COLUMNS,
     "SPONSORED_DISPLAY": SD_CAMPAIGN_REPORT_COLUMNS,
 }
+
+CAMPAIGN_TO_REPORT_TYPE_MAPPING = {
+    "SPONSORED_PRODUCTS": "spCampaigns",
+    # "SPONSORED_BRAND": "sbCampaigns",
+    "SPONSORED_DISPLAY": "sdCampaigns",
+}
+
