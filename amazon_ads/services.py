@@ -44,13 +44,13 @@ def prepare_data_to_bulk_upsert(
                 amazon_ads_id=ad_account_id,
                 asin=item["advertisedAsin"],
                 sales_date=item["date"],
-                sales=item["sales7d"] if campaign_type == AdProduct.SPONSORED_DISPLAY.value else item["sales"],
-                units_sold=item["unitsSoldClicks7d"] if campaign_type == AdProduct.SPONSORED_DISPLAY.value else item["unitsSoldClicks"],
+                sales=item["sales7d"] if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item["sales"],
+                units_sold=item["unitsSoldClicks7d"] if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item["unitsSoldClicks"],
                 cost=item["cost"],
                 impressions=item["impressions"],
                 clicks=item["clicks"],
                 spend=item["spend"],
-                orders=item["purchases7d"] if campaign_type == AdProduct.SPONSORED_DISPLAY.value else item["purchases"],
+                orders=item["purchases7d"] if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item["purchases"],
                 cpc=item["costPerClick"] if item.get("costPerClick") else float(item["cost"] / item["clicks"]),
                 campaign_type=campaign_type
             )

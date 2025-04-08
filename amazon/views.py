@@ -26,6 +26,15 @@ logger = logging.getLogger(__name__)
 
 class TryApi(APIView):
     def post(self, request):
+        from amazon_ads.tasks import download_file_and_process_report_data
+        download_file_and_process_report_data(
+            user_id=8,
+            report_id="f57813c1-e9f5-4097-9ad8-362b2467e66b",
+            url="https://offline-report-storage-eu-west-1-prod.s3.eu-west-1.amazonaws.com/94ec7428-26e8-4951-a613-2f37af90d84f-1744139398692/report-94ec7428-26e8-4951-a613-2f37af90d84f-1744139398692.json.gz?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEAMaCWV1LXdlc3QtMSJHMEUCIQD0x6ytXsHyO5vgT6cBlYrGdMcvRoOX9Vi4m8lWfbhMPQIgXazyfaO2Cn4I0FBtgItaH5ZVFnzQrI1065nUYuAyr%2Fcq4QUIfBACGgwxMjgxMTczMzA1MTQiDAxntNfoKJ4ZKsMVeSq%2BBQigMGwnFcymzdQHr7KFpHLWHykYvxorqBzrM%2BS%2FMMACE7mSP6la8JGQlV8iT4HSjhE14r4OTt6Zv7f%2F94%2Fn7flwaA1rrX0kDXErcQzBqkEjNXomMIR0ih6HwXJdZ3MXamuNa8%2B4OkJY4jo99wsTILnIV3dwOWuOMmfg2U%2B%2BUwQU4FBONOoSPtkUpGJcO5C7Ku4PxrlphehdCRmc9CRuVe%2FDah%2BQXfLBJJ61S5roQuOp0ucpf%2Bd9%2FXi0MnOETbJsiIiYm5qBjBIOHFyxf%2BtdrwOCsPyxBflWEj15ZbsjX9MMA56lgwbcifyF5tzf4ktTarvCEVfyBxb60G%2FARi84IAdQY1BCG6L05uHIPldNOxBPT8Swz589Glj7rhaFQJB6crkb3LZwDs3eZGTfJj0xGh68wqPSj5Rf%2FTm%2F%2Bah3Z1LMjCFeZFNai61XUuODsPY0epMrt5DOV%2BUN19ilLxkCqOss0h2lKaEQ8vMjI%2FJBeYWB0TWBDLpN2smu431P63AZks4uC8Z%2F3J0nhsOPpQZchjDUH%2Fyg0lmc3s8gVeHd2HqGfkd3p5cZ3ZBYiWxIYNdK2hAug0PZq6XxLiRmrTuRLhwBkYMrFWywLNzdYNVZjOAo2NrZXamKMUzRvJZxcn4OBW2E%2BF6s5ZV58xbhLHupBnW6c95W0AuGzmatCxvaJ1%2FIEwziz7kyrSHcQcaiSm4kwJPWGAIS%2BOu90ry1zOQbIYkqGwWW1ZuUSrYIi67jxucjLXottbuK4J8px8FFBpgJPMgpJCtZyf0ABCwwY81Mjo9YXGcpzTW6NniahE6luhjhZg%2FfXJU9HqYP3RMey7%2FV2QBfDMoiWh66AekWwiuEVGpd7GLim7cRG%2FgMNaRFs7INA3t9bXF64%2B%2BBNM8M%2BRkkXz7Ovsp3bXCstCVDsaCl3kTXvVziF9gM%2FMSLbyqCVDC%2B59W%2FBjqpAY3czvn7DPLlT10XEc1WC3rcn4iq5xHugLFOBEJ2mMjvKxtldlDOSGzjQRx5RN7mzRrM%2FVGmRjvmW%2BWQkmw40BFEPY%2BaFPf364pzSMmI0FdCTtYDEgM8Qa2JnmGXIjgsGgW3cOATg%2BDZCwoQ%2BDEjpNWI7KUrUrVdKY8RGd2YpIUfQyn8Xj8IXO9GlVtespolO9veXeY1dzFdJr25vELoSDbbtqS5xEEuwd4%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20250408T191451Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Credential=ASIAR3VDDKJJEDBFIZ5K%2F20250408%2Feu-west-1%2Fs3%2Faws4_request&X-Amz-Signature=dd49a0ac35250628e8fe9928f07e5d087caade83e39b9bddbd66c7a20de45ff7",
+            ad_account_id=5,
+            report_type="spAdvertisedProduct",
+            campaign_type="SPONSORED_PRODUCTS"
+        )
         return status_200(message="Hello World", data={"name": "Razi"})
 
 
