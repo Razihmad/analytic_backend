@@ -34,7 +34,9 @@ def start_fetching_amazon_ads_data(*, amazon_seller_id: str, user: User):
     ], queue="process_report")
 
 
-def prepare_data_to_bulk_upsert(*, data: List[Dict], user_id: int, ad_account_id: int) -> List[AmazonAdsSaleAsin]:
+def prepare_data_to_bulk_upsert(
+    *, data: List[Dict], ad_account_id: int, campaign_type: str
+) -> List[AmazonAdsSaleAsin]:
     bulk_upsert_data = []
     for item in data:
         bulk_upsert_data.append(
@@ -42,14 +44,15 @@ def prepare_data_to_bulk_upsert(*, data: List[Dict], user_id: int, ad_account_id
                 amazon_ads_id=ad_account_id,
                 asin=item["advertisedAsin"],
                 sales_date=item["date"],
-                sales=item["sales7d"],
-                units_sold=item["unitsSoldClicks7d"],
+                sales=item["sales7d"] if campaign_type == AdProduct.SPONSORED_DISPLAY.value else item["sales"],
+                units_sold=item["unitsSoldClicks7d"] if campaign_type == AdProduct.SPONSORED_DISPLAY.value else item["unitsSoldClicks"],
                 cost=item["cost"],
                 impressions=item["impressions"],
                 clicks=item["clicks"],
                 spend=item["spend"],
-                orders=item["purchases7d"],
+                orders=item["purchases7d"] if campaign_type == AdProduct.SPONSORED_DISPLAY.value else item["purchases"],
                 cpc=item["costPerClick"] if item["costPerClick"] else 0,
+                campaign_type=campaign_type
             )
         )
     return bulk_upsert_data
@@ -107,20 +110,8 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
         raise ServiceException(f"no ads profile for {user_id=}, {amazon_seller_id=}")
     logger.info(f"{ads_profile=}")
     country_code = ads_profile.country_code
-    # start_fetching_amazon_ads_by_date_range.apply_async(
-    #     args=[
-    #         amazon_seller_id,
-    #         start_date,
-    #         end_date,
-    #         country_code,
-    #         ads_profile.profile_id,
-    #         ads_profile.id,
-    #         user_id,
-    #     ],
-    #     queue="process_report"
-    # )
-    start_fetching_amazon_ads_campaign_by_date_range(
-        *[
+    start_fetching_amazon_ads_by_date_range.apply_async(
+        args=[
             amazon_seller_id,
             start_date,
             end_date,
@@ -129,4 +120,16 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
             ads_profile.id,
             user_id,
         ],
+        queue="process_report"
     )
+    # start_fetching_amazon_ads_campaign_by_date_range(
+    #     *[
+    #         amazon_seller_id,
+    #         start_date,
+    #         end_date,
+    #         country_code,
+    #         ads_profile.profile_id,
+    #         ads_profile.id,
+    #         user_id,
+    #     ],
+    # )

@@ -4,6 +4,8 @@ from enum import Enum
 class AdsReportTypeId(Enum):
     SP_ADVERTISED_PRODUCT = "spAdvertisedProduct"
     SP_CAMPAIGN = "spCampaigns"
+    SD_ADVERISED_PRODUCT = "sdAdvertisedProduct"
+    SD_CAMPAING = "sdCampaigns"
 
 
 class GroupBy(Enum):
@@ -12,9 +14,9 @@ class GroupBy(Enum):
 
 
 class AdProduct(Enum):
-    # SPONSORED_PRODUCTS = "SPONSORED_PRODUCTS"
+    SPONSORED_PRODUCTS = "SPONSORED_PRODUCTS"
     SPONSORED_DISPLAY = "SPONSORED_DISPLAY"
-    SPONSORED_BRAND = "SPONSORED_BRAND"
+    # SPONSORED_BRAND = "SPONSORED_BRAND"
 
 
 class Granularity(Enum):
@@ -58,3 +60,29 @@ CAMPAIGN_TO_REPORT_TYPE_MAPPING = {
     "SPONSORED_DISPLAY": "sdCampaigns",
 }
 
+CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT = {
+    "SPONSORED_PRODUCTS": "spAdvertisedProduct",
+    # "SPONSORED_BRAND": "sbCampaigns",
+    "SPONSORED_DISPLAY": "sdAdvertisedProduct",
+}
+SP_ADVERTISED_PRODUCT_COLUMNS = [
+    "date",
+    "costPerClick",
+    "clickThroughRate",
+    "advertisedAsin",
+    "impressions",
+    "clicks",
+    "cost",
+    "spend",
+    "sales7d",
+    "unitsSoldClicks7d",
+    "purchases7d",
+]
+SD_ADVERTISED_PRODUCT_COLUMNS = [
+    "date", "impressions", "clicks", "costPerClick", "clickThroughRate,", "cost", "sales", "promotedAsin", "purchases", "sales", "unitsSoldClicks"
+]
+
+AD_PRODUCT_COLUMN_MAPPING = {
+    "SPONSORED_PRODUCTS": SP_ADVERTISED_PRODUCT_COLUMNS,
+    "SPONSORED_DISPLAY": SD_ADVERTISED_PRODUCT_COLUMNS,
+}

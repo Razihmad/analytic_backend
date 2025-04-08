@@ -29,12 +29,25 @@ def serialize_ads_sales_data(*, sales: QuerySet[AmazonAdsSaleAsin]) -> List[Dict
 
 def group_ad_sales_by_asin(*, sales: List[Dict]) -> List[Dict]:
     data = pd.DataFrame(sales)
-    data = data
     data = data.groupby("advertisedAsin", as_index=False).agg(
         {
             "sales7d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
             "costPerClick": "sum", "spend": "sum", "purchases7d": "sum",
             "costPerClick": "sum", "date": "first", "unitsSoldClicks7d": "sum"
+        }
+    )
+    data.fillna(0)
+    data = data.round(2)
+    return data.to_dict(orient="records")
+
+
+def group_by_sd_ad_sales_by_asin(sales: List[Dict]) -> List[Dict]:
+    data = pd.DataFrame(sales)
+    data = data.groupby("advertisedAsin", as_index=False).agg(
+        {
+            "sales": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
+            "costPerClick": "sum", "spend": "sum", "purchases": "sum",
+            "costPerClick": "sum", "date": "first", "unitsSoldClicks": "sum"
         }
     )
     data.fillna(0)

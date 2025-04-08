@@ -10,7 +10,7 @@ from authentication.services import get_ads_access_token
 from utils.utils import get_region_by_country_code
 import utils.datetime as dt
 
-from amazon_ads.constants import CAMPAIGN_COLUMNS, CAMPAIGN_TO_REPORT_TYPE_MAPPING, SP_CAMPAIGN_REPORT_COLUMNS, AdProduct, AdsReportTypeId, CampaignStatus, GroupBy, ReportStatus
+from amazon_ads.constants import AD_PRODUCT_COLUMN_MAPPING, CAMPAIGN_COLUMNS, CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT, CAMPAIGN_TO_REPORT_TYPE_MAPPING, SP_CAMPAIGN_REPORT_COLUMNS, AdProduct, AdsReportTypeId, CampaignStatus, GroupBy, ReportStatus
 from amazon_ads.utils.amazon_ads_api import amazon_ads_api
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,9 @@ def start_fetcing_ad_sales_data_by_asin(
             profile_id=profile_id,
             ad_account_id=amazon_ad_id,
             amazon_seller_id=amazon_seller_id,
-            user_id=user_id
+            user_id=user_id,
+            campaign_type=AdProduct.SPONSORED_PRODUCTS.value,
+            report_type="spAdvertisedProduct"
         )
         current_date = start_date - timedelta(days=1)
         i += 1
@@ -49,31 +51,12 @@ def create_ads_data_report_by_date(
     profile_id: str,
     user_id: int,
     amazon_seller_id: str,
-    ad_account_id: int
+    ad_account_id: int,
+    campaign_type: str,
+    report_type: str,
 ):
-    report_type = AdsReportTypeId.SP_ADVERTISED_PRODUCT.value
     group_by = GroupBy.ADVERTISER.value
-
-    columns = [
-        "date",
-        "costPerClick",
-        "clickThroughRate",
-        "advertisedAsin",
-        "impressions",
-        "clicks",
-        "cost",
-        "spend",
-        "sales1d",
-        "sales7d",
-        "sales14d",
-        "unitsSoldClicks1d",
-        "unitsSoldClicks7d",
-        "unitsSoldClicks14d",
-        "purchases1d",
-        "purchases7d",
-        "purchases14d"
-    ]
-    campaign_type = AdProduct.SPONSORED_PRODUCTS.value
+    columns = AD_PRODUCT_COLUMN_MAPPING[campaign_type]
     time_unit = "DAILY"
     logger.info(f"creating report for {start_date=}, {end_date=}, {region=}")
     data = amazon_ads_api.prepare_payload_for_report(
@@ -118,7 +101,7 @@ def start_tasks_to_check_report_status(
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     response = amazon_ads_api.get_report_status_by_report_id(access_token=access_token, region=region, report_id=report_id, profile_id=profile_id)
     status = response.get("status")
-    logger.info(f"report status: {status=}, {report_id=}")
+    logger.info(f"report status: {status=}, {report_id=}, {campaign_type=}, {report_type=}")
     if not status:
         logger.info(f"status not found, {response=}")
         return
@@ -141,19 +124,15 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
     from amazon_ads.services import prepare_campaing_level_data_for_upsert, prepare_data_to_bulk_upsert
 
     data = amazon_ads_api.get_data_by_url(url=url)
-    with open(f"ad_data_{report_type}_{campaign_type}", "w") as file:
-        import json
-        json.dump(file, data, indent=4)
-
     print(f"report data fetched, {user_id=}, {report_id=}, {len(data)=}")
-    if report_type == AdsReportTypeId.SP_ADVERTISED_PRODUCT.value:
+    if report_type in [AdsReportTypeId.SP_ADVERTISED_PRODUCT.value, AdsReportTypeId.SD_ADVERISED_PRODUCT.value]:
         data = group_ad_sales_by_asin(sales=data)
-        data = prepare_data_to_bulk_upsert(data=data, user_id=user_id, ad_account_id=ad_account_id)
+        data = prepare_data_to_bulk_upsert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         bulk_upsert_amazon_ads_sales(data=data)
         logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
         return
-    if report_type == AdsReportTypeId.SP_CAMPAIGN.value:
+    if report_type in [AdsReportTypeId.SP_CAMPAIGN.value, AdsReportTypeId.SD_CAMPAING.value]:
         data = prepare_campaing_level_data_for_upsert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         bulk_upsert_amazon_ads_campaign_sales(data=data)
         logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
@@ -219,16 +198,20 @@ def start_fetching_amazon_ads_by_date_range(
     end_date = dt.convert_str_to_date(date_str=end_date)
     region = get_region_by_country_code(country_code=country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
-    create_ads_data_report_by_date(
-        start_date=start_date,
-        end_date=end_date,
-        access_token=access_token,
-        region=region,
-        profile_id=profile_id,
-        user_id=user_id,
-        amazon_seller_id=amazon_seller_id,
-        ad_account_id=ad_account_id,
-    )
+    for campaign_type, report_type in CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT.keys():
+        logger.info(f"{amazon_seller_id=}, {start_date=}, {end_date=}, {campaign_type=}, {report_type=}")
+        create_ads_data_report_by_date(
+            start_date=start_date,
+            end_date=end_date,
+            access_token=access_token,
+            region=region,
+            profile_id=profile_id,
+            user_id=user_id,
+            amazon_seller_id=amazon_seller_id,
+            ad_account_id=ad_account_id,
+            campaign_type=campaign_type,
+            report_type=report_type
+        )
 
 
 @shared_task

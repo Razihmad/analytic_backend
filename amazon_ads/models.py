@@ -15,12 +15,13 @@ class AmazonAdsSaleAsin(models.Model):
     clicks = models.IntegerField()
     spend = models.DecimalField(max_digits=10, decimal_places=2)
     cpc = models.DecimalField(max_digits=10, decimal_places=2)
+    campaign_type = models.CharField(max_length=256, null=True, blank=True)
     orders = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['amazon_ads', 'asin', 'sales_date']
+        unique_together = ['amazon_ads', 'asin', 'sales_date', "campaign_type"]
 
 
 class AmazonAdsSaleCampaign(models.Model):
@@ -43,4 +44,4 @@ class AmazonAdsSaleCampaign(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['amazon_ads', 'campaign_id', 'sales_date']
+        unique_together = ['amazon_ads', 'campaign_id', 'sales_date', "campaign_type"]
