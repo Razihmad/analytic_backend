@@ -68,7 +68,6 @@ CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT = {
 SP_ADVERTISED_PRODUCT_COLUMNS = [
     "date",
     "costPerClick",
-    "clickThroughRate",
     "advertisedAsin",
     "impressions",
     "clicks",
@@ -79,7 +78,7 @@ SP_ADVERTISED_PRODUCT_COLUMNS = [
     "purchases7d",
 ]
 SD_ADVERTISED_PRODUCT_COLUMNS = [
-    "date", "impressions", "clicks", "costPerClick", "clickThroughRate,", "cost", "sales", "promotedAsin", "purchases", "sales", "unitsSoldClicks"
+    "date", "impressions", "clicks", "cost", "sales", "promotedAsin", "purchases", "sales", "unitsSoldClicks"
 ]
 
 AD_PRODUCT_COLUMN_MAPPING = {

@@ -51,7 +51,7 @@ def prepare_data_to_bulk_upsert(
                 clicks=item["clicks"],
                 spend=item["spend"],
                 orders=item["purchases7d"] if campaign_type == AdProduct.SPONSORED_DISPLAY.value else item["purchases"],
-                cpc=item["costPerClick"] if item["costPerClick"] else 0,
+                cpc=item["costPerClick"] if item.get("costPerClick") else float(item["cost"] / item["clicks"]),
                 campaign_type=campaign_type
             )
         )
