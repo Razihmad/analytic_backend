@@ -35,7 +35,7 @@ def group_ad_sales_by_asin(*, sales: List[Dict], campaign_type: str) -> List[Dic
     data = data.groupby("advertisedAsin", as_index=False).agg(
         {
             "sales7d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
-            "costPerClick": "sum", "spend": "sum", "purchases7d": "sum", "date": "first", "unitsSoldClicks7d": "sum"
+            "costPerClick": "sum", "purchases7d": "sum", "date": "first", "unitsSoldClicks7d": "sum"
         }
     )
     data.fillna(0)
@@ -45,10 +45,13 @@ def group_ad_sales_by_asin(*, sales: List[Dict], campaign_type: str) -> List[Dic
 
 def group_by_sd_ad_sales_by_asin(sales: List[Dict]) -> List[Dict]:
     data = pd.DataFrame(sales)
-    data = data.groupby("promoteddAsin", as_index=False).agg(
+    data = data.rename(
+        columns={"sales": "sales7d", "purchases": "purchases7d", "unitsSoldClicks": "unitsSoldClicks7d", "promotedAsin": "advertisedAsin"}
+    )
+    data = data.groupby("advertisedAsin", as_index=False).agg(
         {
-            "sales": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
-            "spend": "sum", "purchases": "sum", "date": "first", "unitsSoldClicks": "sum"
+            "sales7d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
+            "cost": "sum", "purchases7d": "sum", "date": "first", "unitsSoldClicks7d": "sum",
         }
     )
     data.fillna(0)
