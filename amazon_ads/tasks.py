@@ -198,7 +198,7 @@ def start_fetching_amazon_ads_by_date_range(
     end_date = dt.convert_str_to_date(date_str=end_date)
     region = get_region_by_country_code(country_code=country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
-    for campaign_type, report_type in CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT.keys():
+    for campaign_type, report_type in CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT.items():
         logger.info(f"{amazon_seller_id=}, {start_date=}, {end_date=}, {campaign_type=}, {report_type=}")
         create_ads_data_report_by_date(
             start_date=start_date,
