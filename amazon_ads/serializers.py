@@ -4,6 +4,7 @@ from collections import defaultdict
 from typing import Dict, List
 import pandas as pd
 from django.db.models import QuerySet
+from amazon_ads.constants import AdProduct
 from amazon_ads.models import AmazonAdsSaleAsin
 
 
@@ -27,7 +28,9 @@ def serialize_ads_sales_data(*, sales: QuerySet[AmazonAdsSaleAsin]) -> List[Dict
     return serialized_data
 
 
-def group_ad_sales_by_asin(*, sales: List[Dict]) -> List[Dict]:
+def group_ad_sales_by_asin(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
+    if campaign_type == AdProduct.SPONSORED_DISPLAY.value:
+        return group_by_sd_ad_sales_by_asin(sales=sales)
     data = pd.DataFrame(sales)
     data = data.groupby("advertisedAsin", as_index=False).agg(
         {
@@ -42,7 +45,7 @@ def group_ad_sales_by_asin(*, sales: List[Dict]) -> List[Dict]:
 
 def group_by_sd_ad_sales_by_asin(sales: List[Dict]) -> List[Dict]:
     data = pd.DataFrame(sales)
-    data = data.groupby("advertisedAsin", as_index=False).agg(
+    data = data.groupby("promoteddAsin", as_index=False).agg(
         {
             "sales": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
             "spend": "sum", "purchases": "sum", "date": "first", "unitsSoldClicks": "sum"

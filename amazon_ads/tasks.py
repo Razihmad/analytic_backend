@@ -114,8 +114,8 @@ def start_tasks_to_check_report_status(
             queue="process_report"
         )
     elif status == ReportStatus.COMPLETED.value:
-        logger.info(f"report is completed,{user_id=}, {report_id=}")
         url = response.get("url")
+        logger.info(f"report is completed,{user_id=}, {report_id=}, {url=}, {ad_account_id=}")
         download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type, campaign_type], queue="process_report")
 
 
@@ -124,9 +124,9 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
     from amazon_ads.services import prepare_campaing_level_data_for_upsert, prepare_data_to_bulk_upsert
 
     data = amazon_ads_api.get_data_by_url(url=url)
-    print(f"report data fetched, {user_id=}, {report_id=}, {len(data)=}")
+    print(f"report data fetched, {user_id=}, {report_id=}, {len(data)=}, {url=}")
     if report_type in [AdsReportTypeId.SP_ADVERTISED_PRODUCT.value, AdsReportTypeId.SD_ADVERISED_PRODUCT.value]:
-        data = group_ad_sales_by_asin(sales=data)
+        data = group_ad_sales_by_asin(sales=data, campaign_type=campaign_type)
         data = prepare_data_to_bulk_upsert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         bulk_upsert_amazon_ads_sales(data=data)
