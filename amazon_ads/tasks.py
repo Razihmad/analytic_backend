@@ -5,7 +5,7 @@ from typing import Optional
 from celery import shared_task
 
 from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, bulk_upsert_amazon_ads_sales
-from amazon_ads.serializers import group_ad_sales_by_asin
+from amazon_ads.serializers import group_ad_sales_by_asin, group_ad_sales_by_campaign
 from authentication.services import get_ads_access_token
 from utils.utils import get_region_by_country_code
 import utils.datetime as dt
@@ -133,6 +133,7 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
         logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
         return
     if report_type in [AdsReportTypeId.SP_CAMPAIGN.value, AdsReportTypeId.SD_CAMPAING.value]:
+        data = group_ad_sales_by_campaign(sales=data, campaign_type=campaign_type)
         data = prepare_campaing_level_data_for_upsert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         bulk_upsert_amazon_ads_campaign_sales(data=data)
         logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")

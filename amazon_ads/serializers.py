@@ -57,3 +57,36 @@ def group_by_sd_ad_sales_by_asin(sales: List[Dict]) -> List[Dict]:
     data.fillna(0)
     data = data.round(2)
     return data.to_dict(orient="records")
+
+
+def group_ad_sales_by_campaign(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
+    if campaign_type == AdProduct.SPONSORED_DISPLAY.value:
+        return group_by_sd_ad_sales_by_campaign(sales=sales)
+    data = pd.DataFrame(sales)
+    data = data.groupby("campaignId", as_index=False).agg(
+        {
+            "sales14d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
+            "costPerClick": "sum", "purchases14d": "sum", "date": "first", "unitsSoldClicks14d": "sum",
+            "campaignName": "first", "campaignStatus": "first", "campaignBiddingStrategy": "first"
+        }
+    )
+    data.fillna(0)
+    data = data.round(2)
+    return data.to_dict(orient="records")
+
+
+def group_by_sd_ad_sales_by_campaign(sales: List[Dict]) -> List[Dict]:
+    data = pd.DataFrame(sales)
+    data = data.rename(
+        columns={"sales": "sales14d", "purchases": "purchases14d", "unitsSoldClicks": "unitsSoldClicks14d"}
+    )
+    data = data.groupby("campaignId", as_index=False).agg(
+        {
+            "sales14d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
+            "costPerClick": "sum", "purchases14d": "sum", "date": "first", "unitsSoldClicks14d": "sum",
+            "campaignName": "first", "campaignStatus": "first", "campaignBiddingStrategy": "first"
+        }
+    )
+    data.fillna(0)
+    data = data.round(2)
+    return data.to_dict(orient="records")
