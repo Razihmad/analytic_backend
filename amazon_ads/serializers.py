@@ -83,8 +83,8 @@ def group_by_sd_ad_sales_by_campaign(sales: List[Dict]) -> List[Dict]:
     data = data.groupby("campaignId", as_index=False).agg(
         {
             "sales14d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
-            "costPerClick": "sum", "purchases14d": "sum", "date": "first", "unitsSoldClicks14d": "sum",
-            "campaignName": "first", "campaignStatus": "first", "campaignBiddingStrategy": "first"
+            "purchases14d": "sum", "date": "first", "unitsSoldClicks14d": "sum",
+            "campaignName": "first", "campaignStatus": "first",
         }
     )
     data.fillna(0)
