@@ -251,4 +251,5 @@ CACHES = {
 # Optional: This is to ensure Django sessions are stored in Redis
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
+USE_TZ = True
 TIME_ZONE = "Asia/Kolkata"
