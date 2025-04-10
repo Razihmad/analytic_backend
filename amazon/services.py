@@ -1,7 +1,7 @@
 from collections import defaultdict
 import logging
 import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 from amazon.serializers import (
@@ -163,8 +163,8 @@ def get_sales_report_data(
     report = get_values_delta_and_percentage_change(
         previous_report=previos_period_report, current_report=current_period_report
     )
-    performer_asins = get_top_performer_asins(sales_data=current_period_total_sales)
-    return report, performer_asins
+    # performer_asins = get_top_performer_asins(sales_data=current_period_total_sales)
+    return report
 
 
 def get_available_regions() -> List[Dict]:
@@ -210,3 +210,44 @@ def get_top_performer_asins(*, sales_data: List[Dict]):
 
 def get_percentage(*, cur_value: int, total_value: int):
     return round((cur_value / total_value) * 100, 2)
+
+
+def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, start_date: str, end_date: str) -> Tuple[List, List, List]:
+    seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    total_sales_data = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
+    total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
+    ads_sales_data = get_ads_sales(
+        ads_profile=seller, start_date=start_date, end_date=end_date
+    )
+    total_sales = 0
+    for data in total_sales_data:
+        total_sales += total_sales_data["sales"]
+    asin_greater_than_5_percent = []
+    asin_greater_than_1_percent = []
+    asin_less_than_1_percent = []
+    for data in total_sales_data:
+        data["ads_sales"] = get_ad_sales_by_asin(total_ads_sales=ads_sales_data, asin=data["child_asin"])
+        total_sessions, sku = get_sessions_and_sku_of_asin(traffic_data=total_traffic_data, asin=data["child_asin"])
+        data["total_sessions"] = total_sessions
+        data["sku"] = sku
+        if data["sales"] > total_sales * 0.05:
+            asin_greater_than_5_percent.append(data)
+        elif data["sales"] > total_sales * 0.01:
+            asin_greater_than_1_percent.append(data)
+        else:
+            asin_less_than_1_percent.append(data)
+    return asin_greater_than_5_percent, asin_greater_than_1_percent, asin_less_than_1_percent
+
+
+def get_sessions_and_sku_of_asin(*, traffic_data: List[Dict], asin: str) -> Tuple[int, str]:
+    for data in traffic_data:
+        if data.get("child_asin", "") == asin:
+            return data["total_sessions"], data["sku"]
+    return 0, ""
+
+
+def get_ad_sales_by_asin(*, total_ads_sales: List[Dict], asin: str) -> int:
+    for data in total_ads_sales:
+        if data.get("asin", "") == asin:
+            return data["sales"]
+    return 0

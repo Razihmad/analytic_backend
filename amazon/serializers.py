@@ -34,7 +34,8 @@ def serialize_seller_central_traffic(*, traffics: QuerySet[SellerCentralTraffic]
                 "mobile_app_sessions": traffic.mobile_app_sessions,
                 "browser_page_views": traffic.browser_page_views,
                 "mobile_app_page_views": traffic.mobile_app_page_views,
-                "unit_sessions_percentage": traffic.unit_sessions_percentage
+                "unit_sessions_percentage": traffic.unit_sessions_percentage,
+                "total_sessions": traffic.total_sessions,
             }
         )
     return result

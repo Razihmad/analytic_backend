@@ -13,6 +13,7 @@ from amazon.tasks import fetch_sales_report_by_date_range
 from base.decorators import handle_exception
 from amazon.services import (
     get_amazon_accounts_profile,
+    get_asin_categorization_by_sales,
     get_available_regions,
     get_sales_report_data,
     get_seller_asins,
@@ -64,7 +65,7 @@ class SalesAPI(APIView):
         prev_start_date = request.data.get("prev_start_date", str(dt.now(with_tz=True).date() - timedelta(days=16)))
         prev_end_date = request.data.get("prev_end_date", str(dt.now(with_tz=True).date() - timedelta(days=9)))
         asins = request.data.get("asins")
-        report, performer_asins = get_sales_report_data(
+        report = get_sales_report_data(
             user_id=user_id,
             amazon_seller_id=amazon_seller_id,
             start_date_str=start_date,
@@ -73,7 +74,7 @@ class SalesAPI(APIView):
             prev_start_date=prev_start_date,
             prev_end_date=prev_end_date,
         )
-        return status_200(message="Sales Data", data={"report": report, "performer_asins": performer_asins})
+        return status_200(message="Sales Data", data={"report": report})
 
 
 class GetRegionsAPI(APIView):
@@ -125,3 +126,22 @@ class FetchSellerAsin(APIView):
         amazon_seller_id = request.data.get("amazon_seller_id")
         asins = get_seller_asins(user_id=user.id, amazon_seller_id=amazon_seller_id)
         return status_200(message="Fetching Asin", data={"asins": asins})
+
+
+class GetAsinTierSale(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @handle_exception
+    def post(self, request):
+        user = request.user
+        amazon_seller_id = request.date.get("amazon_seller_id")
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        tier_1, tier_2, tier_3 = get_asin_categorization_by_sales(
+            user_id=user.id,
+            amazon_seller_id=amazon_seller_id,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        return status_200(message="Tier wise sales", data={"tier_one": tier_1, "tier_two": tier_2, "tier_three": tier_3})
