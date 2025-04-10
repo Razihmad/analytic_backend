@@ -213,6 +213,8 @@ def get_percentage(*, cur_value: int, total_value: int):
 
 
 def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, start_date: str, end_date: str) -> Tuple[List, List, List]:
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     total_sales_data = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
     total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
@@ -221,7 +223,7 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
     )
     total_sales = 0
     for data in total_sales_data:
-        total_sales += total_sales_data["sales"]
+        total_sales += data["sales"]
     asin_greater_than_5_percent = []
     asin_greater_than_1_percent = []
     asin_less_than_1_percent = []
@@ -230,6 +232,8 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
         total_sessions, sku = get_sessions_and_sku_of_asin(traffic_data=total_traffic_data, asin=data["child_asin"])
         data["total_sessions"] = total_sessions
         data["sku"] = sku
+        # conversion rate= order/sessions
+        data["cvr"] = round(data["orders"] / data["total_sessions"], 2) if data.get("total_sessions") else None
         if data["sales"] > total_sales * 0.05:
             asin_greater_than_5_percent.append(data)
         elif data["sales"] > total_sales * 0.01:

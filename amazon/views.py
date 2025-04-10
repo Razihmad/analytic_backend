@@ -135,7 +135,7 @@ class GetAsinTierSale(APIView):
     @handle_exception
     def post(self, request):
         user = request.user
-        amazon_seller_id = request.date.get("amazon_seller_id")
+        amazon_seller_id = request.data.get("amazon_seller_id")
         start_date = request.data.get("start_date")
         end_date = request.data.get("end_date")
         tier_1, tier_2, tier_3 = get_asin_categorization_by_sales(
