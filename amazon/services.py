@@ -235,13 +235,8 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
         cur_data["ads_sales"] = cur_data.get("ads_sales", 0) + ads_sales
         cur_data["ads_spend"] = cur_data.get("ads_spend", 0) + ads_spend
         total_sessions, sku = get_sessions_and_sku_of_asin(traffic_data=total_traffic_data, asin=data["child_asin"])
-        # data["total_sessions"] = total_sessions
-        # data["sku"] = sku
         cur_data["total_sessions"] = total_sessions + cur_data.get("total_sessions", 0)
         cur_data["sku"] = sku
-        # conversion rate= order/sessions
-        # cvr = data["orders"] / data["total_sessions"] if data.get("total_sessions") else 0
-        # cur_data["cvr"] = round(cvr / days, 2) + cur_data.get("cvr", 0)
         cur_data["sales"] = cur_data.get("sales", 0) + data["sales"]
         cur_data["orders"] = cur_data.get("orders", 0) + data["orders"]
         cur_data["units_ordered"] = data["units_ordered"] + cur_data.get("units_ordered", 0)
