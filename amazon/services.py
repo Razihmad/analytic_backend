@@ -215,7 +215,6 @@ def get_percentage(*, cur_value: int, total_value: int):
 def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, start_date: str, end_date: str) -> Tuple[List, List, List]:
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
-    days = (end_date - start_date).days
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     total_sales_data = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
     total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
@@ -260,6 +259,8 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
             tier_3_asins_count += 1
 
     total_asins = len(total_sales_data)
+    if not total_asins:
+        return {}, {}, {}
     tier_1_data = {"asin_percentage": round(100 * tier_1_asins_count / total_asins, 2), "data": asin_greater_than_5_percent}
     tier_2_data = {"asin_percentage": round(100 * tier_2_asins_count / total_asins, 2), "data": asin_greater_than_1_percent}
     tier_3_data = {"asin_percentage": round(100 * tier_3_asins_count / total_asins, 2), "data": asin_less_than_1_percent}
