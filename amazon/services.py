@@ -239,8 +239,8 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
         cur_data["total_sessions"] = total_sessions + cur_data.get("total_sessions", 0)
         cur_data["sku"] = sku
         # conversion rate= order/sessions
-        cvr = data["orders"] / data["total_sessions"] if data.get("total_sessions") else 0
-        cur_data["cvr"] = round(cvr / days, 2) + cur_data.get("cvr", 0)
+        # cvr = data["orders"] / data["total_sessions"] if data.get("total_sessions") else 0
+        # cur_data["cvr"] = round(cvr / days, 2) + cur_data.get("cvr", 0)
         cur_data["sales"] = cur_data.get("sales", 0) + data["sales"]
         cur_data["orders"] = cur_data.get("orders", 0) + data["orders"]
         cur_data["units_ordered"] = data["units_ordered"] + cur_data.get("units_ordered", 0)
@@ -248,6 +248,7 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
         asin_wise_sales[data["child_asin"]] = cur_data
 
     for asin, data in asin_wise_sales.items():
+        data["cvr"] = round(data["orders"] / data["total_sessions"], 2) if data.get("total_sessions") else 0
         if data["sales"] > total_sales * 0.05:
             asin_greater_than_5_percent.append(data)
             tier_1_asins_count += 1
