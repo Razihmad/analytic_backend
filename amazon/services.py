@@ -231,8 +231,9 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
     asin_wise_sales = defaultdict(dict)
     for data in total_sales_data:
         cur_data = asin_wise_sales[data["child_asin"]]
-        ads_sales = get_ad_sales_by_asin(total_ads_sales=ads_sales_data, asin=data["child_asin"])
+        ads_sales, ads_spend = get_ad_sales_by_asin(total_ads_sales=ads_sales_data, asin=data["child_asin"])
         cur_data["ads_sales"] = cur_data.get("ads_sales", 0) + ads_sales
+        cur_data["ads_spend"] = cur_data.get("ads_spend", 0) + ads_spend
         total_sessions, sku = get_sessions_and_sku_of_asin(traffic_data=total_traffic_data, asin=data["child_asin"])
         # data["total_sessions"] = total_sessions
         # data["sku"] = sku
@@ -279,5 +280,5 @@ def get_sessions_and_sku_of_asin(*, traffic_data: List[Dict], asin: str) -> Tupl
 def get_ad_sales_by_asin(*, total_ads_sales: List[Dict], asin: str) -> int:
     for data in total_ads_sales:
         if data.get("asin", "") == asin:
-            return data["sales"]
-    return 0
+            return data["sales"], data["spend"]
+    return 0, 0
