@@ -216,6 +216,7 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    logger.info(f"{start_date=}, {end_date=}, {user_id=}, {seller=}")
     total_sales_data = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
     total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
     ads_sales_data = get_ads_sales(
@@ -259,6 +260,7 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
             tier_3_asins_count += 1
 
     total_asins = len(total_sales_data)
+    logger.info(f"{start_date=}, {end_date=}, {user_id=}, {seller=}, {total_asins=}")
     if not total_asins:
         return {}, {}, {}
     tier_1_data = {"asin_percentage": round(100 * tier_1_asins_count / total_asins, 2), "data": asin_greater_than_5_percent}
