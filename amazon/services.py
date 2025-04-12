@@ -5,6 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 
 from amazon.serializers import (
+    group_total_sales_data_by_date,
     process_total_and_sales_data,
     serialize_amazon_profile_account,
     serialize_regions_details,
@@ -12,7 +13,8 @@ from amazon.serializers import (
     serialize_seller_central_traffic
 )
 from amazon.tasks import fetch_seller_central_report_data_by_date, fetch_seller_central_return_report_data_by_date
-from amazon_ads.services import get_ads_sales, verify_and_get_ads_profile
+from amazon_ads.constants import GraphDataType
+from amazon_ads.services import get_ads_data_for_graph, get_ads_sales, verify_and_get_ads_profile
 from base.exception import ServiceException
 import utils.datetime as dt
 from amazon.models import Seller, SellerCentralSale, SellerCentralTraffic, SellerCentralReturn
@@ -283,3 +285,58 @@ def get_ad_sales_by_asin(*, total_ads_sales: List[Dict], asin: str) -> int:
         if data.get("asin", "") == asin:
             return data["sales"], data["spend"]
     return 0, 0
+
+
+def get_graph_data_for_total_sales_data(*, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]], graph_data_type: str) -> Dict:
+    logger.info(f"{seller=}, {start_date=}, {end_date=}, {asins=}, {graph_data_type=}")
+    field = GraphDataType[graph_data_type]
+    total_sales_data = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date, asins=asins, fields=[field.value])
+    return group_total_sales_data_by_date(sales_data=total_sales_data, field=field.value)
+
+
+def get_graph_data_for_organic_and_ads_sales_data(
+    *, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]], graph_data_type: str
+):
+    total_sales_data = get_graph_data_for_total_sales_data(
+        seller=seller,
+        start_date=start_date,
+        end_date=end_date,
+        asins=asins,
+        graph_data_type=graph_data_type,
+    )
+    ads_sales_data = get_ads_data_for_graph(
+        seller=seller,
+        start_date=start_date,
+        end_date=end_date,
+        asins=asins,
+        graph_data_type=graph_data_type,
+    )
+    organic_data = defaultdict(int)
+    for date, value in total_sales_data.items():
+        organic_data[date] += (value - ads_sales_data.get(date, 0))
+    return organic_data, ads_sales_data
+
+
+def get_data_for_graph(
+    *, user_id: int, amazon_seller_id: str, start_date: str, end_date: str, asins: Optional[List[str]], graph_data_type: str, prev_start_date: str, prev_end_date: str
+) -> Tuple[Dict, Dict]:
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    prev_start_date = dt.convert_str_to_date(date_str=prev_start_date)
+    prev_end_date = dt.convert_str_to_date(date_str=prev_end_date)
+    seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}, {user_id=}")
+    return get_graph_data_for_total_sales_data(
+        seller=seller,
+        start_date=start_date,
+        end_date=end_date,
+        asins=asins,
+        graph_data_type=graph_data_type,
+    ), get_graph_data_for_total_sales_data(
+        seller=seller,
+        start_date=prev_end_date,
+        end_date=prev_end_date,
+        asins=asins,
+        graph_data_type=graph_data_type,
+    )

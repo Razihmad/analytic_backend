@@ -22,11 +22,16 @@ def bulk_create_return_data(*, data: List[SellerCentralReturn]):
     return SellerCentralReturn.objects.bulk_create(data, ignore_conflicts=True)
 
 
-def get_seller_central_sales_data(*, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]]) -> QuerySet[SellerCentralSale]:
+def get_seller_central_sales_data(
+    *, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]], fields: Optional[List[str]]
+) -> QuerySet[SellerCentralSale]:
     base_filter = Q(seller=seller, sales_date__gte=start_date, sales_date__lte=end_date)
     if asins:
         base_filter &= Q(child_asin__in=asins)
-    return SellerCentralSale.objects.filter(base_filter)
+    data = SellerCentralSale.objects.filter(base_filter)
+    if fields:
+        return data.values("sales_date", *fields)
+    return data
 
 
 def get_seller_central_traffic_data(*, seller: Seller, start_date: datetime.date, end_date: datetime.date) -> QuerySet[SellerCentralTraffic]:

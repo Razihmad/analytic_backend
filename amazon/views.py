@@ -15,6 +15,7 @@ from amazon.services import (
     get_amazon_accounts_profile,
     get_asin_categorization_by_sales,
     get_available_regions,
+    get_data_for_graph,
     get_sales_report_data,
     get_seller_asins,
     start_fetching_seller_central_data
@@ -152,5 +153,22 @@ class GetGraphData(APIView):
 
     @handle_exception
     def post(self, request):
-        data_type = request.data.get("data_type")
-        pass
+        data_type = request.data.get("graph_data_type")
+        amazon_seller_id = request.data.get("amazon_seller_id")
+        start_date = request.data.get("start_date", str(dt.now(with_tz=True).date() - timedelta(days=8)))
+        end_date = request.data.get("end_date", str(dt.now(with_tz=True).date() - timedelta(days=1)))
+        prev_start_date = request.data.get("prev_start_date", str(dt.now(with_tz=True).date() - timedelta(days=16)))
+        prev_end_date = request.data.get("prev_end_date", str(dt.now(with_tz=True).date() - timedelta(days=9)))
+        asins = request.data.get("asins")
+        user = request.user
+        current_data, prev_data = get_data_for_graph(
+            user_id=user.id,
+            start_date=start_date,
+            end_date=end_date,
+            prev_start_date=prev_start_date,
+            prev_end_date=prev_end_date,
+            amazon_seller_id=amazon_seller_id,
+            graph_data_type=data_type,
+            asins=asins
+        )
+        return status_200(message="graph data is here", data={"current": current_data, "previous": prev_data})

@@ -91,29 +91,8 @@ def group_by_sd_ad_sales_by_campaign(sales: List[Dict]) -> List[Dict]:
     return data.to_dict(orient="records")
 
 
-def group_ads_sales_data_by_date(*, sales_data: QuerySet) -> Dict:
-    result = defaultdict(float)
-    for data in sales_data:
-        result[str(data["sales_date"])] += round(float(data["sales"]), 3)
-    return result
-
-
-def group_ads_traffic_by_date(*, traffic_data: QuerySet) -> Dict:
+def group_ads_sales_data_by_date(*, ads_sales_data: QuerySet, field: str) -> Dict:
     result = defaultdict(int)
-    for data in traffic_data:
-        result[str(data["sales_date"])] += (data["clicks"])
-    return result
-
-
-def group_ads_orders_by_date(*, orders_data: QuerySet) -> Dict:
-    result = defaultdict(int)
-    for data in orders_data:
-        result[str(data["sales_date"])] += data["orders"]
-    return result
-
-
-def group_ads_impression_by_date(*, ads_data: QuerySet) -> Dict:
-    result = defaultdict(int)
-    for data in ads_data:
-        result[str(data["sales_date"])] += data["impressions"]
+    for data in ads_sales_data:
+        result[str(data["sales_date"])] += (data[field])
     return result

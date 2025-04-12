@@ -167,3 +167,10 @@ def serialize_amazon_profile_account(*, profile: Seller):
         "store_name": profile.store_name,
         "country_code": profile.country_code,
     }
+
+
+def group_total_sales_data_by_date(*, total_sales_data: QuerySet, field: str) -> Dict:
+    result = defaultdict(int)
+    for data in total_sales_data:
+        result[data["sales_date"]] += int(data[field])
+    return result
