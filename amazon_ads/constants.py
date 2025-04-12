@@ -85,3 +85,12 @@ AD_PRODUCT_COLUMN_MAPPING = {
     "SPONSORED_PRODUCTS": SP_ADVERTISED_PRODUCT_COLUMNS,
     "SPONSORED_DISPLAY": SD_ADVERTISED_PRODUCT_COLUMNS,
 }
+
+
+class GraphDataType(Enum):
+    REVENUE = "sales"
+    TRAFFIC = "clicks"
+    IMPRESSIONS = "impressions"
+    ORDERS = "orders"
+    SPEND = "spend"
+    CLICKS = "clicks"

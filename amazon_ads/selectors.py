@@ -19,8 +19,13 @@ def bulk_upsert_amazon_ads_campaign_sales(*, data: List[AmazonAdsSaleCampaign]):
     return AmazonAdsSaleCampaign.objects.bulk_create(data, ignore_conflicts=True)
 
 
-def get_ads_sales_data(*, profile: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]]) -> QuerySet[AmazonAdsSaleAsin]:
+def get_ads_sales_data(
+    *, profile: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]], fields: Optional[List[str]] = None
+) -> QuerySet[AmazonAdsSaleAsin]:
     base_filter = Q(amazon_ads=profile, sales_date__gte=start_date, sales_date__lte=end_date)
     if asins:
         base_filter &= Q(asin__in=asins)
-    return AmazonAdsSaleAsin.objects.filter(base_filter)
+    data = AmazonAdsSaleAsin.objects.filter(base_filter)
+    if fields:
+        return data.values("sales_date", *fields)
+    return data
