@@ -127,7 +127,7 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
     print(f"report data fetched, {user_id=}, {report_id=}, {len(data)=}, {url=}, {ad_account_id=}, {report_type=}, {campaign_type=}")
     if report_type in [AdsReportTypeId.SP_ADVERTISED_PRODUCT.value, AdsReportTypeId.SD_ADVERISED_PRODUCT.value]:
         data = group_ad_sales_by_asin(sales=data, campaign_type=campaign_type)
-        logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {data=}")
+        logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         data = prepare_data_to_bulk_upsert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         bulk_upsert_amazon_ads_sales(data=data)
