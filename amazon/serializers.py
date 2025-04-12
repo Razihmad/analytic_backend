@@ -94,7 +94,7 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
         total_sales_data["ads_spend"] += sale["spend"]
         total_sales_data["impressions"] += sale["impressions"]
         total_sales_data["clicks"] += sale["clicks"]
-        total_sales_data["cpc"] += sale["cpc"]
+        # total_sales_data["cpc"] += sale["cpc"]
         total_sales_data["ad_orders"] += sale["orders"]
         total_sales_data["ad_traffic"] += sale["clicks"]
 
@@ -141,8 +141,8 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
         total_sales_data["cpo"] = round(float(total_sales_data["ads_spend"]) / float(total_sales_data["total_orders"]), 2)
 
     # calculate average cost per click
-    if ads_sale:
-        total_sales_data["cpc"] = round(float(total_sales_data["cpc"] / len(ads_sale)), 2)
+    if total_sales_data["clicks"]:
+        total_sales_data["cpc"] = round(float(total_sales_data["ads_spend"] / total_sales_data["clicks"]), 2)
     return total_sales_data
 
 
