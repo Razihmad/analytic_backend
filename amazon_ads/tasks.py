@@ -1,6 +1,5 @@
 import logging
 from datetime import timedelta, date
-from typing import Optional
 
 from celery import shared_task
 
@@ -82,7 +81,7 @@ def create_ads_data_report_by_date(
             user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, campaign_type,
         ],
         countdown=300,
-        queue="process_report"
+        queue="process_ads_report"
     )
 
 
@@ -111,12 +110,12 @@ def start_tasks_to_check_report_status(
                 user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, campaign_type,
             ],
             countdown=300,
-            queue="process_report"
+            queue="process_ads_report"
         )
     elif status == ReportStatus.COMPLETED.value:
         url = response.get("url")
         logger.info(f"report is completed,{user_id=}, {report_id=}, {url=}, {ad_account_id=}")
-        download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type, campaign_type], queue="process_report")
+        download_file_and_process_report_data.apply_async(args=[user_id, report_id, url, ad_account_id, report_type, campaign_type], queue="process_ads_report")
 
 
 @shared_task
@@ -180,7 +179,7 @@ def start_fetching_ad_sales_data_by_campaign(
                 user_id, amazon_seller_id, region, report_id, profile_id, amazon_ad_id, report_type, ad_product
             ],
             countdown=300,
-            queue="process_report"
+            queue="process_ads_report"
         )
         i += 1
 
@@ -245,7 +244,7 @@ def start_fetching_amazon_ads_campaign_by_date_range(
                 ad_account_id,
                 campaign_type,
             ],
-            queue="process_report"
+            queue="process_ads_report"
         )
 
 
@@ -290,5 +289,5 @@ def create_ads_campaign_data_report_by_date(
             user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, campaign_type,
         ],
         countdown=300,
-        queue="process_report"
+        queue="process_ads_report"
     )
