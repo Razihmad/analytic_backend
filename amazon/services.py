@@ -213,6 +213,7 @@ def get_percentage(*, cur_value: int, total_value: int):
 
 
 def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, start_date: str, end_date: str) -> Tuple[List, List, List]:
+    logger.info(f"{start_date=}, {end_date=}, {user_id=}, {amazon_seller_id=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
