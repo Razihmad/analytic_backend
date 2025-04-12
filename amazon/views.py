@@ -161,6 +161,7 @@ class GetGraphData(APIView):
         prev_end_date = request.data.get("prev_end_date", str(dt.now(with_tz=True).date() - timedelta(days=9)))
         asins = request.data.get("asins")
         user = request.user
+        logger.info(f"{request.data=}")
         current_data, prev_data = get_data_for_graph(
             user_id=user.id,
             start_date=start_date,
