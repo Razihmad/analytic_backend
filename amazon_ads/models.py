@@ -27,7 +27,7 @@ class AmazonAdsSaleAsin(models.Model):
 class AmazonAdsSaleCampaign(models.Model):
     amazon_ads = models.ForeignKey(Seller, on_delete=models.CASCADE)
     campaign_name = models.CharField(max_length=255)
-    campaign_id = models.CharField(max_length=255)
+    # campaign_id = models.CharField(max_length=255)
     sales_date = models.DateField()
     sales = models.DecimalField(max_digits=10, decimal_places=2)
     units_sold = models.IntegerField()
@@ -44,4 +44,4 @@ class AmazonAdsSaleCampaign(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['amazon_ads', 'campaign_id', 'sales_date', "campaign_type"]
+        unique_together = ['amazon_ads', 'campaign_name', 'sales_date', "campaign_type"]

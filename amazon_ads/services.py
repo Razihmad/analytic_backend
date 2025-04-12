@@ -75,7 +75,6 @@ def prepare_campaing_level_data_for_upsert(*, data: List[Dict], ad_account_id: i
             AmazonAdsSaleCampaign(
                 amazon_ads_id=ad_account_id,
                 campaign_name=item["campaignName"],
-                campaign_id=item["campaignId"],
                 sales_date=item["date"],
                 sales=item["sales14d"],
                 units_sold=item["unitsSoldClicks14d"],

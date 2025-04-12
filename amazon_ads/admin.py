@@ -17,6 +17,6 @@ class AmazonAdsSaleAsinAdmin(admin.ModelAdmin):
 class AmazonAdsSaleCampaignAdmin(admin.ModelAdmin):
     list_display = ('amazon_ads', 'campaign_name', 'sales_date', 'sales', 'units_sold', 'cost', 'impressions', 'clicks', 'spend', 'cpc', 'orders', "campaign_type")
     list_filter = ('amazon_ads', 'sales_date', "campaign_type")
-    search_fields = ('campaign_name', 'campaign_id')
+    search_fields = ('campaign_name',)
     ordering = ('-sales_date',)
     readonly_fields = ("amazon_ads",)
