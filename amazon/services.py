@@ -245,9 +245,9 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
         asin_wise_sales[data["child_asin"]] = cur_data
 
     for _, data in asin_wise_sales.items():
-        data["cvr"] = round(float(data["orders"]) / data["total_sessions"], 2) if data.get("total_sessions") else 0
-        data["tacos"] = round(float(data["ads_spend"]) / data["sales"]) if data.get("sales") else 0
-        data["acos"] = round(float(data["ads_spend"]) / data["ads_sales"]) if data.get("ads_sales") else 0
+        data["cvr"] = round(float(data["orders"]) / float(data["total_sessions"]), 2) if data.get("total_sessions") else 0
+        data["tacos"] = round(float(data["ads_spend"]) / float(data["sales"])) if data.get("sales") else 0
+        data["acos"] = round(float(data["ads_spend"]) / float(data["ads_sales"])) if data.get("ads_sales") else 0
         if data["sales"] > total_sales * 0.05:
             asin_greater_than_5_percent.append(data)
             tier_1_asins_count += 1
