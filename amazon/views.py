@@ -148,8 +148,8 @@ class GetAsinTierSale(APIView):
 
 
 class GetGraphData(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
 
     @handle_exception
     def post(self, request):
@@ -160,10 +160,10 @@ class GetGraphData(APIView):
         prev_start_date = request.data.get("prev_start_date", str(dt.now(with_tz=True).date() - timedelta(days=16)))
         prev_end_date = request.data.get("prev_end_date", str(dt.now(with_tz=True).date() - timedelta(days=9)))
         asins = request.data.get("asins")
-        user = request.user
+        # user = request.user
         logger.info(f"{request.data=}")
         current_data, prev_data = get_data_for_graph(
-            user_id=user.id,
+            user_id=8,
             start_date=start_date,
             end_date=end_date,
             prev_start_date=prev_start_date,

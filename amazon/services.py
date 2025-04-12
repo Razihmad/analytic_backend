@@ -291,7 +291,7 @@ def get_graph_data_for_total_sales_data(*, seller: Seller, start_date: datetime.
     logger.info(f"{seller=}, {start_date=}, {end_date=}, {asins=}, {graph_data_type=}")
     field = GraphDataType[graph_data_type]
     total_sales_data = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date, asins=asins, fields=[field.value])
-    return group_total_sales_data_by_date(sales_data=total_sales_data, field=field.value)
+    return group_total_sales_data_by_date(total_sales_data=total_sales_data, field=field.value)
 
 
 def get_graph_data_for_organic_and_ads_sales_data(
