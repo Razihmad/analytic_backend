@@ -290,7 +290,16 @@ def get_ad_sales_by_asin(*, total_ads_sales: List[Dict], asin: str) -> int:
 def get_graph_data_for_total_sales_data(*, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]], graph_data_type: str) -> Dict:
     logger.info(f"{seller=}, {start_date=}, {end_date=}, {asins=}, {graph_data_type=}")
     field = GraphDataType[graph_data_type]
-    total_sales_data = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date, asins=asins, fields=[field.value])
+    fields = [field.value]
+    total_sales_data = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date, asins=asins, fields=fields)
+    if graph_data_type in [GraphDataType.IMPRESSIONS.name, GraphDataType.CLICKS.name, GraphDataType.SPEND.name]:
+        return get_ads_data_for_graph(
+            seller=seller,
+            start_date=start_date,
+            end_date=end_date,
+            asins=asins,
+            graph_data_type=graph_data_type,
+        )
     return group_total_sales_data_by_date(total_sales_data=total_sales_data, field=field.value)
 
 
@@ -320,6 +329,7 @@ def get_graph_data_for_organic_and_ads_sales_data(
 def get_data_for_graph(
     *, user_id: int, amazon_seller_id: str, start_date: str, end_date: str, asins: Optional[List[str]], graph_data_type: str, prev_start_date: str, prev_end_date: str
 ) -> Tuple[Dict, Dict]:
+    logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}, {asins=}, {graph_data_type=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     prev_start_date = dt.convert_str_to_date(date_str=prev_start_date)

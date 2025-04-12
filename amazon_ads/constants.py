@@ -94,3 +94,4 @@ class GraphDataType(Enum):
     ORDERS = "orders"
     SPEND = "spend"
     CLICKS = "clicks"
+    AOV = "aov"

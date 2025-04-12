@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from django.db.models import QuerySet
 from django.db.models.manager import BaseManager
@@ -169,7 +169,7 @@ def serialize_amazon_profile_account(*, profile: Seller):
     }
 
 
-def group_total_sales_data_by_date(*, total_sales_data: QuerySet, field: str) -> Dict:
+def group_total_sales_data_by_date(*, total_sales_data: QuerySet, field: Union[str, List]) -> Dict:
     result = defaultdict(int)
     for data in total_sales_data:
         result[str(data["sales_date"])] += int(data[field])
