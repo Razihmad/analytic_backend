@@ -244,7 +244,8 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
         cur_data["asin"] = data["child_asin"]
         asin_wise_sales[data["child_asin"]] = cur_data
 
-    for asin, data in asin_wise_sales.items():
+    tier_1_sales, tier_2_sales, tier_3_sales = 0, 0, 0
+    for _, data in asin_wise_sales.items():
         sales = float(data.get("sales"))
         ads_sales = float(data.get("ads_sales"))
         data["cvr"] = round(float(data["orders"]) / float(data["total_sessions"]), 2) if data.get("total_sessions") else 0
@@ -252,21 +253,21 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
         data["acos"] = round(float(data["ads_spend"]) / ads_sales, 3) if ads_sales else 0
         if data["sales"] > total_sales * 0.05:
             asin_greater_than_5_percent.append(data)
-            tier_1_asins_count += 1
+            tier_1_sales += data["sales"]
         elif data["sales"] > total_sales * 0.01:
             asin_greater_than_1_percent.append(data)
-            tier_2_asins_count += 1
+            tier_2_sales += data["sales"]
         else:
             asin_less_than_1_percent.append(data)
-            tier_3_asins_count += 1
+            tier_3_sales += data["sales"]
 
     total_asins = len(total_sales_data)
     logger.info(f"{start_date=}, {end_date=}, {user_id=}, {seller=}, {total_asins=}")
     if not total_asins:
         return {}, {}, {}
-    tier_1_data = {"asin_percentage": round(100 * tier_1_asins_count / total_asins, 2), "data": asin_greater_than_5_percent}
-    tier_2_data = {"asin_percentage": round(100 * tier_2_asins_count / total_asins, 2), "data": asin_greater_than_1_percent}
-    tier_3_data = {"asin_percentage": round(100 * tier_3_asins_count / total_asins, 2), "data": asin_less_than_1_percent}
+    tier_1_data = {"asin_percentage": round(100 * tier_1_sales / total_sales, 2), "data": asin_greater_than_5_percent}
+    tier_2_data = {"asin_percentage": round(100 * tier_2_sales / total_sales, 2), "data": asin_greater_than_1_percent}
+    tier_3_data = {"asin_percentage": round(100 * tier_3_sales / total_sales, 2), "data": asin_less_than_1_percent}
     return tier_1_data, tier_2_data, tier_3_data
 
 
