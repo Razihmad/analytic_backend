@@ -1,4 +1,5 @@
 from django.contrib import admin
+from rangefilter.filters import DateRangeFilter
 
 # Register your models here.
 from amazon.models import Seller, SellerCentralSale, RegionDetail, SellerCentralTraffic
@@ -7,7 +8,7 @@ from amazon.models import Seller, SellerCentralSale, RegionDetail, SellerCentral
 @admin.register(SellerCentralSale)
 class SellerCentralSaleAdmin(admin.ModelAdmin):
     list_display = ('seller', 'child_asin', 'parent_asin', 'sales_date', 'units_ordered', 'sales', 'orders')
-    list_filter = ('seller', 'sales_date')
+    list_filter = ('seller', ('sales_date', DateRangeFilter))
     search_fields = ('child_asin', 'parent_asin')
     ordering = ('-sales_date',)
     readonly_fields = ("seller",)
@@ -18,11 +19,10 @@ class SellerCentralTrafficAdmin(admin.ModelAdmin):
     list_display = (
         'seller', 'child_asin', 'sessions_date', 'sku', 'browser_sessions', 'mobile_app_sessions', 'browser_page_views', 'mobile_app_page_views', 'unit_sessions_percentage', "total_sessions", "total_page_views"
     )
-    list_filter = ('seller', 'sessions_date')
+    list_filter = ('seller', ('sessions_date', DateRangeFilter))
     search_fields = ('child_asin', 'sku')
     ordering = ('-sessions_date',)
     readonly_fields = ("seller", )
-    
 
 
 @admin.register(Seller)

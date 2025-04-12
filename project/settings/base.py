@@ -38,7 +38,7 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 INTERNAL_APPS = ["amazon", "authentication", "amazon_ads"]
 
-EXTERNAL_APPS = ["rest_framework", "corsheaders"]
+EXTERNAL_APPS = ["rest_framework", "corsheaders", "rangefilter"]
 
 DEFAULT_APPS = [
     "django.contrib.admin",
