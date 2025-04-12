@@ -1,3 +1,4 @@
+import logging
 import json
 import xmltodict
 
@@ -5,6 +6,9 @@ from sp_api.base import Marketplaces
 
 from project.cache_config import CACHE_NAMES
 from typing import Dict
+
+
+logger= logging.getLogger(__name__)
 
 
 def get_cache_key_and_timeout(dict_identifier, **kwargs):
@@ -44,4 +48,9 @@ def get_values_delta_and_percentage_change(*, previous_report: Dict, current_rep
             "color": "green" if percentage_change > 0 else "red",
             "arrow": "up" if percentage_change > 0 else "down"
         }
+        if key in ["organic_revenue", "ads_revenue", "organic_traffic", "ad_traffic", "organic_orders", "ad_orders"]:
+            total_share_key = f"total_{key.split("_")[1]}"
+            logger.info(f"{total_share_key=}, {key=}")
+            total_value = float(current_report[total_share_key])
+            changes[key]["share_percentage"] = round(100 * float(changes[key]["current"]) / total_value, 2) if total_value else 0
     return changes

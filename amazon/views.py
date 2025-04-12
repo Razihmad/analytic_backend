@@ -145,3 +145,13 @@ class GetAsinTierSale(APIView):
             end_date=end_date,
         )
         return status_200(message="Tier wise sales", data={"tier_one": tier_1, "tier_two": tier_2, "tier_three": tier_3})
+
+
+class GetGraphData(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @handle_exception
+    def post(self, request):
+        data_type = request.data.get("data_type")
+        pass

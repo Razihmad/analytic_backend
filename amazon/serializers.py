@@ -101,7 +101,6 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
     total_sales_data["organic_orders"] = total_sales_data["total_orders"] - total_sales_data["ad_orders"]
     total_sales_data["organic_traffic"] = total_sales_data["total_traffic"] - total_sales_data["ad_traffic"]
     total_sales_data["organic_revenue"] = round(float(total_sales_data["total_revenue"]) - float(total_sales_data["ads_revenue"]), 2)
-
     # calculate AOV
     if total_sales_data["total_orders"]:
         total_sales_data["total_aov"] = int(float(total_sales_data["total_revenue"]) / float(total_sales_data["total_orders"]))
