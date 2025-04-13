@@ -103,9 +103,15 @@ def prepare_bulk_create_return_data(*, data: List[Dict]):
     bulk_create_return_data(data=return_objects)
 
 
-def get_total_sales(*, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]] = None) -> List[Dict]:
+def get_total_sales(
+    *, seller: Seller,
+    start_date: datetime.date,
+    end_date: datetime.date,
+    asins: Optional[List[str]] = None,
+    fields: Optional[List[str]] = None,
+) -> List[Dict]:
     logger.info(f"{seller.user_id=}, {seller.id=} {seller.amazon_seller_id=}, {start_date=}, {end_date=}, {asins=}")
-    total_sales = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date, asins=asins)
+    total_sales = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date, asins=asins, fields=fields)
     total_sales_data = serialize_seller_central_sales(sales=total_sales)
     return total_sales_data
 
