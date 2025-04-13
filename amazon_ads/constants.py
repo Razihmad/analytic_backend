@@ -89,7 +89,7 @@ AD_PRODUCT_COLUMN_MAPPING = {
 
 class GraphDataType(Enum):
     REVENUE = "sales"
-    TRAFFIC = "clicks"
+    TRAFFIC = "traffic"
     IMPRESSIONS = "impressions"
     ORDERS = "orders"
     SPEND = "spend"

@@ -149,5 +149,8 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
 def get_ads_data_for_graph(*, seller: Seller, graph_data_type: str, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]]):
     logger.info(f"{seller=}, {start_date=}, {end_date=}, {asins=}, {graph_data_type=}")
     field = GraphDataType[graph_data_type]
-    ads_sales = get_ads_sales_data(profile=seller, start_date=start_date, end_date=end_date, asins=asins, fields=[field.value])
-    return group_ads_sales_data_by_date(ads_sales_data=ads_sales, field=field.value)
+    field = field.value
+    if graph_data_type == GraphDataType.TRAFFIC.name:
+        field = "clicks"
+    ads_sales = get_ads_sales_data(profile=seller, start_date=start_date, end_date=end_date, asins=asins, fields=[field])
+    return group_ads_sales_data_by_date(ads_sales_data=ads_sales, field=field)

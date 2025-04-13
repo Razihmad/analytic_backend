@@ -59,6 +59,9 @@ class SellerCentralTraffic(models.Model):
     def total_page_views(self):
         return self.browser_page_views + self.mobile_app_page_views
 
+    class Meta:
+        unique_together = ["seller", "sessions_date", "child_asin"]
+
 
 class SellerCentralReturn(models.Model):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE)
