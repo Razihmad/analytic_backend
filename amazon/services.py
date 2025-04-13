@@ -14,6 +14,7 @@ from amazon.serializers import (
 )
 from amazon.tasks import fetch_seller_central_report_data_by_date, fetch_seller_central_return_report_data_by_date
 from amazon_ads.constants import GraphDataType
+from amazon_ads.selectors import get_ads_sales_data
 from amazon_ads.services import get_ads_data_for_graph, get_ads_sales, verify_and_get_ads_profile
 from base.exception import ServiceException
 import utils.datetime as dt
@@ -228,21 +229,22 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
     logger.info(f"{start_date=}, {end_date=}, {user_id=}, {seller=}")
     total_sales_data = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
     total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
-    ads_sales_data = get_ads_sales(
-        ads_profile=seller, start_date=start_date, end_date=end_date
+    ads_sales_data = get_ads_sales_data(
+        profile=seller, start_date=start_date, end_date=end_date, fields=["sales", "spend", "asin"], asins=None
     )
+    ads_sales_data = group_ads_data_by_asin(total_ads_sales=ads_sales_data)
     total_sales = 0
     for data in total_sales_data:
         total_sales += data["sales"]
-    asin_greater_than_5_percent, tier_1_asins_count = [], 0
-    asin_greater_than_1_percent, tier_2_asins_count = [], 0
-    asin_less_than_1_percent, tier_3_asins_count = [], 0
+    asin_greater_than_5_percent = []
+    asin_greater_than_1_percent = []
+    asin_less_than_1_percent = []
     asin_wise_sales = defaultdict(dict)
     for data in total_sales_data:
         cur_data = asin_wise_sales[data["child_asin"]]
-        ads_sales, ads_spend = get_ad_sales_by_asin(total_ads_sales=ads_sales_data, asin=data["child_asin"])
-        cur_data["ads_sales"] = cur_data.get("ads_sales", 0) + ads_sales
-        cur_data["ads_spend"] = cur_data.get("ads_spend", 0) + ads_spend
+        ads_sales, ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=ads_sales_data, asin=data["child_asin"])
+        cur_data["ads_sales"] = ads_sales
+        cur_data["ads_spend"] = ads_spend
         total_sessions, sku = get_sessions_and_sku_of_asin(traffic_data=total_traffic_data, asin=data["child_asin"])
         cur_data["total_sessions"] = total_sessions + cur_data.get("total_sessions", 0)
         cur_data["sku"] = sku
@@ -286,19 +288,31 @@ def get_sessions_and_sku_of_asin(*, traffic_data: List[Dict], asin: str) -> Tupl
     return 0, ""
 
 
-def get_ad_sales_by_asin(*, total_ads_sales: List[Dict], asin: str) -> int:
+def get_ad_sales_by_asin(*, ads_sales_by_asin: List[Dict], asin: str) -> Tuple:
+    data = ads_sales_by_asin.get(asin, [])
+    if not data:
+        return 0, 0
+    return data[0], data[1]
+
+
+def group_ads_data_by_asin(*, total_ads_sales: List[Dict]) -> Dict:
+    result = defaultdict(list)
     for data in total_ads_sales:
-        if data.get("asin", "") == asin:
-            return data["sales"], data["spend"]
-    return 0, 0
+        cur_result = result[data["asin"]]
+        if not cur_result:
+            cur_result = [0, 0]
+        cur_result[0] += data["sales"]
+        cur_result[1] += data["spend"]
+        result[data["asin"]] = cur_result
+
+    return result
 
 
 def get_graph_data_for_total_sales_data(*, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]], graph_data_type: str) -> Dict:
     logger.info(f"{seller=}, {start_date=}, {end_date=}, {asins=}, {graph_data_type=}")
     field = GraphDataType[graph_data_type]
     fields = [field.value]
-    total_sales_data = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date, asins=asins, fields=fields)
-    if graph_data_type in [GraphDataType.IMPRESSIONS.name, GraphDataType.CLICKS.name, GraphDataType.SPEND.name]:
+    if graph_data_type in [GraphDataType.IMPRESSIONS.name, GraphDataType.CLICKS.name, GraphDataType.SPEND.name, GraphDataType.TRAFFIC.name]:
         return get_ads_data_for_graph(
             seller=seller,
             start_date=start_date,
@@ -306,6 +320,7 @@ def get_graph_data_for_total_sales_data(*, seller: Seller, start_date: datetime.
             asins=asins,
             graph_data_type=graph_data_type,
         )
+    total_sales_data = get_seller_central_sales_data(seller=seller, start_date=start_date, end_date=end_date, asins=asins, fields=fields)
     return group_total_sales_data_by_date(total_sales_data=total_sales_data, field=field.value)
 
 
@@ -351,7 +366,7 @@ def get_data_for_graph(
         graph_data_type=graph_data_type,
     ), get_graph_data_for_total_sales_data(
         seller=seller,
-        start_date=prev_end_date,
+        start_date=prev_start_date,
         end_date=prev_end_date,
         asins=asins,
         graph_data_type=graph_data_type,
