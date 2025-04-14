@@ -94,7 +94,6 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
         total_sales_data["ads_spend"] += sale["spend"]
         total_sales_data["impressions"] += sale["impressions"]
         total_sales_data["clicks"] += sale["clicks"]
-        # total_sales_data["cpc"] += sale["cpc"]
         total_sales_data["ad_orders"] += sale["orders"]
         total_sales_data["ad_traffic"] += sale["clicks"]
 
@@ -115,7 +114,7 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
     if total_sales_data["ad_traffic"]:
         total_sales_data["ad_cr"] = round(100 * float(total_sales_data["ad_orders"]) / float(total_sales_data["ad_traffic"]), 2)
     if total_sales_data["organic_traffic"]:
-        total_sales_data["organic_cr"] = round(float(total_sales_data["organic_orders"]) / float(total_sales_data["organic_traffic"]), 2)
+        total_sales_data["organic_cr"] = round(100 * float(total_sales_data["organic_orders"]) / float(total_sales_data["organic_traffic"]), 2)
 
     # Calculate ROAS
     if total_sales_data["ads_spend"]:

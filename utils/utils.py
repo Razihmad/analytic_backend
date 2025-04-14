@@ -50,7 +50,6 @@ def get_values_delta_and_percentage_change(*, previous_report: Dict, current_rep
         }
         if key in ["tacos", "acos"]:
             changes[key]["color"] = "green" if percentage_change < 0 else "red"
-            changes[key]["arrow"] = "up" if percentage_change < 0 else "red"
 
         if key in ["organic_revenue", "ads_revenue", "organic_traffic", "ad_traffic", "organic_orders", "ad_orders"]:
             total_share_key = f"total_{key.split("_")[1]}"
