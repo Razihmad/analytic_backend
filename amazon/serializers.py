@@ -111,22 +111,22 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
 
     # Calculate conversion rate
     if total_sales_data["total_traffic"]:
-        total_sales_data["total_cr"] = round(float(total_sales_data["total_orders"]) / float(total_sales_data["total_traffic"]), 2)
+        total_sales_data["total_cr"] = round(100 * float(total_sales_data["total_orders"]) / float(total_sales_data["total_traffic"]), 2)
     if total_sales_data["ad_traffic"]:
-        total_sales_data["ad_cr"] = round(float(total_sales_data["ad_orders"]) / float(total_sales_data["ad_traffic"]), 2)
+        total_sales_data["ad_cr"] = round(100 * float(total_sales_data["ad_orders"]) / float(total_sales_data["ad_traffic"]), 2)
     if total_sales_data["organic_traffic"]:
         total_sales_data["organic_cr"] = round(float(total_sales_data["organic_orders"]) / float(total_sales_data["organic_traffic"]), 2)
 
     # Calculate ROAS
     if total_sales_data["ads_spend"]:
-        total_sales_data["ads_roas"] = round(float(total_sales_data["ads_revenue"]) / float(total_sales_data["ads_spend"]), 2)
-        total_sales_data["total_roas"] = round(float(total_sales_data["total_revenue"]) / float(total_sales_data["ads_spend"]), 2)
+        total_sales_data["ads_roas"] = round(100 * float(total_sales_data["ads_revenue"]) / float(total_sales_data["ads_spend"]), 2)
+        total_sales_data["total_roas"] = round(100 * float(total_sales_data["total_revenue"]) / float(total_sales_data["ads_spend"]), 2)
 
     # calculate ACOS
     if total_sales_data["total_revenue"]:
-        total_sales_data["tacos"] = round(float(total_sales_data["ads_spend"]) / float(total_sales_data["total_revenue"]), 2)  # confirm it first
+        total_sales_data["tacos"] = round(100 * float(total_sales_data["ads_spend"]) / float(total_sales_data["total_revenue"]), 2)  # confirm it first
     if total_sales_data["ads_revenue"]:
-        total_sales_data["acos"] = round(float(total_sales_data["ads_spend"]) / float(total_sales_data["ads_revenue"]), 2)  # confirm it first
+        total_sales_data["acos"] = round(100 * float(total_sales_data["ads_spend"]) / float(total_sales_data["ads_revenue"]), 2)  # confirm it first
 
     # calcuate cost per unit
     if total_sales_data["total_units"]:
