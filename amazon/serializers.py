@@ -133,7 +133,7 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
 
     # calculate CTR
     if total_sales_data["impressions"]:
-        total_sales_data["ctr"] = round(total_sales_data["clicks"] / total_sales_data["impressions"], 2)
+        total_sales_data["ctr"] = round(100 * total_sales_data["clicks"] / total_sales_data["impressions"], 2)
 
     # calculate cost per order
     if total_sales_data["total_orders"]:
