@@ -5,7 +5,7 @@ from typing import Dict, List
 import pandas as pd
 from django.db.models import QuerySet
 from amazon_ads.constants import AdProduct
-from amazon_ads.models import AmazonAdsSaleAsin
+from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign
 
 
 def serialize_ads_sales_data(*, sales: QuerySet[AmazonAdsSaleAsin]) -> List[Dict]:
@@ -96,3 +96,29 @@ def group_ads_sales_data_by_date(*, ads_sales_data: QuerySet, field: str) -> Dic
     for data in ads_sales_data:
         result[str(data["sales_date"])] += (data[field])
     return result
+
+
+def serialize_campaign_sales_report(*, campaign_sales: QuerySet[AmazonAdsSaleCampaign]) -> List[Dict]:
+    result = []
+    cumulative_data = defaultdict(int)
+    for sale in campaign_sales:
+        result.append({
+            "campaign_name": sale.campaign_name,
+            "status": sale.campaign_status,
+            "type": sale.campaign_type,
+            "sales_date": sale.sales_date,
+            "sales": sale.sales,
+            "impressions": sale.impressions,
+            "clicks": sale.clicks,
+            "spend": sale.spend,
+            "cpc": sale.cpc,
+            "campaign_bidding_strategy": sale.campaign_bidding_strategy,
+            "orders": sale.orders,
+        })
+        cumulative_data["total_sales"] += sale.sales
+        cumulative_data["tota_clicks"] += sale.clicks
+        cumulative_data["total_impressions"] += sale.impressions
+        cumulative_data["tota_spend"] += sale.spend
+        cumulative_data["total_orders"] += sale.orders
+
+    return result, cumulative_data

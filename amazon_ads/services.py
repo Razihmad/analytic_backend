@@ -1,7 +1,7 @@
 # Standard Library
 import logging
 import datetime
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 
 # Third Party Stuff
 import pandas as pd
@@ -11,8 +11,8 @@ from django.contrib.auth.models import User
 from amazon_ads.constants import GraphDataType
 import utils.datetime as dt
 from amazon.models import Seller
-from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data
-from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data
+from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data, get_campaign_sales_report
+from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data, serialize_campaign_sales_report
 from amazon_ads.tasks import (
     start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetcing_ad_sales_data_by_asin
 )
@@ -191,3 +191,13 @@ def process_campaign_sb_report_file(*, file, amazon_seller_id: str, user_id: int
         )
         campaign_sales.append(camapgin_sale)
     bulk_upsert_amazon_ads_campaign_sales(data=campaign_sales)
+
+
+def get_and_serialize_campaign_report_data(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str) -> Tuple[List[Dict], Dict]:
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    campaign_sales = get_campaign_sales_report(seller_id=seller.id, start_date=start_date, end_date=end_date)
+    return serialize_campaign_sales_report(campaign_sales=campaign_sales)

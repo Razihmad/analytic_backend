@@ -29,3 +29,7 @@ def get_ads_sales_data(
     if fields:
         return data.values("sales_date", *fields)
     return data
+
+
+def get_campaign_sales_report(*, seller_id: int, start_date: datetime.date, end_date: datetime.date):
+    return AmazonAdsSaleCampaign.objects.filter(amazon_ads_id=seller_id, sales_date__range=(start_date, end_date))
