@@ -2,9 +2,9 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from amazon_ads.services import fetch_ads_data_by_date, start_fetching_amazon_ads_data, validate_incoming_data
+import utils.datetime as dt
+from amazon_ads.services import fetch_ads_data_by_date, process_campaign_sb_report_file, start_fetching_amazon_ads_data
 from base.decorators import handle_exception
-from base.exception import ServiceException
 from base.response import status_200
 # Create your views here.
 
@@ -33,3 +33,16 @@ class FetchAdsReportByDate(APIView):
         end_date = request.data.get("end_date")
         fetch_ads_data_by_date(user_id=user.id, amazon_seller_id=amazon_seller_id, start_date=start_date, end_date=end_date)
         return status_200(message="fetching data", data={"message": "Fetching ads report data."})
+
+
+class UploadCampaignReportFile(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @handle_exception
+    def post(self, request):
+        file = request.FILES["file"]
+        sales_date = request.data.get("sales_date", str(dt.now(with_tz=True).date()))
+        amazon_seller_id = request.data.get("amazon_seller_id")
+        process_campaign_sb_report_file(file=file, amazon_seller_id=amazon_seller_id, sales_date=sales_date, user_id=request.user.id)
+        return status_200(message="Data Upserted successfully")

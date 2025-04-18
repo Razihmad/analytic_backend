@@ -17,7 +17,7 @@ class AmazonAdsSaleAsinAdmin(admin.ModelAdmin):
 @admin.register(AmazonAdsSaleCampaign)
 class AmazonAdsSaleCampaignAdmin(admin.ModelAdmin):
     list_display = (
-        'amazon_ads', 'campaign_name', "campaign_bidding_strategy", 'sales_date', 'sales', 'units_sold', 'cost', 'impressions', 'clicks', 'spend', 'cpc', 'orders', "campaign_type"
+        'amazon_ads', 'campaign_name', "campaign_bidding_strategy", 'sales_date', 'sales', 'impressions', 'clicks', 'spend', 'cpc', 'orders', "campaign_type"
     )
     list_filter = ('amazon_ads', ('sales_date', DateRangeFilter), "campaign_type")
     search_fields = ('campaign_name',)

@@ -4,13 +4,14 @@ import datetime
 from typing import List, Optional, Dict
 
 # Third Party Stuff
+import pandas as pd
 from django.contrib.auth.models import User
 
 # Local
 from amazon_ads.constants import GraphDataType
 import utils.datetime as dt
 from amazon.models import Seller
-from amazon_ads.selectors import get_ads_profile_by_user_and_seller_id, get_ads_sales_data
+from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data
 from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data
 from amazon_ads.tasks import (
     start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetcing_ad_sales_data_by_asin
@@ -78,8 +79,6 @@ def prepare_campaing_level_data_for_upsert(*, data: List[Dict], ad_account_id: i
                 campaign_name=item["campaignName"],
                 sales_date=item["date"],
                 sales=item["sales14d"],
-                units_sold=item["unitsSoldClicks14d"],
-                cost=item["cost"],
                 impressions=item["impressions"],
                 clicks=item["clicks"],
                 spend=item["cost"],
@@ -154,3 +153,41 @@ def get_ads_data_for_graph(*, seller: Seller, graph_data_type: str, start_date: 
         field = "clicks"
     ads_sales = get_ads_sales_data(profile=seller, start_date=start_date, end_date=end_date, asins=asins, fields=[field])
     return group_ads_sales_data_by_date(ads_sales_data=ads_sales, field=field)
+
+
+def process_campaign_sb_report_file(*, file, amazon_seller_id: str, user_id: int, sales_date: str):
+    sales_date = dt.convert_str_to_date(date_str=sales_date)
+    df = pd.read_csv(file)
+    df = df.rename(
+        columns={
+            "Campaigns": "campaign_name",
+            "Campaign bidding strategy": "campaign_bidding_strategy",
+            "Impressions": "impressions",
+            "Clicks": "clicks",
+            "Spend(INR)": "spend",
+            "CPC(INR)": "cpc",
+            "Orders": "orders",
+            "Sales(INR)": "sales",
+            "Status": "campaign_status"
+        }
+    )
+    df = df.where(pd.notnull(df), None)
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    campaign_sales = []
+    for _, row in df.iterrows():
+        camapgin_sale = AmazonAdsSaleCampaign(
+            campaign_name=row["campaign_name"],
+            sales_date=sales_date,
+            amazon_ads_id=seller.id,
+            sales=row["sales"],
+            impressions=row["impressions"],
+            clicks=row["clicks"],
+            spend=row["spend"],
+            cpc=row["cpc"],
+            campaign_bidding_strategy=row["campaign_bidding_strategy"],
+            orders=row["orders"],
+            campaign_status=row["campaign_status"],
+            campaign_type="SPONSORED_BRAND",
+        )
+        campaign_sales.append(camapgin_sale)
+    bulk_upsert_amazon_ads_campaign_sales(data=campaign_sales)

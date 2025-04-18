@@ -27,11 +27,8 @@ class AmazonAdsSaleAsin(models.Model):
 class AmazonAdsSaleCampaign(models.Model):
     amazon_ads = models.ForeignKey(Seller, on_delete=models.CASCADE)
     campaign_name = models.CharField(max_length=255)
-    # campaign_id = models.CharField(max_length=255)
     sales_date = models.DateField()
     sales = models.DecimalField(max_digits=10, decimal_places=2)
-    units_sold = models.IntegerField()
-    cost = models.DecimalField(max_digits=10, decimal_places=2)
     impressions = models.IntegerField()
     clicks = models.IntegerField()
     spend = models.DecimalField(max_digits=10, decimal_places=2)
