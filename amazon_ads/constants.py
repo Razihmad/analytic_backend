@@ -6,6 +6,7 @@ class AdsReportTypeId(Enum):
     SP_CAMPAIGN = "spCampaigns"
     SD_ADVERISED_PRODUCT = "sdAdvertisedProduct"
     SD_CAMPAING = "sdCampaigns"
+    SB_CAMPAIGN = "sbCampaigns"
 
 
 class GroupBy(Enum):
@@ -46,7 +47,7 @@ SP_CAMPAIGN_REPORT_COLUMNS = CAMPAIGN_REPORT_COMMON_COLUMNS + [
     "sales14d", "unitsSoldClicks14d", "purchases14d", "spend", "costPerClick", "clickThroughRate", "campaignBiddingStrategy"
 ]
 SD_CAMPAIGN_REPORT_COLUMNS = CAMPAIGN_REPORT_COMMON_COLUMNS + ["sales", "unitsSoldClicks", "purchases"]
-SB_CAMPAING_REPORT_COLUMNS = ["sales", "impressions", "clicks", "cost", ]
+SB_CAMPAING_REPORT_COLUMNS = SD_CAMPAIGN_REPORT_COLUMNS
 
 CAMPAIGN_COLUMNS = {
     "SPONSORED_PRODUCTS": SP_CAMPAIGN_REPORT_COLUMNS,

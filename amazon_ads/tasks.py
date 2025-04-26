@@ -132,7 +132,7 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
         bulk_upsert_amazon_ads_sales(data=data)
         logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
         return
-    if report_type in [AdsReportTypeId.SP_CAMPAIGN.value, AdsReportTypeId.SD_CAMPAING.value]:
+    if report_type in [AdsReportTypeId.SP_CAMPAIGN.value, AdsReportTypeId.SD_CAMPAING.value, AdsReportTypeId.SB_CAMPAIGN.value]:
         data = group_ad_sales_by_campaign(sales=data, campaign_type=campaign_type)
         data = prepare_campaing_level_data_for_upsert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         bulk_upsert_amazon_ads_campaign_sales(data=data)

@@ -60,7 +60,7 @@ def group_by_sd_ad_sales_by_asin(sales: List[Dict]) -> List[Dict]:
 
 
 def group_ad_sales_by_campaign(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
-    if campaign_type == AdProduct.SPONSORED_DISPLAY.value:
+    if campaign_type in [AdProduct.SPONSORED_DISPLAY.value, AdProduct.SPONSORED_BRANDS.value]:
         return group_by_sd_ad_sales_by_campaign(sales=sales)
     data = pd.DataFrame(sales)
     data = data.groupby(["campaignName", "date"], as_index=False).agg(
