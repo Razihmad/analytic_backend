@@ -172,7 +172,7 @@ def start_fetching_ad_sales_data_by_campaign(
         response = amazon_ads_api.create_report(access_token=access_token, region=region, profile_id=profile_id, data=data)
         report_id = response.get("reportId")
         if not report_id:
-            print(f"report_id not found, {response=}")
+            print(f"report_id not found, {response=}, {user_id=}, {profile_id=}")
             continue
         start_tasks_to_check_report_status.apply_async(
             args=[
@@ -194,13 +194,13 @@ def start_fetching_amazon_ads_by_date_range(
     ad_account_id: int,
     user_id: int
 ):
-    logger.info(f"start_fetching_amazon_ads_by_date_range, {start_date=}, {end_date=}, {ad_account_id=}, {profile_id=}")
+    logger.info(f"start_fetching_amazon_ads_by_date_range, {start_date=}, {end_date=}, {ad_account_id=}, {profile_id=}, {user_id=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     region = get_region_by_country_code(country_code=country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     for campaign_type, report_type in CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT.items():
-        logger.info(f"{amazon_seller_id=}, {start_date=}, {end_date=}, {campaign_type=}, {report_type=}")
+        logger.info(f"{amazon_seller_id=}, {start_date=}, {end_date=}, {campaign_type=}, {report_type=}, {user_id=}, {profile_id=}")
         create_ads_data_report_by_date(
             start_date=start_date,
             end_date=end_date,
@@ -225,13 +225,13 @@ def start_fetching_amazon_ads_campaign_by_date_range(
     ad_account_id: int,
     user_id: int
 ):
-    logger.info(f"start_fetching_amazon_ads_campaign_date_range, {start_date=}, {end_date=}, {ad_account_id=}, {profile_id=}")
+    logger.info(f"start_fetching_amazon_ads_campaign_date_range, {start_date=}, {end_date=}, {ad_account_id=}, {profile_id=}, {user_id=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     region = get_region_by_country_code(country_code=country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     for campaign_type in AdProduct._member_names_:
-        logger.info(f"[campaign type data] {amazon_seller_id=}, {start_date=}, {end_date=}, {profile_id=}, {campaign_type=}")
+        logger.info(f"[campaign type data] {amazon_seller_id=}, {start_date=}, {end_date=}, {profile_id=}, {campaign_type=}, {user_id=}")
         create_ads_campaign_data_report_by_date.apply_async(
             args=[
                 start_date  ,
