@@ -96,7 +96,7 @@ def start_tasks_to_check_report_status(
     report_type: str,
     campaign_type: str,
 ):
-    logger.info(f"checking report status, {report_id=}")
+    logger.info(f"checking report status, {report_id=}, {user_id=}, {profile_id=}")
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     response = amazon_ads_api.get_report_status_by_report_id(access_token=access_token, region=region, report_id=report_id, profile_id=profile_id)
     status = response.get("status")
@@ -134,6 +134,7 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
         return
     if report_type in [AdsReportTypeId.SP_CAMPAIGN.value, AdsReportTypeId.SD_CAMPAING.value, AdsReportTypeId.SB_CAMPAIGN.value]:
         data = group_ad_sales_by_campaign(sales=data, campaign_type=campaign_type)
+        logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         data = prepare_campaing_level_data_for_upsert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         bulk_upsert_amazon_ads_campaign_sales(data=data)
         logger.info(f"report data upserted, {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
