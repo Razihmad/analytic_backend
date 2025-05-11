@@ -122,3 +122,17 @@ def serialize_campaign_sales_report(*, campaign_sales: QuerySet[AmazonAdsSaleCam
         cumulative_data["total_orders"] += sale.orders
 
     return result, cumulative_data
+
+
+def serialize_search_term_report_data(*, data: List[Dict]):
+    data = pd.DataFrame(data)
+    data = data.rename(
+        columns={
+            "sales14d": 'sales', "purchases14d": "orders", "unitsSoldClicks14d": "units_sold", "keywordId": "keyword_id",
+            "campaignName": "campaign_name", "campaignId": "campaign_id", "keywordBid": "keyword_bid", "adGroupName": "ad_group_name",
+            "adGroupId": "ad_group_id", "keywordType": "keyword_type", "matchType": "match_type", "date": "search_term_date"
+        }
+    )
+    data.fillna(0)
+    data = data.round(2)
+    return data.to_dict(orient="records")

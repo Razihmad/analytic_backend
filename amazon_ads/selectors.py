@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from django.db.models import QuerySet, Q
 
-from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign
+from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm
 from amazon.models import Seller
 
 
@@ -33,3 +33,7 @@ def get_ads_sales_data(
 
 def get_campaign_sales_report(*, seller_id: int, start_date: datetime.date, end_date: datetime.date):
     return AmazonAdsSaleCampaign.objects.filter(amazon_ads_id=seller_id, sales_date__range=(start_date, end_date))
+
+
+def bulk_upsert_search_term_report_data(*, data: List[SearchTerm]):
+    return SearchTerm.objects.bulk_create(data, ignore_conflicts=True, batch_size=500)

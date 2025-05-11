@@ -7,6 +7,7 @@ class AdsReportTypeId(Enum):
     SD_ADVERISED_PRODUCT = "sdAdvertisedProduct"
     SD_CAMPAING = "sdCampaigns"
     SB_CAMPAIGN = "sbCampaigns"
+    SP_SEARCH_TERM = "spSearchTerm"
 
 
 class GroupBy(Enum):
@@ -96,3 +97,10 @@ class GraphDataType(Enum):
     SPEND = "spend"
     CLICKS = "clicks"
     AOV = "aov"
+
+
+SEARCH_TERM_REPORT_COLUMNS = [
+    'impressions', 'clicks', 'cost', 'purchases14d', "sales14d", "unitsSoldClicks14d",
+    'keywordId', 'keyword', 'date', 'searchTerm', 'campaignName', 'campaignId',
+    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', 'targeting'
+]

@@ -16,6 +16,8 @@ class AmazonAdsSaleAsin(models.Model):
     spend = models.DecimalField(max_digits=10, decimal_places=2)
     cpc = models.DecimalField(max_digits=10, decimal_places=2)
     campaign_type = models.CharField(max_length=256, null=True, blank=True)
+    campaign_name = models.CharField(max_length=256, null=True)
+    campaign_id = models.CharField(max_length=256, null=True)
     orders = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -42,3 +44,29 @@ class AmazonAdsSaleCampaign(models.Model):
 
     class Meta:
         unique_together = ['amazon_ads', 'campaign_name', 'sales_date', "campaign_type"]
+
+
+class SearchTerm(models.Model):
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE)
+    search_term = models.CharField(max_length=256)
+    cost = models.CharField(max_length=256)
+    sales = models.FloatField(max_digits=10, decimal_places=2)
+    units_sold = models.IntegerField()
+    cost = models.FloatField(max_digits=10, decimal_places=2)
+    impressions = models.IntegerField()
+    clicks = models.IntegerField()
+    targeting = models.CharField(max_length=256)
+    campaign_name = models.CharField(max_length=256)
+    campaign_id = models.CharField(max_length=256)
+    keyword = models.CharField(max_length=256)
+    keyword_id = models.CharField(max_length=256)
+    keyword_type = models.CharField(max_length=256)
+    keyword_bid = models.CharField(max_length=256)
+    ad_group_name = models.CharField(max_length=256)
+    ad_group_id = models.CharField(max_length=256)
+    search_term_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ["seller", "search_term", "campaign_id", "search_term_date"]

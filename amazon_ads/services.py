@@ -14,10 +14,10 @@ from amazon.models import Seller
 from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data, get_campaign_sales_report
 from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data, serialize_campaign_sales_report
 from amazon_ads.tasks import (
-    start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetcing_ad_sales_data_by_asin
+    start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetching_search_term_report, start_fetcing_ad_sales_data_by_asin
 )
 from base.exception import ServiceException
-from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign
+from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm
 
 logger = logging.getLogger(__name__)
 
@@ -143,6 +143,18 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
         ],
         queue="process_ads_report"
     )
+    start_fetching_search_term_report.apply_async(
+        args=[
+            amazon_seller_id,
+            start_date,
+            end_date,
+            country_code,
+            ads_profile.profile_id,
+            ads_profile.id,
+            user_id,
+        ],
+        queue="process_ads_report"
+    )
 
 
 def get_ads_data_for_graph(*, seller: Seller, graph_data_type: str, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]]):
@@ -201,3 +213,14 @@ def get_and_serialize_campaign_report_data(*, user_id: int, amazon_seller_id: st
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
     campaign_sales = get_campaign_sales_report(seller_id=seller.id, start_date=start_date, end_date=end_date)
     return serialize_campaign_sales_report(campaign_sales=campaign_sales)
+
+
+def prepare_search_term_bulk_insert(*, data: List[Dict], ad_account_id: int) -> List[SearchTerm]:
+    search_terms = []
+    for record in data:
+        search_term = SearchTerm(
+            seller_id=ad_account_id,
+            **record
+        )
+        search_terms.append(search_term)
+    return search_term
