@@ -223,4 +223,4 @@ def prepare_search_term_bulk_insert(*, data: List[Dict], ad_account_id: int) -> 
             **record
         )
         search_terms.append(search_term)
-    return search_term
+    return search_terms

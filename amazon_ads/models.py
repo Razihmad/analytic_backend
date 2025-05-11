@@ -52,6 +52,7 @@ class SearchTerm(models.Model):
     cost = models.CharField(max_length=256)
     sales = models.FloatField()
     units_sold = models.IntegerField()
+    orders = models.IntegerField()
     cost = models.FloatField()
     impressions = models.IntegerField()
     clicks = models.IntegerField()
@@ -65,6 +66,7 @@ class SearchTerm(models.Model):
     ad_group_name = models.CharField(max_length=256)
     ad_group_id = models.CharField(max_length=256)
     search_term_date = models.DateField()
+    match_type = models.CharField(max_length=256)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

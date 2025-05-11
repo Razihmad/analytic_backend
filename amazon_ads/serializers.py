@@ -130,7 +130,8 @@ def serialize_search_term_report_data(*, data: List[Dict]):
         columns={
             "sales14d": 'sales', "purchases14d": "orders", "unitsSoldClicks14d": "units_sold", "keywordId": "keyword_id",
             "campaignName": "campaign_name", "campaignId": "campaign_id", "keywordBid": "keyword_bid", "adGroupName": "ad_group_name",
-            "adGroupId": "ad_group_id", "keywordType": "keyword_type", "matchType": "match_type", "date": "search_term_date"
+            "adGroupId": "ad_group_id", "keywordType": "keyword_type", "matchType": "match_type", "date": "search_term_date",
+            "searchTerm": "search_term"
         }
     )
     data.fillna(0)
