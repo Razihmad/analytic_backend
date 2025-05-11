@@ -42,9 +42,7 @@ def prepare_data_to_bulk_upsert(
     bulk_upsert_data = []
     for item in data:
         cpc = 0
-        if item.get("cpc"):
-            cpc = item["cpc"]
-        elif item["clicks"]:
+        if item["clicks"]:
             cpc = float(item["cost"] / item["clicks"])
         bulk_upsert_data.append(
             AmazonAdsSaleAsin(
@@ -59,7 +57,9 @@ def prepare_data_to_bulk_upsert(
                 spend=item["cost"],
                 orders=item["orders"],
                 cpc=cpc,
-                campaign_type=campaign_type
+                campaign_type=campaign_type,
+                campaign_name=item["campaign_name"],
+                campaign_id=item["campaign_id"]
             )
         )
     return bulk_upsert_data
