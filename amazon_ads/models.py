@@ -23,7 +23,7 @@ class AmazonAdsSaleAsin(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['amazon_ads', 'asin', 'sales_date', "campaign_type"]
+        unique_together = ['amazon_ads', 'asin', 'sales_date', "campaign_type", "campaign_id"]
 
 
 class AmazonAdsSaleCampaign(models.Model):
