@@ -231,11 +231,13 @@ def prepare_search_term_bulk_insert(*, data: List[Dict], ad_account_id: int) -> 
 def get_and_serialize_serach_term_report_data(
     *, user_id: int, amazon_seller_id: str, start_date: str, end_date: str
 ) -> List[Dict]:
+    logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    logger.info(f"{user_id=}, {seller.id=}, {start_date=}, {end_date=}")
     search_term_data = get_serach_term_report_data(seller_id=seller.id, start_date=start_date, end_date=end_date)
     campaign_to_asins = get_asins_by_campaign_ids(search_term_data=search_term_data, start_date=start_date, end_date=end_date)
 
