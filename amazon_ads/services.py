@@ -1,4 +1,5 @@
 # Standard Library
+from collections import defaultdict
 import logging
 import datetime
 from typing import List, Optional, Dict, Tuple
@@ -6,13 +7,14 @@ from typing import List, Optional, Dict, Tuple
 # Third Party Stuff
 import pandas as pd
 from django.contrib.auth.models import User
+from django.db.models import QuerySet
 
 # Local
 from amazon_ads.constants import GraphDataType
 import utils.datetime as dt
 from amazon.models import Seller
-from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data, get_campaign_sales_report
-from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data, serialize_campaign_sales_report
+from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data, get_asins_by_camapagin_ids, get_campaign_sales_report, get_serach_term_report_data
+from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data, serialize_campaign_sales_report, serialize_search_term_report
 from amazon_ads.tasks import (
     start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetching_search_term_report, start_fetcing_ad_sales_data_by_asin
 )
@@ -224,3 +226,30 @@ def prepare_search_term_bulk_insert(*, data: List[Dict], ad_account_id: int) -> 
         )
         search_terms.append(search_term)
     return search_terms
+
+
+def get_and_serialize_serach_term_report_data(
+    *, user_id: int, amazon_seller_id: str, start_date: str, end_date: str
+) -> List[Dict]:
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    search_term_data = get_serach_term_report_data(seller_id=seller.id, start_date=start_date, end_date=end_date)
+    campaign_to_asins = get_asins_by_campaign_ids(search_term_data=search_term_data, start_date=start_date, end_date=end_date)
+
+    data = serialize_search_term_report(search_terms=search_term_data, campaign_to_asins=campaign_to_asins)
+    return data
+
+
+def get_asins_by_campaign_ids(*, search_term_data: QuerySet[SearchTerm], start_date: datetime.date, end_date: datetime.date) -> List[Dict]:
+    campaign_ids = set()
+    for data in search_term_data:
+        campaign_ids.add(data.campaign_id)
+    asin_sales = get_asins_by_camapagin_ids(campaign_ids=campaign_ids, start_date=start_date, end_date=end_date)
+    data = defaultdict(list)
+    for record in asin_sales:
+        data[record.campaign_id].append(record.asin)
+
+    return data

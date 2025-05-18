@@ -27,4 +27,4 @@ class AmazonAdsSaleCampaignAdmin(admin.ModelAdmin):
 
 @admin.register(SearchTerm)
 class SearchTerm(admin.ModelAdmin):
-    list_display = ("seller", "search_term",)
+    list_display = ("seller", "search_term", "search_term_date", "impressions", "clicks", "orders", "sales")

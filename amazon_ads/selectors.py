@@ -37,3 +37,13 @@ def get_campaign_sales_report(*, seller_id: int, start_date: datetime.date, end_
 
 def bulk_upsert_search_term_report_data(*, data: List[SearchTerm]):
     return SearchTerm.objects.bulk_create(data, ignore_conflicts=True, batch_size=500)
+
+
+def get_serach_term_report_data(*, seller_id: int, start_date: datetime.date, end_date: datetime.date):
+    return SearchTerm.objects.filter(seller_id=seller_id, search_term_date__range=[start_date, end_date])
+
+
+def get_asins_by_camapagin_ids(*, campaign_ids: set[str], start_date: datetime.date, end_date: datetime.date) -> QuerySet[AmazonAdsSaleAsin]:
+    return AmazonAdsSaleAsin.objects.filter(
+        campaign_id__in=campaign_ids, sales_date__range=[start_date, end_date]
+    ).only("asin", "campaign_id", "campaign_name")

@@ -5,7 +5,7 @@ from typing import Dict, List
 import pandas as pd
 from django.db.models import QuerySet
 from amazon_ads.constants import AdProduct
-from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign
+from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm
 
 
 def serialize_ads_sales_data(*, sales: QuerySet[AmazonAdsSaleAsin]) -> List[Dict]:
@@ -137,3 +137,28 @@ def serialize_search_term_report_data(*, data: List[Dict]):
     data.fillna(0)
     data = data.round(2)
     return data.to_dict(orient="records")
+
+
+def serialize_search_term_report(*, search_terms: QuerySet[SearchTerm], campaign_to_asins: Dict) -> List[Dict]:
+    result = []
+    for data in search_terms:
+        result.append({
+            "search_term": data.search_term,
+            "keyword": data.keyword,
+            "ad_group": data.ad_group_name,
+            "sales": data.sales,
+            "cost": data.cost,
+            "impressions": data.impressions,
+            "clicks": data.clicks,
+            "units_sold": data.units_sold,
+            "orders": data.orders,
+            "targetting": data.targeting,
+            "campaign_name": data.campaign_name,
+            "asins": campaign_to_asins.get(data.campaign_id, []),
+            "keyword_id": data.keyword_id,
+            "keyword_type": data.keyword_type,
+            "keyword_bid": data.keyword_bid,
+            "search_term_date": data.search_term_date,
+            "match_type": data.match_type
+        })
+    return result
