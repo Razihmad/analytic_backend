@@ -222,6 +222,10 @@ LOGGING = {
             "handlers": ["file"],
             "level": "INFO",
         },
+        "celery": {
+            "handlers": ["file"],
+            "level": "INFO",
+        },
     },
     "formatters": {
         "simple": {
