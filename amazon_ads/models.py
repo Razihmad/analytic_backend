@@ -72,3 +72,15 @@ class SearchTerm(models.Model):
 
     class Meta:
         unique_together = ["seller", "search_term", "campaign_id", "search_term_date"]
+
+    @property
+    def acos(self):
+        return self.cost / self.sales if self.sales else 0
+
+    @property
+    def roas(self):
+        return self.sales / self.cost if self.cost else 0
+
+    @property
+    def cvr(self):
+        return self.orders / self.clicks if self.clicks else 0

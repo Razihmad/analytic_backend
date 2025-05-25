@@ -159,6 +159,9 @@ def serialize_search_term_report(*, search_terms: QuerySet[SearchTerm], campaign
             "keyword_type": data.keyword_type,
             "keyword_bid": data.keyword_bid,
             "search_term_date": data.search_term_date,
-            "match_type": data.match_type
+            "match_type": data.match_type,
+            "acos": data.acos,
+            "roas": data.roas,
+            "cvr": data.cvr,
         })
     return result
