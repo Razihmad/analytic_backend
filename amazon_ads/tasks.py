@@ -55,7 +55,11 @@ def create_ads_data_report_by_date(
     report_type: str,
 ):
     group_by = GroupBy.ADVERTISER.value
-    columns = AD_PRODUCT_COLUMN_MAPPING[campaign_type]
+    columns = AD_PRODUCT_COLUMN_MAPPING.get(campaign_type)
+    if not columns:
+        logger.info(f"columns not found for {campaign_type=}, {report_type=}")
+        return
+
     time_unit = "DAILY"
     logger.info(f"creating report for {start_date=}, {end_date=}, {region=}")
     data = amazon_ads_api.prepare_payload_for_report(
