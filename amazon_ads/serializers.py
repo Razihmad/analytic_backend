@@ -51,7 +51,7 @@ def group_by_sd_ad_sales_by_asin(sales: List[Dict]) -> List[Dict]:
         columns={
             "purchases": "orders", "unitsSoldClicks": "units_sold",
             "promotedAsin": "asin", "campaignName": "campaign_name",
-            "campaignId": "campaign_id"
+            "campaignId": "campaign_id", "date": "sales_date"
         }
     )
     data.fillna(0)
