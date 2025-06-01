@@ -141,7 +141,7 @@ def prepare_data_for_campaign_insertion(*, sales: List[Dict], campaign_type: str
             'spend': total_cost,  # spend is same as cost in this case
             'cpc': cpc,
             'orders': total_orders,
-            'campaign_type': 'sponsored_products',  # Based on the data source
+            'campaign_type': campaign_type,  # Based on the data source
             'campaign_name': item.get('campaignName'),  # Taking first item's campaign name
             'campaign_id': item.get('campaignId')  # Taking first item's campaign ID
         }
@@ -199,18 +199,45 @@ def serialize_campaign_sales_report(*, campaign_sales: QuerySet[AmazonAdsSaleCam
 
 
 def serialize_search_term_report_data(*, data: List[Dict]):
-    data = pd.DataFrame(data)
-    data = data.rename(
-        columns={
-            "sales14d": 'sales', "purchases14d": "orders", "unitsSoldClicks14d": "units_sold", "keywordId": "keyword_id",
-            "campaignName": "campaign_name", "campaignId": "campaign_id", "keywordBid": "keyword_bid", "adGroupName": "ad_group_name",
-            "adGroupId": "ad_group_id", "keywordType": "keyword_type", "matchType": "match_type", "date": "search_term_date",
-            "searchTerm": "search_term"
+    # data = pd.DataFrame(data)
+    # data = data.rename(
+    #     columns={
+    #         "sales14d": 'sales', "purchases14d": "orders", "unitsSoldClicks14d": "units_sold", "keywordId": "keyword_id",
+    #         "campaignName": "campaign_name", "campaignId": "campaign_id", "keywordBid": "keyword_bid", "adGroupName": "ad_group_name",
+    #         "adGroupId": "ad_group_id", "keywordType": "keyword_type", "matchType": "match_type", "date": "search_term_date",
+    #         "searchTerm": "search_term"
+    #     }
+    # )
+    # data.fillna(0)
+    # data = data.round(2)
+    # return data.to_dict(orient="records")
+    return prepare_data_for_search_term_insertion(data=data)
+
+
+def prepare_data_for_search_term_insertion(*, data: List[Dict]) -> List[Dict]:
+    amazon_ads_sale_search_term_data = []
+    for item in data:
+        model_data = {
+            'search_term': item.get('searchTerm'),
+            'keyword': item.get('keywordId'),
+            'ad_group': item.get('adGroupName'),
+            'sales': item.get('sales14d'),
+            'cost': item.get('cost'),
+            'impressions': item.get('impressions'),
+            'clicks': item.get('clicks'),
+            'units_sold': item.get('unitsSoldClicks14d'),
+            'orders': item.get('purchases14d'),
+            'targeting': item.get('targeting'),
+            'campaign_name': item.get('campaignName'),
+            'campaign_id': item.get('campaignId'),
+            'keyword_id': item.get('keywordId'),
+            'keyword_type': item.get('keywordType'),
+            'keyword_bid': item.get('keywordBid'),
+            'search_term_date': item.get('date'),
+            'match_type': item.get('matchType'),
         }
-    )
-    data.fillna(0)
-    data = data.round(2)
-    return data.to_dict(orient="records")
+        amazon_ads_sale_search_term_data.append(model_data)
+    return amazon_ads_sale_search_term_data
 
 
 def serialize_search_term_report(*, search_terms: QuerySet[SearchTerm], campaign_to_asins: Dict) -> List[Dict]:

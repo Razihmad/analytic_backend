@@ -133,8 +133,8 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
         logger.info(f"[PREPARING_DATA]{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         data = prepare_data_to_bulk_upsert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         logger.info(f"[DATA_PREPARED] {user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
-        bulk_upsert_amazon_ads_sales(data=data)
-        logger.info(f"[DATA_UPSERTED], {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
+        data = bulk_upsert_amazon_ads_sales(data=data)
+        logger.info(f"[DATA_UPSERTED], {user_id=}, {report_id=} {ad_account_id=}, {report_type=}, {len(data)=}")
         return
 
     if report_type in [AdsReportTypeId.SP_CAMPAIGN.value, AdsReportTypeId.SD_CAMPAING.value, AdsReportTypeId.SB_CAMPAIGN.value]:
@@ -142,19 +142,20 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
         data = group_ad_sales_by_campaign(sales=data, campaign_type=campaign_type)
         logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         data = prepare_campaing_level_data_for_upsert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
-        bulk_upsert_amazon_ads_campaign_sales(data=data)
-        logger.info(f"[DATA_UPSERTED], {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
+        logger.info(f"[DATA_PREPARED] {user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
+        data = bulk_upsert_amazon_ads_campaign_sales(data=data)
+        logger.info(f"[DATA_UPSERTED], {user_id=}, {report_id=} {ad_account_id=}, {report_type=}, {len(data)=}")
         return
 
     if report_type == AdsReportTypeId.SP_SEARCH_TERM.value:
-        logger.info(f"processing search term report {user_id=}, {report_id=}, {report_type=}, {ad_account_id=}")
+        logger.info(f"processing search term report {user_id=}, {report_id=}, {report_type=}, {ad_account_id=}, {len(data)=}")
         data = serialize_search_term_report_data(data=data)
         logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         data = prepare_search_term_bulk_insert(data=data, ad_account_id=ad_account_id)
         logger.info(f"[DATA_PREPARED]{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
 
-        bulk_upsert_search_term_report_data(data=data)
-        logger.info(f"[DATA_UPSERTED], {user_id=}, {report_id=} {ad_account_id=}, {report_type=}")
+        data = bulk_upsert_search_term_report_data(data=data)
+        logger.info(f"[DATA_UPSERTED], {user_id=}, {report_id=} {ad_account_id=}, {report_type=}, {len(data)=}")
         return
 
 

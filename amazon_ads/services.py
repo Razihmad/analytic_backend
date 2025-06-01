@@ -78,16 +78,16 @@ def prepare_campaing_level_data_for_upsert(*, data: List[Dict], ad_account_id: i
         bulk_upsert_data.append(
             AmazonAdsSaleCampaign(
                 amazon_ads_id=ad_account_id,
-                campaign_name=item["campaignName"],
+                campaign_name=item["campaign_name"],
                 sales_date=item["date"],
-                sales=item["sales14d"],
+                sales=item["sales"],
                 impressions=item["impressions"],
                 clicks=item["clicks"],
                 spend=item["cost"],
                 cpc=cpc,
                 campaign_bidding_strategy=item.get("campaignBiddingStrategy"),
                 campaign_status=item["campaignStatus"],
-                orders=item["purchases14d"],
+                orders=item["orders"],
                 campaign_type=campaign_type,
             )
         )
