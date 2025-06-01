@@ -32,7 +32,7 @@ def serialize_ads_sales_data(*, sales: QuerySet[AmazonAdsSaleAsin]) -> List[Dict
 def group_ad_sales_by_asin(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
     # if campaign_type == AdProduct.SPONSORED_DISPLAY.value:
     #     return group_by_sd_ad_sales_by_asin(sales=sales)
-    return prepare_data_for_insertion(sales=sales)
+    return prepare_data_for_insertion(sales=sales, campaign_type=campaign_type)
     # data = pd.DataFrame(sales)
     # data = data.rename(
     #     columns={
@@ -48,10 +48,6 @@ def group_ad_sales_by_asin(*, sales: List[Dict], campaign_type: str) -> List[Dic
 
 
 def prepare_data_for_insertion(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
-    result = defaultdict(lambda: defaultdict(list))
-    # {date: {asin: [item1, item2, ...]}}
-    for item in sales:
-        result[item["date"]][item["advertisedAsin"]].append(item)
     # Prepare data for AmazonAdsSaleAsin model
     amazon_ads_sale_asin_data = []
     # for date, asin_data in result.items():
@@ -105,19 +101,52 @@ def group_by_sd_ad_sales_by_asin(sales: List[Dict]) -> List[Dict]:
 
 
 def group_ad_sales_by_campaign(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
-    if campaign_type in [AdProduct.SPONSORED_DISPLAY.value, AdProduct.SPONSORED_BRANDS.value]:
-        return group_by_sd_ad_sales_by_campaign(sales=sales)
-    data = pd.DataFrame(sales)
-    data = data.groupby(["campaignName", "date"], as_index=False).agg(
-        {
-            "sales14d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
-            "costPerClick": "sum", "purchases14d": "sum", "unitsSoldClicks14d": "sum",
-            "campaignStatus": "first"
+    # if campaign_type in [AdProduct.SPONSORED_DISPLAY.value, AdProduct.SPONSORED_BRANDS.value]:
+    #     return group_by_sd_ad_sales_by_campaign(sales=sales)
+    # data = pd.DataFrame(sales)
+    # data = data.groupby(["campaignName", "date"], as_index=False).agg(
+    #     {
+    #         "sales14d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
+    #         "costPerClick": "sum", "purchases14d": "sum", "unitsSoldClicks14d": "sum",
+    #         "campaignStatus": "first"
+    #     }
+    # )
+    # data = data.fillna(0)
+    # data = data.round(2)
+    # return data.to_dict(orient="records")
+    return prepare_data_for_campaign_insertion(sales=sales, campaign_type=campaign_type)
+
+
+def prepare_data_for_campaign_insertion(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
+    amazon_ads_sale_campaign_data = []
+    for item in sales:
+        total_sales = Decimal(str(item.get('sales14d', 0))) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else Decimal(str(item.get('sales', 0)))
+        total_units_sold = item.get('unitsSoldClicks14d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('unitsSoldClicks', 0)
+        total_cost = Decimal(str(item.get('cost', 0)))
+        total_impressions = item.get('impressions', 0)
+        total_clicks = item.get('clicks', 0)
+        total_orders = item.get('purchases7d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('purchases', 0)
+        date = item.get('date')
+        cpc = Decimal('0')
+        if total_clicks > 0:
+            cpc = total_cost / total_clicks
+
+        model_data = {
+            'sales_date': date,
+            'sales': total_sales,
+            'units_sold': total_units_sold,
+            'cost': total_cost,
+            'impressions': total_impressions,
+            'clicks': total_clicks,
+            'spend': total_cost,  # spend is same as cost in this case
+            'cpc': cpc,
+            'orders': total_orders,
+            'campaign_type': 'sponsored_products',  # Based on the data source
+            'campaign_name': item.get('campaignName'),  # Taking first item's campaign name
+            'campaign_id': item.get('campaignId')  # Taking first item's campaign ID
         }
-    )
-    data = data.fillna(0)
-    data = data.round(2)
-    return data.to_dict(orient="records")
+        amazon_ads_sale_campaign_data.append(model_data)
+    return amazon_ads_sale_campaign_data
 
 
 def group_by_sd_ad_sales_by_campaign(sales: List[Dict]) -> List[Dict]:
