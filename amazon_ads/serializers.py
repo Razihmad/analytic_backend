@@ -220,7 +220,8 @@ def prepare_data_for_search_term_insertion(*, data: List[Dict]) -> List[Dict]:
         model_data = {
             'search_term': item.get('searchTerm'),
             'keyword': item.get('keywordId'),
-            'ad_group': item.get('adGroupName'),
+            'ad_group_name': item.get('adGroupName'),
+            "ad_group_id": item.get('adGroupId'),
             'sales': item.get('sales14d'),
             'cost': item.get('cost'),
             'impressions': item.get('impressions'),
