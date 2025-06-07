@@ -30,28 +30,13 @@ def serialize_ads_sales_data(*, sales: QuerySet[AmazonAdsSaleAsin]) -> List[Dict
 
 
 def group_ad_sales_by_asin(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
-    # if campaign_type == AdProduct.SPONSORED_DISPLAY.value:
-    #     return group_by_sd_ad_sales_by_asin(sales=sales)
     return prepare_data_for_insertion(sales=sales, campaign_type=campaign_type)
-    # data = pd.DataFrame(sales)
-    # data = data.rename(
-    #     columns={
-    #         "advertisedAsin": "asin", "date": "sales_date",
-    #         "purchases7d": "orders", "costPerClick": "cpc",
-    #         "unitsSoldClicks7d": "units_sold", "sales7d": "sales",
-    #         "campaignName": "campaign_name", "campaignId": "campaign_id"
-    #     }
-    # )
-    # data.fillna(0)
-    # data = data.round(2)
-    # return data.to_dict(orient="records")
 
 
 def prepare_data_for_insertion(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
     # Prepare data for AmazonAdsSaleAsin model
     amazon_ads_sale_asin_data = []
-    # for date, asin_data in result.items():
-    #     for asin, items in asin_data.items():
+
     for item in sales:
         # Aggregate data for each ASIN on the same date
         total_sales = Decimal(str(item.get('sales7d', 0)))
@@ -59,7 +44,7 @@ def prepare_data_for_insertion(*, sales: List[Dict], campaign_type: str) -> List
         total_cost = Decimal(str(item.get('cost', 0)))
         total_impressions = item.get('impressions', 0)
         total_clicks = item.get('clicks', 0)
-        total_orders = item.get('purchases7d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('purchases', 0)
+        total_orders = item.get('purchases14d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('purchases', 0)
         date = item.get('date', '')
         asin = item.get('advertisedAsin', '') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('promotedAsin', '')
         # Calculate CPC
@@ -108,11 +93,10 @@ def prepare_data_for_campaign_insertion(*, sales: List[Dict], campaign_type: str
     amazon_ads_sale_campaign_data = []
     for item in sales:
         total_sales = Decimal(str(item.get('sales14d', 0))) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else Decimal(str(item.get('sales', 0)))
-        total_units_sold = item.get('unitsSoldClicks14d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('unitsSoldClicks', 0)
         total_cost = Decimal(str(item.get('cost', 0)))
         total_impressions = item.get('impressions', 0)
         total_clicks = item.get('clicks', 0)
-        total_orders = item.get('purchases7d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('purchases', 0)
+        total_orders = item.get('purchases14d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('purchases', 0)
         date = item.get('date')
         cpc = Decimal('0')
         if total_clicks > 0:

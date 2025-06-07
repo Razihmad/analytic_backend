@@ -76,6 +76,7 @@ SP_ADVERTISED_PRODUCT_COLUMNS = [
     "cost",
     "spend",
     "sales7d",
+    "sales14d",
     "unitsSoldClicks7d",
     "purchases7d",
     "campaignName",
