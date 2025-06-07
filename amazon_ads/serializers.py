@@ -101,19 +101,6 @@ def group_by_sd_ad_sales_by_asin(sales: List[Dict]) -> List[Dict]:
 
 
 def group_ad_sales_by_campaign(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
-    # if campaign_type in [AdProduct.SPONSORED_DISPLAY.value, AdProduct.SPONSORED_BRANDS.value]:
-    #     return group_by_sd_ad_sales_by_campaign(sales=sales)
-    # data = pd.DataFrame(sales)
-    # data = data.groupby(["campaignName", "date"], as_index=False).agg(
-    #     {
-    #         "sales14d": 'sum', "impressions": "sum", "clicks": "sum", "cost": "sum",
-    #         "costPerClick": "sum", "purchases14d": "sum", "unitsSoldClicks14d": "sum",
-    #         "campaignStatus": "first"
-    #     }
-    # )
-    # data = data.fillna(0)
-    # data = data.round(2)
-    # return data.to_dict(orient="records")
     return prepare_data_for_campaign_insertion(sales=sales, campaign_type=campaign_type)
 
 
@@ -134,8 +121,6 @@ def prepare_data_for_campaign_insertion(*, sales: List[Dict], campaign_type: str
         model_data = {
             'sales_date': date,
             'sales': total_sales,
-            'units_sold': total_units_sold,
-            'cost': total_cost,
             'impressions': total_impressions,
             'clicks': total_clicks,
             'spend': total_cost,  # spend is same as cost in this case
@@ -143,7 +128,6 @@ def prepare_data_for_campaign_insertion(*, sales: List[Dict], campaign_type: str
             'orders': total_orders,
             'campaign_type': campaign_type,  # Based on the data source
             'campaign_name': item.get('campaignName'),  # Taking first item's campaign name
-            'campaign_id': item.get('campaignId'),  # Taking first item's campaign ID
             "campaign_status": item.get('campaignStatus'),
             "campaign_bidding_strategy": item.get('campaignBiddingStrategy', "")
         }
