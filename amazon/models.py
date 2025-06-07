@@ -37,6 +37,9 @@ class SellerCentralSale(models.Model):
     def __str__(self) -> str:
         return f"{self.seller.amazon_seller_id}"
 
+    class Meta:
+        unique_together = ["seller", "child_asin", "sales_date"]
+
 
 class SellerCentralTraffic(models.Model):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE)
