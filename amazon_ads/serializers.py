@@ -39,8 +39,8 @@ def prepare_data_for_insertion(*, sales: List[Dict], campaign_type: str) -> List
 
     for item in sales:
         # Aggregate data for each ASIN on the same date
-        total_sales = Decimal(str(item.get('sales7d', 0)))
-        total_units_sold = item.get('unitsSoldClicks7d', 0)
+        total_sales = Decimal(str(item.get('sales14d', 0))) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else Decimal(str(item.get('sales', 0)))
+        total_units_sold = item.get('unitsSoldClicks14d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('unitsSoldClicks', 0)
         total_cost = Decimal(str(item.get('cost', 0)))
         total_impressions = item.get('impressions', 0)
         total_clicks = item.get('clicks', 0)
