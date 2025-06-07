@@ -78,7 +78,9 @@ SP_ADVERTISED_PRODUCT_COLUMNS = [
     "sales7d",
     "sales14d",
     "unitsSoldClicks7d",
+    "unitsSoldClicks14d",
     "purchases7d",
+    "purchases14d",
     "campaignName",
     "campaignId"
 ]
