@@ -143,7 +143,9 @@ def prepare_data_for_campaign_insertion(*, sales: List[Dict], campaign_type: str
             'orders': total_orders,
             'campaign_type': campaign_type,  # Based on the data source
             'campaign_name': item.get('campaignName'),  # Taking first item's campaign name
-            'campaign_id': item.get('campaignId')  # Taking first item's campaign ID
+            'campaign_id': item.get('campaignId'),  # Taking first item's campaign ID
+            "campaign_status": item.get('campaignStatus'),
+            "campaign_bidding_strategy": item.get('campaignBiddingStrategy', "")
         }
         amazon_ads_sale_campaign_data.append(model_data)
     return amazon_ads_sale_campaign_data
