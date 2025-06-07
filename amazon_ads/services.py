@@ -70,14 +70,10 @@ def prepare_data_to_bulk_upsert(
 def prepare_campaing_level_data_for_upsert(*, data: List[Dict], ad_account_id: int, campaign_type: str) -> List[AmazonAdsSaleCampaign]:
     bulk_upsert_data = []
     for item in data:
-        # cpc = 0
-        # if item.get("costPerClick"):
-        #     cpc = item["costPerClick"]
-        # elif item["clicks"]:
-        #     cpc = float(item["cost"] / item["clicks"])
         bulk_upsert_data.append(
             AmazonAdsSaleCampaign(
                 amazon_ads_id=ad_account_id,
+                campaign_type=campaign_type,
                 **item
             )
         )
