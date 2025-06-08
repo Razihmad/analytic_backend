@@ -163,3 +163,5 @@ cython_debug/
 .vscode
 *.json
 *.txt
+.DS_Store
+*.csv

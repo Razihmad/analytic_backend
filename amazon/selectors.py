@@ -11,11 +11,20 @@ def get_seller_by_user_id(*, user_id: int, amazon_seller_id: str) -> Optional[Se
 
 
 def bulk_create_seller_central_sales(*, data: List[SellerCentralSale]):
-    return SellerCentralSale.objects.bulk_create(data, ignore_conflicts=True)
+    return SellerCentralSale.objects.bulk_create(data, update_conflicts=True, update_fields=[
+        "sales", "orders", "units_ordered"
+    ])
 
 
 def bulk_create_seller_central_traffic(*, data: List[SellerCentralTraffic]):
-    return SellerCentralTraffic.objects.bulk_create(data, ignore_conflicts=True)
+    return SellerCentralTraffic.objects.bulk_create(
+        data,
+        update_conflicts=True,
+        update_fields=[
+            "browser_sessions", "mobile_app_sessions", "browser_page_views",
+            "mobile_app_page_views", "unit_sessions_percentage",
+        ],
+    )
 
 
 def bulk_create_return_data(*, data: List[SellerCentralReturn]):
