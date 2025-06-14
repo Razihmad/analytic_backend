@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -8,6 +9,8 @@ from amazon_ads.services import fetch_ads_data_by_date, get_and_serialize_campai
 from base.decorators import handle_exception
 from base.response import status_200
 # Create your views here.
+
+logger = logging.getLogger(__name__)
 
 
 class FetchAdsReport(APIView):
@@ -83,3 +86,13 @@ class GetSearchTermReportData(APIView):
             user_id=request.user.id,
         )
         return status_200(message="search term report fetched", data={"data": data})
+
+
+class TestAccount(APIView):
+    # authentication_classes = [JWTAuthentication]
+    # permission_classes = [IsAuthenticated]
+
+    @handle_exception
+    def get(self, request):
+        logger.info(request.data)
+        return status_200(message="test account", data={"message": "Test account", "data": request.data})
