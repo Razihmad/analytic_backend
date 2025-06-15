@@ -61,11 +61,15 @@ class GetCampaignReport(APIView):
         start_date = request.data.get("start_date", str(dt.now(with_tz=True).date() - timedelta(days=8)))
         end_date = request.data.get("end_date", str(dt.now(with_tz=True).date() - timedelta(days=2)))
         amazon_seller_id = request.data.get("amazon_seller_id")
+        campaign_name = request.data.get("campaign_name")
+        campaign_type = request.data.get("campaign_type")
         data, cumulative_data = get_and_serialize_campaign_report_data(
             user_id=request.user.id,
             amazon_seller_id=amazon_seller_id,
             start_date=start_date,
             end_date=end_date,
+            campaign_name=campaign_name,
+            campaign_type=campaign_type,
         )
         return status_200(message="campaign report fetched", data={"data": data, **cumulative_data})
 

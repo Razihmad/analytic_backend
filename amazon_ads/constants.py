@@ -110,3 +110,15 @@ SEARCH_TERM_REPORT_COLUMNS = [
     'keywordId', 'keyword', 'date', 'searchTerm', 'campaignName', 'campaignId',
     'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', 'targeting'
 ]
+
+
+class BiddingStrategy(Enum):
+    MANUAL = "MANUAL"
+    LEGACY_FOR_SALES = "LEGACY_FOR_SALES"
+    RULE_BASED = "RULE_BASED"
+    AUTO_FOR_SALES = "AUTO_FOR_SALES"
+
+
+class TargetingType(Enum):
+    AUTO = "AUTO"
+    MANUAL = "MANUAL"

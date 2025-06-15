@@ -192,13 +192,21 @@ def process_campaign_sb_report_file(*, file, amazon_seller_id: str, user_id: int
     bulk_upsert_amazon_ads_campaign_sales(data=campaign_sales)
 
 
-def get_and_serialize_campaign_report_data(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str) -> Tuple[List[Dict], Dict]:
+def get_and_serialize_campaign_report_data(
+    *, user_id: int, amazon_seller_id: str, start_date: str, end_date: str, campaign_name: Optional[str] = None, campaign_type: Optional[str] = None
+) -> Tuple[List[Dict], Dict]:
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
-    campaign_sales = get_campaign_sales_report(seller_id=seller.id, start_date=start_date, end_date=end_date)
+    campaign_sales = get_campaign_sales_report(
+        seller_id=seller.id,
+        start_date=start_date,
+        end_date=end_date,
+        campaign_name=campaign_name,
+        campaign_type=campaign_type,
+    )
     return serialize_campaign_sales_report(campaign_sales=campaign_sales)
 
 

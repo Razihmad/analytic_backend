@@ -84,7 +84,27 @@ class AmazonAds:
         json_data = decompressed_data.decode('utf-8')
         parsed_data = json.loads(json_data)
         return parsed_data
+    
+    def create_campaign(self, access_token: str, region: str, profile_id: str, data: Dict, endpoint: str) -> Dict:
+        headers = self._get_headers(access_token=access_token, profile_id=profile_id)
+        base_url = self._get_base_url(region=region)
+        response = requests.post(url=base_url + endpoint, headers=headers, json=data)
+        return response.json()
 
+    def get_portfolio(self, access_token: str, region: str, profile_id: str) -> Dict:
+        headers = self._get_headers(access_token=access_token, profile_id=profile_id)
+        base_url = self._get_base_url(region=region)
+        endpoint = "/v2/portfolios"
+        response = requests.get(url=base_url + endpoint, headers=headers)
+        return response.json()
+    
+    def create_portfolio(self, access_token: str, region: str, profile_id: str, data: Dict) -> Dict:
+        headers = self._get_headers(access_token=access_token, profile_id=profile_id)
+        base_url = self._get_base_url(region=region)
+        endpoint = "/v2/portfolios"
+        response = requests.post(url=base_url + endpoint, headers=headers, json=data)
+        return response.json()
+    
 
 amazon_ads_api = AmazonAds()
 # report_id="375146d7-6e84-40ef-9626-0cb9eb60ace8"

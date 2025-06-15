@@ -22,6 +22,7 @@ django-cors-headers = "^4.7.0"
 pydantic = "^2.10.6"
 pandas = "^2.2.3"
 django-admin-rangefilter = "^0.13.2"
+ipython = "^9.3.0"
 
 
 [build-system]
