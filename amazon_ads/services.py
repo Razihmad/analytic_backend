@@ -11,6 +11,7 @@ from django.db.models import QuerySet
 
 # Local
 from amazon_ads.constants import GraphDataType
+from amazon_ads.utils.amazon_ads_api import amazon_ads_api
 import utils.datetime as dt
 from amazon.models import Seller
 from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data, get_asins_by_camapagin_ids, get_campaign_sales_report, get_serach_term_report_data
@@ -20,6 +21,7 @@ from amazon_ads.tasks import (
 )
 from base.exception import ServiceException
 from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm
+from utils.utils import get_region_by_country_code
 
 logger = logging.getLogger(__name__)
 
@@ -248,3 +250,21 @@ def get_asins_by_campaign_ids(*, search_term_data: QuerySet[SearchTerm], start_d
         data[record.campaign_id].append(record.asin)
 
     return data
+
+
+def get_portfolios(*, amazon_seller_id: str, user: User) -> List[Dict]:
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user.pk, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    region = get_region_by_country_code(country_code=seller.country_code)
+    portfolios = amazon_ads_api.get_portfolio(access_token=seller.access_token, region=region, profile_id=seller.profile_id)
+    logger.info(f"{portfolios=}, {region=}, {seller.profile_id=}, {seller.id=}, {user.id=}")
+    return portfolios
+
+def create_portfolio(*, amazon_seller_id: str, user: User, data: Dict) -> Dict:
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user.pk, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    region = get_region_by_country_code(country_code=seller.country_code)
+    portfolio = amazon_ads_api.create_portfolio(access_token=seller.access_token, region=region, profile_id=seller.profile_id, data=data)
+    return portfolio
