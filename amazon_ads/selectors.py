@@ -19,7 +19,7 @@ def bulk_upsert_amazon_ads_sales(*, data: List[AmazonAdsSaleAsin]):
 
 def bulk_upsert_amazon_ads_campaign_sales(*, data: List[AmazonAdsSaleCampaign]):
     return AmazonAdsSaleCampaign.objects.bulk_create(data, update_conflicts=True, update_fields=[
-        "sales", "impressions", "clicks", "spend", "cpc", "orders"
+        "sales", "impressions", "clicks", "spend", "cpc", "orders", "campaign_id"
     ], unique_fields=['amazon_ads', 'campaign_name', 'sales_date', "campaign_type"])
 
 

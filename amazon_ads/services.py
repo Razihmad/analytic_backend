@@ -191,6 +191,7 @@ def process_campaign_sb_report_file(*, file, amazon_seller_id: str, user_id: int
             orders=row["orders"],
             campaign_status=row["campaign_status"],
             campaign_type="SPONSORED_BRAND",
+            campaign_id=row["campaign_id"],
         )
         campaign_sales.append(camapgin_sale)
     bulk_upsert_amazon_ads_campaign_sales(data=campaign_sales)
