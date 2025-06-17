@@ -36,13 +36,13 @@ def get_ads_sales_data(
 
 
 def get_campaign_sales_report(
-    *, seller_id: int, start_date: datetime.date, end_date: datetime.date, campaign_name: Optional[str] = None, campaign_type: Optional[str] = None
+    *, seller_id: int, start_date: datetime.date, end_date: datetime.date, campaign_name: Optional[str] = None, campaign_type: Optional[List[str]] = None
 ) ->  QuerySet[AmazonAdsSaleCampaign]:
     base_filter = Q(amazon_ads_id=seller_id, sales_date__range=(start_date, end_date))
     if campaign_name:
         base_filter &= Q(campaign_name__icontains=campaign_name)
     if campaign_type:
-        base_filter &= Q(campaign_type=campaign_type)
+        base_filter &= Q(campaign_type__in=campaign_type)
     return AmazonAdsSaleCampaign.objects.filter(base_filter)
 
 

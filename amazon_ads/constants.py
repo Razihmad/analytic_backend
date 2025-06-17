@@ -122,3 +122,16 @@ class BiddingStrategy(Enum):
 class TargetingType(Enum):
     AUTO = "AUTO"
     MANUAL = "MANUAL"
+
+class MatchType(Enum):
+    EXACT = "EXACT"
+    PHRASE = "PHRASE"
+    BROAD = "BROAD"
+
+class State(Enum):
+    ENABLED = "ENABLED"
+    PAUSED = "PAUSED"
+    PROPOSED = "PROPOSED"
+    ARCHIVED = "ARCHIVED"
+    USER_DELETED = "USER_DELETED"
+    OTHER = "OTHER"

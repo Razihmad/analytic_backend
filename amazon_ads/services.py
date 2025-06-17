@@ -11,7 +11,9 @@ from django.db.models import QuerySet
 
 # Local
 from amazon_ads.constants import GraphDataType
+from amazon_ads.keywords import NegativeKeywordEndpoint
 from amazon_ads.utils.amazon_ads_api import amazon_ads_api
+from authentication.services import get_ads_access_token
 import utils.datetime as dt
 from amazon.models import Seller
 from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data, get_asins_by_camapagin_ids, get_campaign_sales_report, get_serach_term_report_data
@@ -195,7 +197,7 @@ def process_campaign_sb_report_file(*, file, amazon_seller_id: str, user_id: int
 
 
 def get_and_serialize_campaign_report_data(
-    *, user_id: int, amazon_seller_id: str, start_date: str, end_date: str, campaign_name: Optional[str] = None, campaign_type: Optional[str] = None
+    *, user_id: int, amazon_seller_id: str, start_date: str, end_date: str, campaign_name: Optional[str] = None, campaign_type: Optional[List[str]] = None
 ) -> Tuple[List[Dict], Dict]:
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
@@ -268,3 +270,24 @@ def create_portfolio(*, amazon_seller_id: str, user: User, data: Dict) -> Dict:
     region = get_region_by_country_code(country_code=seller.country_code)
     portfolio = amazon_ads_api.create_portfolio(access_token=seller.access_token, region=region, profile_id=seller.profile_id, data=data)
     return portfolio
+
+
+def get_negative_keywords(*, amazon_seller_id: str, user_id: int, campaign_ids: List[str], ad_group_ids: List[str]) -> List[Dict]:
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    region = get_region_by_country_code(country_code=seller.country_code)
+    access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    negative_keywords = amazon_ads_api.sp_negative_keywords(
+        access_token=access_token,
+        region=region,
+        profile_id=seller.profile_id,
+        endpoint=NegativeKeywordEndpoint.LIST.value,
+        data={
+            "campaignIdFilter": {"include": campaign_ids},
+            "adGroupIdFilter": {"include": ad_group_ids},
+            # "stateFilter": {"include": [State.ENABLED.value, State.PAUSED.value, State.PROPOSED.value]},
+            # "matchTypeFilter": {"include": [MatchType.EXACT.value, MatchType.PHRASE.value, MatchType.BROAD.value]},
+        }
+    )
+    return negative_keywords
