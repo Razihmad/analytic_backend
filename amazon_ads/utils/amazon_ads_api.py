@@ -109,8 +109,12 @@ class AmazonAds:
         headers = self._get_headers(access_token=access_token, profile_id=profile_id)
         headers["Content-Type"] = "application/vnd.spNegativeKeyword.v3+json"
         base_url = self._get_base_url(region=region)
-        response = requests.post(url=base_url + endpoint, headers=headers, data=data)
-        return response.json()
+        print(f"{data=}")
+        print(f"{headers=}")
+        url = base_url + endpoint
+        print(f"{url=}")
+        response = requests.post(url=url, headers=headers, data=data)
+        return response
     
     # def update_sp_negative_keywords(self, access_token: str, region: str, profile_id: str, data: Dict) -> Dict:
     #     headers = self._get_headers(access_token=access_token, profile_id=profile_id)

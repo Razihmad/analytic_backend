@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.db.models import QuerySet
 
 # Local
-from amazon_ads.constants import GraphDataType
+from amazon_ads.constants import GraphDataType, MatchType, State
 from amazon_ads.keywords import NegativeKeywordEndpoint
 from amazon_ads.utils.amazon_ads_api import amazon_ads_api
 from authentication.services import get_ads_access_token
@@ -283,12 +283,42 @@ def get_negative_keywords(*, amazon_seller_id: str, user_id: int, campaign_ids: 
         access_token=access_token,
         region=region,
         profile_id=seller.profile_id,
-        endpoint=NegativeKeywordEndpoint.LIST.value,
+        endpoint=NegativeKeywordEndpoint.CREATE.value,
         data={
-            "campaignIdFilter": {"include": campaign_ids},
-            "adGroupIdFilter": {"include": ad_group_ids},
-            # "stateFilter": {"include": [State.ENABLED.value, State.PAUSED.value, State.PROPOSED.value]},
-            # "matchTypeFilter": {"include": [MatchType.EXACT.value, MatchType.PHRASE.value, MatchType.BROAD.value]},
+            'campaignId': campaign_ids,
+            'adGroupId': ad_group_ids,
+            'state': State.ENABLED.value,
+            'matchType': MatchType.EXACT.value
         }
     )
     return negative_keywords
+
+
+# from ad_api.api import sponsored_products
+
+# my_credentials = dict(
+#     refresh_token="""Atzr|IwEBICiGlV1ePtGgt1iceTo6HDxwqe6EIpWPagmOB_pO-EvHV6mWw2-PEXZueLP7Ygrm_gfGPigW3APOLKNrHMnHjFjopQpmrreF9zn5Db5bxYHkA8s0zA7pAela4IUA2_68w9UhGUO_
+#  fWYG4003Chw3qGaquoemeac5hsCE27bttpOSoO21wi8PdskvzidR7RFxqq6uKFgIJstFzH61qd0D8gyv-EACrb_AAc6NFTI4Nojhc5IlEGJi3y3wJbSXbyKyxsxuX3IzT5UiP-SuSOmmahs0Xqa8KsNzVGBqvJ_Ham2a
+#  8ULm3wIeGIMPvBdkXLhhzkTxt6YGA1FIE_VoRlFB27IkVn5OQ0By-Cw9RsdCx3uOqIskx4cgrm6-M9-Cs3IWzTX4sohgAOehbxfuf_p2cdcmD4pcZu6hK7tuodddg3afylbP3QMvuUMgnftaEjzeg-NlIxGXxkDTDuU3
+#  faEQCujhjft-vw3MnJSyqURwBmnOwOx90V0bVNqRmycVsGK63tljj8BzxGVpOPysH0zlvr5x""",
+#          client_id="amzn1.application-oa2-client.c9a36b5e8a584c38a27d98836de6db9e",
+#          client_secret="amzn1.oa2-cs.v1.4b9e95f0aa1f26fd03f9fe4cfcb9ae7cac2f0291e96f1830822f6eef70414ad0",
+#          profile_id="1406427077937190",
+#      )
+
+# info = {
+#     "stateFilter":
+#         {
+#             "include": [
+#                 "ENABLED"
+#             ]
+#         }
+# }
+
+
+
+
+# result = sponsored_products.CampaignsV3(credentials=my_credentials).list_campaigns(body=info)
+# print(result.payload)
+# result = sponsored_products.NegativeKeywords(credentials=my_credentials).list_negative_keywords()
+# print(result.payload)

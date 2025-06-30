@@ -16,6 +16,7 @@ from amazon.tasks import fetch_seller_central_report_data_by_date, fetch_seller_
 from amazon_ads.constants import GraphDataType
 from amazon_ads.selectors import get_ads_sales_data
 from amazon_ads.services import get_ads_data_for_graph, get_ads_sales, verify_and_get_ads_profile
+from authentication.services import get_access_token
 from base.exception import ServiceException
 import utils.datetime as dt
 from amazon.models import Seller, SellerCentralSale, SellerCentralTraffic, SellerCentralReturn
@@ -371,3 +372,28 @@ def get_data_for_graph(
         asins=asins,
         graph_data_type=graph_data_type,
     )
+
+
+def get_search_query_brand_report(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str) -> Dict:
+    logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}, {user_id=}")
+    from amazon.utils import amazon_sp_api
+    access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    marketplace = seller.marketplace
+    from sp_api.base import ReportType, Granularity
+    report_type = ReportType.GET_BRAND_ANALYTICS_MARKET_BASKET_REPORT.value
+    response = amazon_sp_api.create_report(
+            access_token=access_token,
+            marketplace=marketplace,
+            report_type=report_type,
+            data={
+                "reportOptions": {"dateGranularity": Granularity.DAY.value, "asinGranularity": "SKU"},
+                "dataStartTime": start_date.strftime("%Y-%m-%d"),
+                "dataEndTime": start_date.strftime("%Y-%m-%d"),
+            },
+        )
+    return response

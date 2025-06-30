@@ -27,4 +27,11 @@ class AmazonAdsSaleCampaignAdmin(admin.ModelAdmin):
 
 @admin.register(SearchTerm)
 class SearchTerm(admin.ModelAdmin):
-    list_display = ("seller", "search_term", "search_term_date", "keyword", "targeting", "campaign_name", "impressions", "clicks", "orders", "sales")
+    list_display = ("seller", "search_term", "search_term_date", "keyword", "targeting", "campaign_name","ad_group_name", "impressions", "clicks", "orders", "sales")
+    search_fields = ("search_term", "keyword", "targeting", "campaign_name")
+    # ordering = ("-search_term_date",)
+    readonly_fields = ("seller",)
+
+    # def get_queryset(self, request):
+    #     qs = super().get_queryset(request)
+    #     return qs.filter(seller=request.user)
