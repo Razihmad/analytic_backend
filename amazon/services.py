@@ -393,7 +393,7 @@ def get_search_query_brand_report(*, user_id: int, amazon_seller_id: str, start_
             data={
                 "reportOptions": {"dateGranularity": Granularity.DAY.value, "asinGranularity": "SKU"},
                 "dataStartTime": start_date.strftime("%Y-%m-%d"),
-                "dataEndTime": start_date.strftime("%Y-%m-%d"),
+                "dataEndTime": end_date.strftime("%Y-%m-%d"),
             },
         )
     return response
