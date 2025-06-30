@@ -381,7 +381,7 @@ def get_search_query_brand_report(*, user_id: int, amazon_seller_id: str, start_
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}, {user_id=}")
-    from amazon.utils import amazon_sp_api
+    from amazon.utils.amazon_sp_api import amazon_sp_api
     access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
     marketplace = seller.marketplace
     from sp_api.base import ReportType, Granularity
