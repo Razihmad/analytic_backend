@@ -292,7 +292,7 @@ def get_negative_keywords(*, amazon_seller_id: str, user_id: int, data: Optional
 
 def create_negative_keyword(
     *, amazon_seller_id: str, user_id: int, campaign_id: str, ad_group_id: str, keyword: str, match_type: str, state: str
-) -> Dict:
+) -> Tuple[Dict, int]:
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
@@ -312,8 +312,8 @@ def create_negative_keyword(
             ]
         }
     )
-    logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}, {data=}")
-    return response
+    logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
+    return response, status_code
 
 def delete_negative_keywords(*, amazon_seller_id: str, user_id: int, campaign_ids: List[str], ad_group_ids: List[str]) -> Dict:
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)

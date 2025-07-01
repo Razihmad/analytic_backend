@@ -176,7 +176,7 @@ class NegativeKeyword(APIView):
         match_type = request.data.get("match_type")
         state = request.data.get("state")
         user = request.user
-        response = create_negative_keyword(
+        response, status_code = create_negative_keyword(
             amazon_seller_id=amazon_seller_id,
             user_id=user.id,
             campaign_id=campaign_id,
@@ -185,7 +185,7 @@ class NegativeKeyword(APIView):
             match_type=match_type,
             state=state
         )
-        if not response.get("negativeKeywords", {}).get("error"):
+        if status_code == 207:
             return status_200(message="negative keyword created", data={"message": "Negative keyword created", "data": response})
         return status_200(message="negative keyword creation failed", data={"message": "Negative keyword creation failed", "data": response})
 
