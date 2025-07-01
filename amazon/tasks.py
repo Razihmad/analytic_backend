@@ -242,3 +242,59 @@ def get_report_and_process_data_task(
         )
 
     return status
+
+
+@shared_task
+def fetch_search_query_brand_report(user_id: int, amazon_seller_id: str, start_date: str, end_date: str, marketplace: str, seller_id: int):
+    access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    logger.info(f"{access_token=}, {user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}, {marketplace=}")
+    report_type = ReportType.GET_BRAND_ANALYTICS_MARKET_BASKET_REPORT.value
+    # while start_date <= end_date:
+    response = amazon_sp_api.create_report(
+            access_token=access_token,
+            marketplace=marketplace,
+            report_type=report_type,
+            data={
+                "reportOptions": {"reportPeriod": "WEEK"},
+                "dataStartTime": start_date.strftime("%Y-%m-%d"),
+                "dataEndTime": end_date.strftime("%Y-%m-%d"),
+            },
+        )
+    report_id = response.get("reportId")
+    logger.info(f"{user_id=}, {report_id=}, {start_date=}")
+    get_report_and_process_data_task.apply_async(
+        args=[user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id, report_type],
+        queue="process_report",
+        countdown=100
+    )
+    return response
+
+
+@shared_task
+def fetch_search_query_performance_report(user_id: int, amazon_seller_id: str, start_date: str, end_date: str, marketplace: str, seller_id: int):
+    access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    logger.info(f"{access_token=}, {user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}, {marketplace=}")
+    report_type = ReportType.get_brand_
+    # while start_date <= end_date:
+    response = amazon_sp_api.create_report(
+            access_token=access_token,
+            marketplace=marketplace,
+            report_type=report_type,
+            data={
+                "reportOptions": {"reportPeriod": "WEEK"},
+                "dataStartTime": start_date.strftime("%Y-%m-%d"),
+                "dataEndTime": end_date.strftime("%Y-%m-%d"),
+            },
+        )
+    report_id = response.get("reportId")
+    logger.info(f"{user_id=}, {report_id=}, {start_date=}")
+    get_report_and_process_data_task.apply_async(
+        args=[user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id, report_type],
+        queue="process_report",
+        countdown=100
+    )
+    return response
