@@ -1,6 +1,6 @@
 import gzip
 import json
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 # third party imports
 import requests
@@ -105,21 +105,25 @@ class AmazonAds:
         response = requests.post(url=base_url + endpoint, headers=headers, json=data)
         return response.json()
     
-    def sp_negative_keywords(self, access_token: str, region: str, profile_id: str, data: Dict, endpoint: str) -> Dict:
+    def sp_negative_keywords(
+        self,
+        access_token: str,
+        region: str,
+        profile_id: str,
+        endpoint: str,
+        data: Optional[Dict] = None,
+    ) -> Tuple[int, Dict]:
         headers = self._get_headers(access_token=access_token, profile_id=profile_id)
         base_url = self._get_base_url(region=region)
         headers["Content-Type"] = "application/vnd.spNegativeKeyword.v3+json"
         headers["Accept"] = "application/vnd.spnegativeKeyword.v3+json"
         url = base_url + endpoint
-        response = requests.post(url=url, headers=headers, json=data)
-        return response
-    
-    # def update_sp_negative_keywords(self, access_token: str, region: str, profile_id: str, data: Dict) -> Dict:
-    #     headers = self._get_headers(access_token=access_token, profile_id=profile_id)
-    #     base_url = self._get_base_url(region=region)
-    #     endpoint = "/sp/negativeKeywords"
-    #     response = requests.put(url=base_url + endpoint, headers=headers, data=data)
-    #     return response.json()
+        if data:
+            response = requests.post(url=url, headers=headers, json=data)
+        else:
+            response = requests.get(url=url, headers=headers)
+        return response.status_code, response.json()
+
     
 
 amazon_ads_api = AmazonAds()

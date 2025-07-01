@@ -273,52 +273,55 @@ def create_portfolio(*, amazon_seller_id: str, user: User, data: Dict) -> Dict:
     return portfolio
 
 
-def get_negative_keywords(*, amazon_seller_id: str, user_id: int, campaign_ids: List[str], ad_group_ids: List[str]) -> List[Dict]:
+def get_negative_keywords(*, amazon_seller_id: str, user_id: int, data: Optional[Dict] = None) -> List[Dict]:
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
     region = get_region_by_country_code(country_code=seller.country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
-    negative_keywords = amazon_ads_api.sp_negative_keywords(
+    status_code, response = amazon_ads_api.sp_negative_keywords(
         access_token=access_token,
         region=region,
         profile_id=seller.profile_id,
-        endpoint=NegativeKeywordEndpoint.CREATE.value,
+        endpoint=NegativeKeywordEndpoint.LIST.value,
+        data=data
+    )
+    logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}, {data=}")
+    return response
+
+
+def create_negative_keyword(
+    *, amazon_seller_id: str, user_id: int, campaign_id: str, ad_group_id: str, keyword: str, match_type: str, state: str
+) -> Dict:
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    region = get_region_by_country_code(country_code=seller.country_code)
+    access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    status_code, response = amazon_ads_api.sp_negative_keywords(
+        access_token=access_token, region=region, profile_id=seller.profile_id, endpoint=NegativeKeywordEndpoint.CREATE.value,
         data={
-            'campaignId': campaign_ids,
-            'adGroupId': ad_group_ids,
-            'state': State.ENABLED.value,
-            'matchType': MatchType.EXACT.value
+            "negativeKeywords": [
+                {
+                    "campaignId": campaign_id,
+                    "adGroupId": ad_group_id,
+                    "keywordText": keyword,
+                    "matchType": "NEGATIVE_" + match_type,
+                    "state": state
+                }
+            ]
         }
     )
-    return negative_keywords
+    logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}, {data=}")
+    return response
 
-
-# from ad_api.api import sponsored_products
-
-# my_credentials = dict(
-#     refresh_token="""Atzr|IwEBICiGlV1ePtGgt1iceTo6HDxwqe6EIpWPagmOB_pO-EvHV6mWw2-PEXZueLP7Ygrm_gfGPigW3APOLKNrHMnHjFjopQpmrreF9zn5Db5bxYHkA8s0zA7pAela4IUA2_68w9UhGUO_
-#  fWYG4003Chw3qGaquoemeac5hsCE27bttpOSoO21wi8PdskvzidR7RFxqq6uKFgIJstFzH61qd0D8gyv-EACrb_AAc6NFTI4Nojhc5IlEGJi3y3wJbSXbyKyxsxuX3IzT5UiP-SuSOmmahs0Xqa8KsNzVGBqvJ_Ham2a
-#  8ULm3wIeGIMPvBdkXLhhzkTxt6YGA1FIE_VoRlFB27IkVn5OQ0By-Cw9RsdCx3uOqIskx4cgrm6-M9-Cs3IWzTX4sohgAOehbxfuf_p2cdcmD4pcZu6hK7tuodddg3afylbP3QMvuUMgnftaEjzeg-NlIxGXxkDTDuU3
-#  faEQCujhjft-vw3MnJSyqURwBmnOwOx90V0bVNqRmycVsGK63tljj8BzxGVpOPysH0zlvr5x""",
-#          client_id="amzn1.application-oa2-client.c9a36b5e8a584c38a27d98836de6db9e",
-#          client_secret="amzn1.oa2-cs.v1.4b9e95f0aa1f26fd03f9fe4cfcb9ae7cac2f0291e96f1830822f6eef70414ad0",
-#          profile_id="1406427077937190",
-#      )
-
-# info = {
-#     "stateFilter":
-#         {
-#             "include": [
-#                 "ENABLED"
-#             ]
-#         }
-# }
-
-
-
-
-# result = sponsored_products.CampaignsV3(credentials=my_credentials).list_campaigns(body=info)
-# print(result.payload)
-# result = sponsored_products.NegativeKeywords(credentials=my_credentials).list_negative_keywords()
-# print(result.payload)
+def delete_negative_keywords(*, amazon_seller_id: str, user_id: int, campaign_ids: List[str], ad_group_ids: List[str]) -> Dict:
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    region = get_region_by_country_code(country_code=seller.country_code)
+    access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    response = amazon_ads_api.sp_negative_keywords(access_token=access_token, region=region, profile_id=seller.profile_id, endpoint=NegativeKeywordEndpoint.DELETE.value, data={
+        "campaignId": campaign_ids,
+    })
+    return response

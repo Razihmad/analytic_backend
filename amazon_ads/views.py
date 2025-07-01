@@ -5,7 +5,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 import utils.datetime as dt
-from amazon_ads.services import create_portfolio, fetch_ads_data_by_date, get_and_serialize_campaign_report_data, get_and_serialize_serach_term_report_data, get_negative_keywords, get_portfolios, process_campaign_sb_report_file, start_fetching_amazon_ads_data
+from amazon_ads.services import create_negative_keyword, create_portfolio, fetch_ads_data_by_date, get_and_serialize_campaign_report_data, get_and_serialize_serach_term_report_data, get_negative_keywords, get_portfolios, process_campaign_sb_report_file, start_fetching_amazon_ads_data
 from base.decorators import handle_exception
 from base.response import status_200
 # Create your views here.
@@ -171,23 +171,47 @@ class NegativeKeyword(APIView):
         logger.info(request.data)
         amazon_seller_id = request.data.get("amazon_seller_id")
         campaign_id = request.data.get("campaign_id")
+        ad_group_id = request.data.get("ad_group_id")
         keyword = request.data.get("keyword")
         match_type = request.data.get("match_type")
         state = request.data.get("state")
         user = request.user
-        data = {
-            "campaignId": campaign_id,
-        }
-        return status_200(message="negative keyword created", data={"message": "Negative keyword created", "data": request.data})
+        response = create_negative_keyword(
+            amazon_seller_id=amazon_seller_id,
+            user_id=user.id,
+            campaign_id=campaign_id,
+            ad_group_id=ad_group_id,
+            keyword=keyword,
+            match_type=match_type,
+            state=state
+        )
+        if not response.get("negativeKeywords", {}).get("error"):
+            return status_200(message="negative keyword created", data={"message": "Negative keyword created", "data": response})
+        return status_200(message="negative keyword creation failed", data={"message": "Negative keyword creation failed", "data": response})
+
 
     @handle_exception
     def get(self, request):
+        logger.info(request.data)
+        user = request.user
+        amazon_seller_id = request.data.get("amazon_seller_id")
+        campaign_ids = request.data.get("campaign_ids", [])
+        ad_group_ids = request.data.get("ad_group_ids", [])
+        data = {}
+        if campaign_ids:
+            data["campaignIdFilter"] = {"include": campaign_ids}
+        # incomplete yet TODO: 
+        negative_keywords = get_negative_keywords(
+            amazon_seller_id=amazon_seller_id, user=user, campaign_ids=campaign_ids, ad_group_ids=ad_group_ids
+        )
+        return status_200(message="negative keyword fetched", data={"message": "Negative keyword fetched", "data": negative_keywords})
+
+    @handle_exception
+    def delete(self, request):
         logger.info(request.data)
         amazon_seller_id = request.data.get("amazon_seller_id")
         user = request.user
         campaign_ids = request.data.get("campaign_ids", [])
         ad_group_ids = request.data.get("ad_group_ids", [])
-        negative_keywords = get_negative_keywords(
-            amazon_seller_id=amazon_seller_id, user=user, campaign_ids=campaign_ids, ad_group_ids=ad_group_ids
-        )
-        return status_200(message="negative keyword fetched", data={"message": "Negative keyword fetched", "data": negative_keywords})
+        delete_negative_keywords(amazon_seller_id=amazon_seller_id, user=user, campaign_ids=campaign_ids, ad_group_ids=ad_group_ids)
+        return status_200(message="negative keyword deleted", data={"message": "Negative keyword deleted", "data": request.data})

@@ -1,7 +1,7 @@
 from django.urls import path
 
 from amazon_ads.views import (
-    FetchAdsReportByDate, GetCampaignReport, TestAccount, UploadCampaignReportFile, GetSearchTermReportData
+    FetchAdsReportByDate, GetCampaignReport, TestAccount, UploadCampaignReportFile, GetSearchTermReportData, NegativeKeyword
 )
 
 urlpatterns = [
@@ -10,4 +10,5 @@ urlpatterns = [
     path("getCampginReportData/", GetCampaignReport.as_view(), name="get-campaign-report-data"),
     path("getSearchTermReportData/", GetSearchTermReportData.as_view(), name="get-search-term-report-data"),
     path("testAccount/", TestAccount.as_view(), name="test-account"),
+    path("negativeKeyword/", NegativeKeyword.as_view(), name="negative-keyword"),
 ]
