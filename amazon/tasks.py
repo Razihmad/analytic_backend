@@ -91,6 +91,10 @@ def fetch_report_document(
     if report_type == ReportType.GET_XML_RETURNS_DATA_BY_RETURN_DATE.value:
         process_xml_report_document_and_create_entry.apply_async(args=[url, seller_id], queue="process_report", countdown=2)
         return
+    if report_type == ReportType.GET_BRAND_ANALYTICS_MARKET_BASKET_REPORT.value:
+        process_search_query_market_basket_report_document.apply_async(args=[url, seller_id], queue="process_report", countdown=2)
+        return
+
 
 
 @shared_task
@@ -245,19 +249,26 @@ def get_report_and_process_data_task(
 
 
 @shared_task
-def fetch_search_query_brand_report(user_id: int, amazon_seller_id: str, start_date: str, end_date: str, marketplace: str, seller_id: int):
+def fetch_search_query_market_basket_report(
+    user_id: int,
+    amazon_seller_id: str,
+    start_date: str,
+    end_date: str,
+    marketplace: str,
+    seller_id: int,
+    report_period: str,
+):
     access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     logger.info(f"{access_token=}, {user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}, {marketplace=}")
     report_type = ReportType.GET_BRAND_ANALYTICS_MARKET_BASKET_REPORT.value
-    # while start_date <= end_date:
     response = amazon_sp_api.create_report(
             access_token=access_token,
             marketplace=marketplace,
             report_type=report_type,
             data={
-                "reportOptions": {"reportPeriod": "WEEK"},
+                "reportOptions": {"reportPeriod": report_period},
                 "dataStartTime": start_date.strftime("%Y-%m-%d"),
                 "dataEndTime": end_date.strftime("%Y-%m-%d"),
             },
@@ -298,3 +309,28 @@ def fetch_search_query_performance_report(user_id: int, amazon_seller_id: str, s
         countdown=100
     )
     return response
+
+
+def process_search_query_market_basket_report_document(url: str, seller_id: int):
+    from amazon.services import prepare_and_bulk_create_search_query_market_basket_data
+
+    data = amazon_sp_api.get_data_by_url(url=url)
+    report_period = data["reportSpecification"]["reportOptions"]["reportPeriod"]
+    start_date = data["reportSpecification"]["dataStartTime"]
+    end_date = data["reportSpecification"]["dataEndTime"]
+    data_by_asin = data["dataByAsin"]
+    data_by_asin_list = []
+    for data in data_by_asin:
+        data_by_asin_list.append(
+            {
+                "seller_id": seller_id,
+                "asin": data["asin"],
+                "purchased_with_asin": data["purchasedWithAsin"],
+                "purchased_with_rank": data["purchasedWithRank"],
+                "combination_pct": data["combinationPct"],
+                "report_period": report_period,
+                "start_date": start_date,
+                "end_date": end_date,
+            }
+        )
+    prepare_and_bulk_create_search_query_market_basket_data(data=data_by_asin_list)

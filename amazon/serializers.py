@@ -2,7 +2,7 @@ from typing import Dict, List, Union
 
 from django.db.models import QuerySet
 from django.db.models.manager import BaseManager
-from amazon.models import Seller, SellerCentralSale, SellerCentralTraffic, RegionDetail
+from amazon.models import SearchQueryMarketBasket, Seller, SellerCentralSale, SellerCentralTraffic, RegionDetail
 from collections import defaultdict
 
 
@@ -172,4 +172,21 @@ def group_total_sales_data_by_date(*, total_sales_data: QuerySet, field: Union[s
     result = defaultdict(int)
     for data in total_sales_data:
         result[str(data["sales_date"])] += int(data[field])
+    return result
+
+
+def serialize_search_query_market_basket(*, data: QuerySet[SearchQueryMarketBasket]) -> List[Dict]:
+    result = []
+    for data in data:
+        result.append(
+            {
+                "asin": data.asin,
+                "purchased_with_asin": data.purchased_with_asin,
+                "purchased_with_rank": data.purchased_with_rank,
+                "combination_pct": data.combination_pct,
+                "report_period": data.report_period,
+                "start_date": data.start_date,
+                "end_date": data.end_date,
+            }
+        )
     return result

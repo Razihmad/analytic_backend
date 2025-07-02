@@ -87,3 +87,19 @@ class RegionDetail(models.Model):
 
     def __str__(self) -> str:
         return f"{self.marketplace_id} | {self.region}"
+
+
+class SearchQueryMarketBasket(models.Model):
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE)
+    asin = models.CharField(max_length=255)
+    purchased_with_asin = models.CharField(max_length=255)
+    purchased_with_rank = models.IntegerField()
+    report_period = models.CharField(max_length=255, choices=[("WEEK", "WEEK"), ("MONTH", "MONTH")])
+    start_date = models.DateField()
+    end_date = models.DateField()
+    combination_pct = models.DecimalField(max_digits=5, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ["seller", "asin", "purchased_with_asin", "report_period"]

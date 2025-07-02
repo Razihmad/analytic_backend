@@ -19,9 +19,10 @@ from amazon_ads.services import get_ads_data_for_graph, get_ads_sales, verify_an
 from authentication.services import get_access_token
 from base.exception import ServiceException
 import utils.datetime as dt
-from amazon.models import Seller, SellerCentralSale, SellerCentralTraffic, SellerCentralReturn
+from amazon.models import SearchQueryMarketBasket, Seller, SellerCentralSale, SellerCentralTraffic, SellerCentralReturn
 from amazon.selectors import (
     bulk_create_return_data,
+    bulk_create_search_query_market_basket,
     bulk_create_seller_central_sales,
     get_all_asins_of_seller,
     get_amazon_accounts_profile_by_user_id,
@@ -103,6 +104,21 @@ def prepare_bulk_create_return_data(*, data: List[Dict]):
         for return_data in data
     ]
     bulk_create_return_data(data=return_objects)
+
+def prepare_and_bulk_create_search_query_market_basket_data(*, data: List[Dict]):
+    search_query_market_basket_objects = [
+        SearchQueryMarketBasket(
+            seller_id=data["seller_id"],
+            asin=data["asin"],
+            purchased_with_asin=data["purchased_with_asin"],
+            purchased_with_rank=data["purchased_with_rank"],
+            combination_pct=data["combination_pct"],
+            report_period=data["report_period"],
+            start_date=data["start_date"],
+            end_date=data["end_date"],
+        )
+    ]
+    bulk_create_search_query_market_basket(data=search_query_market_basket_objects)
 
 
 def get_total_sales(

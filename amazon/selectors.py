@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from django.db.models import QuerySet, Q
 from django.db.models.manager import BaseManager
-from amazon.models import Seller, SellerCentralSale, SellerCentralTraffic, SellerCentralReturn, RegionDetail
+from amazon.models import SearchQueryMarketBasket, Seller, SellerCentralSale, SellerCentralTraffic, SellerCentralReturn, RegionDetail
 
 
 def get_seller_by_user_id(*, user_id: int, amazon_seller_id: str) -> Optional[Seller]:
@@ -62,3 +62,7 @@ def get_amazon_accounts_profile_by_user_id(*, user_id: int):
 
 def get_all_asins_of_seller(*, seller_id: int) -> List[int]:
     return list(SellerCentralSale.objects.filter(seller_id=seller_id).values_list("parent_asin", flat=True).distinct())
+
+
+def bulk_create_search_query_market_basket(*, data: List[SearchQueryMarketBasket]):
+    return SearchQueryMarketBasket.objects.bulk_create(data, ignore_conflicts=True)
