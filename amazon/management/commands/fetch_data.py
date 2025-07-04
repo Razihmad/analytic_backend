@@ -10,8 +10,8 @@ class Command(BaseCommand):
     help = "Fetch data from Amazon"
 
     def handle(self, *args, **options):
-        start_date = dt.now(with_tz=True).date() - dt.timedelta(days=1)
-        end_date = dt.now(with_tz=True).date() - dt.timedelta(days=8)
+        start_date = dt.now(with_tz=True).date() - dt.timedelta(days=8)
+        end_date = dt.now(with_tz=True).date() - dt.timedelta(days=1)
         seller = Seller.objects.get(id=26)
         amazon_seller_id = seller.amazon_seller_id
         country_code = seller.country_code
