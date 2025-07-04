@@ -23,6 +23,7 @@ pydantic = "^2.10.6"
 pandas = "^2.2.3"
 django-admin-rangefilter = "^0.13.2"
 ipython = "^9.3.0"
+gunicorn = "^23.0.0"
 
 
 [build-system]
