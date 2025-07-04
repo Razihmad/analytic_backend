@@ -118,8 +118,8 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
 
     # Calculate ROAS
     if total_sales_data["ads_spend"]:
-        total_sales_data["ads_roas"] = round(100 * float(total_sales_data["ads_revenue"]) / float(total_sales_data["ads_spend"]), 2)
-        total_sales_data["total_roas"] = round(100 * float(total_sales_data["total_revenue"]) / float(total_sales_data["ads_spend"]), 2)
+        total_sales_data["ads_roas"] = round(float(total_sales_data["ads_revenue"]) / float(total_sales_data["ads_spend"]), 2)
+        total_sales_data["total_roas"] = round(float(total_sales_data["total_revenue"]) / float(total_sales_data["ads_spend"]), 2)
 
     # calculate ACOS
     if total_sales_data["total_revenue"]:
