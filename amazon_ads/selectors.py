@@ -50,8 +50,29 @@ def bulk_upsert_search_term_report_data(*, data: List[SearchTerm]):
     return SearchTerm.objects.bulk_create(data, ignore_conflicts=True, batch_size=500)
 
 
-def get_serach_term_report_data(*, seller_id: int, start_date: datetime.date, end_date: datetime.date):
-    return SearchTerm.objects.filter(seller_id=seller_id, search_term_date__range=[start_date, end_date])
+def get_serach_term_report_data(
+    *,
+    seller_id: int,
+    start_date: datetime.date,
+    end_date: datetime.date,
+    search_term: Optional[str] = None,
+    campaign_name: Optional[str] = None,
+    keyword: Optional[str] = None,
+    ad_group_name: Optional[str] = None,
+    match_type: Optional[str] = None,
+):
+    base_filter = Q(seller_id=seller_id, search_term_date__range=[start_date, end_date])
+    if search_term:
+        base_filter &= Q(search_term__icontains=search_term)
+    if campaign_name:
+        base_filter &= Q(campaign_name__icontains=campaign_name)
+    if keyword:
+        base_filter &= Q(keyword__icontains=keyword)
+    if ad_group_name:
+        base_filter &= Q(ad_group_name__icontains=ad_group_name)
+    if match_type:
+        base_filter &= Q(match_type=match_type)
+    return SearchTerm.objects.filter(base_filter)
 
 
 def get_asins_by_camapagin_ids(*, campaign_ids: set[str], start_date: datetime.date, end_date: datetime.date) -> QuerySet[AmazonAdsSaleAsin]:

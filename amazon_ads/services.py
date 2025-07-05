@@ -227,7 +227,16 @@ def prepare_search_term_bulk_insert(*, data: List[Dict], ad_account_id: int) -> 
 
 
 def get_and_serialize_serach_term_report_data(
-    *, user_id: int, amazon_seller_id: str, start_date: str, end_date: str
+    *,
+    user_id: int,
+    amazon_seller_id: str,
+    start_date: str,
+    end_date: str,
+    search_term: Optional[str] = None,
+    campaign_name: Optional[str] = None,
+    keyword: Optional[str] = None,
+    ad_group_name: Optional[str] = None,
+    match_type: Optional[str] = None,
 ) -> List[Dict]:
     logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
@@ -236,11 +245,47 @@ def get_and_serialize_serach_term_report_data(
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
     logger.info(f"{user_id=}, {seller.id=}, {start_date=}, {end_date=}")
-    search_term_data = get_serach_term_report_data(seller_id=seller.id, start_date=start_date, end_date=end_date)
+    search_term_data = get_serach_term_report_data(
+        seller_id=seller.id,
+        start_date=start_date,
+        end_date=end_date,
+        search_term=search_term,
+        campaign_name=campaign_name,
+        keyword=keyword,
+        ad_group_name=ad_group_name,
+        match_type=match_type,
+    )
     campaign_to_asins = get_asins_by_campaign_ids(search_term_data=search_term_data, start_date=start_date, end_date=end_date)
-
     data = serialize_search_term_report(search_terms=search_term_data, campaign_to_asins=campaign_to_asins)
-    return data
+    aggregated_data = get_search_term_aggregated_data(search_term_data=data)
+    return data, aggregated_data
+
+
+def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> List[Dict]:
+    impressions = 0
+    clicks = 0
+    sales = 0
+    orders = 0
+    spends = 0
+    for data in search_term_data:
+        impressions += data["impressions"]
+        clicks += data["clicks"]
+        sales += data["sales"]
+        orders += data["orders"]
+        spends += data["cost"]
+
+    return {
+        "impressions": impressions,
+        "clicks": clicks,
+        "sales": sales,
+        "orders": orders,
+        "spends": spends,
+        "acos": round(100 * spends / sales, 2) if sales > 0 else 0,
+        "roas": round(sales / spends, 2) if spends > 0 else 0,
+        "ctr": round(100 * clicks / impressions, 2) if impressions > 0 else 0,
+        "cpc": round(spends / clicks, 2) if clicks > 0 else 0,
+        "cpr": round(spends / orders, 2) if orders > 0 else 0,
+    }
 
 
 def get_asins_by_campaign_ids(*, search_term_data: QuerySet[SearchTerm], start_date: datetime.date, end_date: datetime.date) -> List[Dict]:
