@@ -274,11 +274,11 @@ def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> Dict:
         sales += data["sales"]
         orders += data["orders"]
         spends += data["cost"]
-        graph_data["impressions"][data["search_term_date"]] += data["impressions"]
-        graph_data["clicks"][data["search_term_date"]] += data["clicks"]
-        graph_data["sales"][data["search_term_date"]] += data["sales"]
-        graph_data["orders"][data["search_term_date"]] += data["orders"]
-        graph_data["spends"][data["search_term_date"]] += data["cost"]
+        graph_data["impressions"][str(data["search_term_date"])] += data["impressions"]
+        graph_data["clicks"][str(data["search_term_date"])] += data["clicks"]
+        graph_data["sales"][str(data["search_term_date"])] += data["sales"]
+        graph_data["orders"][str(data["search_term_date"])] += data["orders"]
+        graph_data["spends"][str(data["search_term_date"])] += data["cost"]
 
     return {
         "impressions": impressions,
