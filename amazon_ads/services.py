@@ -261,18 +261,24 @@ def get_and_serialize_serach_term_report_data(
     return data, aggregated_data
 
 
-def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> List[Dict]:
+def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> Dict:
     impressions = 0
     clicks = 0
     sales = 0
     orders = 0
     spends = 0
+    graph_data = defaultdict(lambda: defaultdict(int))
     for data in search_term_data:
         impressions += data["impressions"]
         clicks += data["clicks"]
         sales += data["sales"]
         orders += data["orders"]
         spends += data["cost"]
+        graph_data["impressions"][data["search_term_date"]] += data["impressions"]
+        graph_data["clicks"][data["search_term_date"]] += data["clicks"]
+        graph_data["sales"][data["search_term_date"]] += data["sales"]
+        graph_data["orders"][data["search_term_date"]] += data["orders"]
+        graph_data["spends"][data["search_term_date"]] += data["cost"]
 
     return {
         "impressions": impressions,
@@ -285,6 +291,7 @@ def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> List[Dic
         "ctr": round(100 * clicks / impressions, 2) if impressions > 0 else 0,
         "cpc": round(spends / clicks, 2) if clicks > 0 else 0,
         "cpr": round(spends / orders, 2) if orders > 0 else 0,
+        "graph_data": graph_data,
     }
 
 
