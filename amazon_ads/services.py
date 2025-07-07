@@ -277,9 +277,9 @@ def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> List[Dic
     return {
         "impressions": impressions,
         "clicks": clicks,
-        "sales": sales,
+        "sales": round(sales, 2),
         "orders": orders,
-        "spends": spends,
+        "spends": round(spends, 2),
         "acos": round(100 * spends / sales, 2) if sales > 0 else 0,
         "roas": round(sales / spends, 2) if spends > 0 else 0,
         "ctr": round(100 * clicks / impressions, 2) if impressions > 0 else 0,
