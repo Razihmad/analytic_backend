@@ -276,9 +276,9 @@ def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> Dict:
         spends += data["cost"]
         graph_data["impressions"][str(data["search_term_date"])] += data["impressions"]
         graph_data["clicks"][str(data["search_term_date"])] += data["clicks"]
-        graph_data["sales"][str(data["search_term_date"])] += data["sales"]
+        graph_data["sales"][str(data["search_term_date"])] += int(data["sales"])
         graph_data["orders"][str(data["search_term_date"])] += data["orders"]
-        graph_data["spends"][str(data["search_term_date"])] += data["cost"]
+        graph_data["spends"][str(data["search_term_date"])] += int(data["cost"])
         graph_data["acos"][str(data["search_term_date"])] = round(
             100 * graph_data["spends"][str(data["search_term_date"])] / graph_data["sales"][str(data["search_term_date"])], 2
         ) if graph_data["sales"][str(data["search_term_date"])] > 0 else 0
