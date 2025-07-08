@@ -297,12 +297,8 @@ def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> Dict:
 
     sorted_graph_data = {}
 
-    for metric, values in data.items():
-        # Sort inner dict by date key (ascending)
-        sorted_inner = OrderedDict(
-            sorted(values.items(), key=lambda item: item[0])
-        )
-        sorted_graph_data[metric] = sorted_inner
+    for metric, values in graph_data.items():
+        sorted_graph_data[metric] = OrderedDict(sorted(values.items(), key=lambda item: item[0]))
 
     return {
         "impressions": impressions,
