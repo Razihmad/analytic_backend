@@ -1,5 +1,5 @@
 # Standard Library
-from collections import defaultdict
+from collections import OrderedDict, defaultdict
 import logging
 import datetime
 from typing import List, Optional, Dict, Tuple
@@ -295,6 +295,14 @@ def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> Dict:
             graph_data["spends"][str(data["search_term_date"])] / graph_data["orders"][str(data["search_term_date"])], 2
         ) if graph_data["orders"][str(data["search_term_date"])] > 0 else 0
 
+    sorted_graph_data = {}
+
+    for metric, values in data.items():
+        # Sort inner dict by date key (ascending)
+        sorted_inner = OrderedDict(
+            sorted(values.items(), key=lambda item: item[0])
+        )
+        sorted_graph_data[metric] = sorted_inner
 
     return {
         "impressions": impressions,
@@ -307,7 +315,7 @@ def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> Dict:
         "ctr": round(100 * clicks / impressions, 2) if impressions > 0 else 0,
         "cpc": round(spends / clicks, 2) if clicks > 0 else 0,
         "cpr": round(spends / orders, 2) if orders > 0 else 0,
-        "graph_data": graph_data,
+        "graph_data": sorted_graph_data,
     }
 
 
