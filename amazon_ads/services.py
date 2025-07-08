@@ -279,6 +279,22 @@ def get_search_term_aggregated_data(*, search_term_data: List[Dict]) -> Dict:
         graph_data["sales"][str(data["search_term_date"])] += data["sales"]
         graph_data["orders"][str(data["search_term_date"])] += data["orders"]
         graph_data["spends"][str(data["search_term_date"])] += data["cost"]
+        graph_data["acos"][str(data["search_term_date"])] = round(
+            100 * graph_data["spends"][str(data["search_term_date"])] / graph_data["sales"][str(data["search_term_date"])], 2
+        ) if graph_data["sales"][str(data["search_term_date"])] > 0 else 0
+        graph_data["roas"][str(data["search_term_date"])] = round(
+            graph_data["sales"][str(data["search_term_date"])] / graph_data["spends"][str(data["search_term_date"])], 2
+        ) if graph_data["spends"][str(data["search_term_date"])] > 0 else 0
+        graph_data["ctr"][str(data["search_term_date"])] = round(
+            100 * graph_data["clicks"][str(data["search_term_date"])] / graph_data["impressions"][str(data["search_term_date"])], 2
+        ) if graph_data["impressions"][str(data["search_term_date"])] > 0 else 0
+        graph_data["cpc"][str(data["search_term_date"])] = round(
+            graph_data["spends"][str(data["search_term_date"])] / graph_data["clicks"][str(data["search_term_date"])], 2
+        ) if graph_data["clicks"][str(data["search_term_date"])] > 0 else 0
+        graph_data["cpr"][str(data["search_term_date"])] = round(
+            graph_data["spends"][str(data["search_term_date"])] / graph_data["orders"][str(data["search_term_date"])], 2
+        ) if graph_data["orders"][str(data["search_term_date"])] > 0 else 0
+
 
     return {
         "impressions": impressions,
