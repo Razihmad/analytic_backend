@@ -237,6 +237,7 @@ def get_and_serialize_serach_term_report_data(
     keyword: Optional[str] = None,
     ad_group_name: Optional[str] = None,
     match_type: Optional[str] = None,
+    query_params: Optional[Dict] = None,
 ) -> List[Dict]:
     logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
@@ -254,6 +255,7 @@ def get_and_serialize_serach_term_report_data(
         keyword=keyword,
         ad_group_name=ad_group_name,
         match_type=match_type,
+        query_params=query_params
     )
     campaign_to_asins = get_asins_by_campaign_ids(search_term_data=search_term_data, start_date=start_date, end_date=end_date)
     data = serialize_search_term_report(search_terms=search_term_data, campaign_to_asins=campaign_to_asins)

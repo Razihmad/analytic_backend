@@ -88,6 +88,8 @@ class GetSearchTermReportData(APIView):
         keyword = request.data.get("keyword")
         ad_group_name = request.data.get("ad_group_name")
         match_type = request.data.get("match_type")
+        query_params = request.query_params
+
         data, aggregated_data = get_and_serialize_serach_term_report_data(
             user_id=request.user.id,
             amazon_seller_id=amazon_seller_id,
@@ -98,6 +100,7 @@ class GetSearchTermReportData(APIView):
             keyword=keyword,
             ad_group_name=ad_group_name,
             match_type=match_type,
+            query_params=query_params
         )
         return status_200(message="search term report fetched", data={"data": data, "aggregated_data": aggregated_data})
 

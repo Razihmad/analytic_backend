@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from django.db.models import QuerySet, Q
 
@@ -60,8 +60,18 @@ def get_serach_term_report_data(
     keyword: Optional[str] = None,
     ad_group_name: Optional[str] = None,
     match_type: Optional[str] = None,
+    query_params: Optional[Dict] = None,
 ):
     base_filter = Q(seller_id=seller_id, search_term_date__range=[start_date, end_date])
+    if query_params:
+        for param, value in query_params.items():
+            if "__" in param:
+                field, lookup = param.split("__", 1)
+            else:
+                field, lookup = param, "exact"
+            lookup_exp = f"{field}__{lookup}"
+            base_filter &= Q(**{lookup_exp: value})
+
     if search_term:
         base_filter &= Q(search_term__icontains=search_term)
     if campaign_name:
