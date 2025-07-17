@@ -89,7 +89,7 @@ class GetSearchTermReportData(APIView):
         ad_group_name = request.data.get("ad_group_name")
         match_type = request.data.get("match_type")
         query_params = request.query_params
-
+        logger.info(f"{request.data=}, {query_params=}")
         data, aggregated_data = get_and_serialize_serach_term_report_data(
             user_id=request.user.id,
             amazon_seller_id=amazon_seller_id,
