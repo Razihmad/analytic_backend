@@ -50,7 +50,7 @@ class SellerCentralTraffic(models.Model):
     mobile_app_sessions = models.IntegerField()
     browser_page_views = models.IntegerField()
     mobile_app_page_views = models.IntegerField()
-    unit_sessions_percentage = models.DecimalField(max_digits=5, decimal_places=2)
+    unit_sessions_percentage = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -72,7 +72,7 @@ class SellerCentralReturn(models.Model):
     return_request_date = models.DateField()
     return_delivery_date = models.DateField()
     return_type = models.CharField(max_length=255)
-    refund_amount = models.DecimalField(max_digits=12, decimal_places=2)
+    refund_amount = models.FloatField()
     return_quantity = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -97,7 +97,7 @@ class SearchQueryMarketBasket(models.Model):
     report_period = models.CharField(max_length=255, choices=[("WEEK", "WEEK"), ("MONTH", "MONTH")])
     start_date = models.DateField()
     end_date = models.DateField()
-    combination_pct = models.DecimalField(max_digits=5, decimal_places=2)
+    combination_pct = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

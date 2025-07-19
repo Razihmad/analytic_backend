@@ -2,6 +2,7 @@ from django.urls import path
 from amazon.views import (
     GetAsinTierSale,
     GetGraphData,
+    GetProductAnalysis,
     TryApi,
     FetchSellerCentralDataAPI,
     SalesAPI,
@@ -21,4 +22,5 @@ urlpatterns = [
     path("getSellerAsins/", FetchSellerAsin.as_view(), name="get-seller-asins"),
     path("getTierWiseSales/", GetAsinTierSale.as_view(), name="get-tier-wise-sales"),
     path("getGraphData/", GetGraphData.as_view(), name="get-graph-data"),
+    path("getProductAnalysis/", GetProductAnalysis.as_view(), name="get-product-analysis"),
 ]

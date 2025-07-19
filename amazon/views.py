@@ -16,6 +16,7 @@ from amazon.services import (
     get_asin_categorization_by_sales,
     get_available_regions,
     get_data_for_graph,
+    get_product_analysis,
     get_sales_report_data,
     get_seller_asins,
     start_fetching_seller_central_data
@@ -180,3 +181,22 @@ class GetGraphData(APIView):
             asins=asins
         )
         return status_200(message="graph data is here", data={"current": current_data, "previous": prev_data})
+
+
+class GetProductAnalysis(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @handle_exception
+    def post(self, request):
+        user = request.user
+        amazon_seller_id = request.data.get("amazon_seller_id")
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+        product_analysis = get_product_analysis(
+            user_id=user.id,
+            amazon_seller_id=amazon_seller_id,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        return status_200(message="Product Analysis", data={"product_analysis": product_analysis})

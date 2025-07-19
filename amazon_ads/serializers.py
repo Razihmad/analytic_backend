@@ -1,7 +1,6 @@
 
 
 from collections import defaultdict
-from decimal import Decimal
 from typing import Dict, List
 import pandas as pd
 from django.db.models import QuerySet
@@ -39,16 +38,16 @@ def prepare_data_for_insertion(*, sales: List[Dict], campaign_type: str) -> List
 
     for item in sales:
         # Aggregate data for each ASIN on the same date
-        total_sales = Decimal(str(item.get('sales14d', 0))) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else Decimal(str(item.get('sales', 0)))
+        total_sales = float(str(item.get('sales14d', 0))) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else float(str(item.get('sales', 0)))
         total_units_sold = item.get('unitsSoldClicks14d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('unitsSoldClicks', 0)
-        total_cost = Decimal(str(item.get('cost', 0)))
+        total_cost = float(str(item.get('cost', 0)))
         total_impressions = item.get('impressions', 0)
         total_clicks = item.get('clicks', 0)
         total_orders = item.get('purchases14d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('purchases', 0)
         date = item.get('date', '')
         asin = item.get('advertisedAsin', '') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('promotedAsin', '')
         # Calculate CPC
-        cpc = Decimal('0')
+        cpc = float('0')
         if total_clicks > 0:
             cpc = total_cost / total_clicks
         # Create model data
@@ -92,13 +91,13 @@ def group_ad_sales_by_campaign(*, sales: List[Dict], campaign_type: str) -> List
 def prepare_data_for_campaign_insertion(*, sales: List[Dict], campaign_type: str) -> List[Dict]:
     amazon_ads_sale_campaign_data = []
     for item in sales:
-        total_sales = Decimal(str(item.get('sales14d', 0))) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else Decimal(str(item.get('sales', 0)))
-        total_cost = Decimal(str(item.get('cost', 0)))
+        total_sales = float(str(item.get('sales14d', 0))) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else float(str(item.get('sales', 0)))
+        total_cost = float(str(item.get('cost', 0)))
         total_impressions = item.get('impressions', 0)
         total_clicks = item.get('clicks', 0)
         total_orders = item.get('purchases14d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('purchases', 0)
         date = item.get('date')
-        cpc = Decimal('0')
+        cpc = float('0')
         if total_clicks > 0:
             cpc = total_cost / total_clicks
 

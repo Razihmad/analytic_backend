@@ -174,10 +174,10 @@ def get_sales_report_data(
     prev_total_traffiic = get_total_traffic(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
 
     current_period_ads_sales = get_ads_sales(
-        ads_profile=seller, start_date=start_date, end_date=end_date, asins=asins
+        seller=seller, start_date=start_date, end_date=end_date, asins=asins
     )
     prev_period_ads_sales = get_ads_sales(
-        ads_profile=seller, start_date=prev_start_date, end_date=prev_end_date, asins=asins
+        seller=seller, start_date=prev_start_date, end_date=prev_end_date, asins=asins
     )
     current_period_report = process_total_and_sales_data(
         total_sales=current_period_total_sales, ads_sale=current_period_ads_sales, traffic_data=current_total_traffic
@@ -396,3 +396,61 @@ def get_search_query_brand_report(*, user_id: int, amazon_seller_id: str, start_
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}, {user_id=}")
+
+
+def get_product_analysis(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str) -> Dict:
+    logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}, {user_id=}")
+    total_sales_data = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
+    total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
+    ads_sales_data = get_ads_sales(seller=seller, start_date=start_date, end_date=end_date)
+    data = aggregate_data_by_asin(total_sales_data=total_sales_data, total_traffic_data=total_traffic_data, ads_sales_data=ads_sales_data)
+    return data
+
+
+def aggregate_data_by_asin(*, total_sales_data: List[Dict], total_traffic_data: List[Dict], ads_sales_data: List[Dict]) -> Dict:
+    asin_wise_sales = defaultdict(lambda:defaultdict(int))
+    asin_wise_traffic = defaultdict(lambda:defaultdict(int))
+    asin_wise_ads_sales = defaultdict(lambda:defaultdict(int))
+    result = {}
+    for data in ads_sales_data:
+        asin_data = asin_wise_ads_sales[data["asin"]]
+        asin_data["sales"] += data["sales"]
+        asin_data["spend"] += data["spend"]
+        asin_data["clicks"] += data["clicks"]
+        asin_data["impressions"] += data["impressions"]
+        asin_data["ctr"] = round(100 * asin_data["clicks"] / asin_data["impressions"], 2) if asin_data["impressions"] else 0
+        asin_data["roas"] = round(asin_data["sales"] / asin_data["spend"], 2) if asin_data["spend"] else 0
+        asin_data["acos"] = round(100 * asin_data["spend"] / asin_data["sales"], 2) if asin_data["sales"] else 0
+        asin_wise_ads_sales[data["asin"]] = asin_data
+    for data in total_traffic_data:
+        asin_data = asin_wise_traffic[data["child_asin"]]
+        asin_data["total_sessions"] += data["total_sessions"]
+        asin_wise_traffic[data["child_asin"]] = asin_data
+    for data in total_sales_data:
+        asin_data = asin_wise_sales[data["child_asin"]]
+        asin_data["sales"] += data["sales"]
+        asin_data["orders"] += data["orders"]
+        asin_data["units_ordered"] += data["units_ordered"]
+        asin_wise_sales[data["child_asin"]] = asin_data
+    
+    for asin, data in asin_wise_sales.items():
+        result[asin] = {
+            "total_sales": int(data["sales"]),
+            "total_ads_sales": int(asin_wise_ads_sales[asin]["sales"]),
+            "total_ads_spend": int(asin_wise_ads_sales[asin]["spend"]),
+            "total_orders": int(data["orders"]),
+            "total_units_ordered": int(data["units_ordered"]),
+            "total_sessions": asin_wise_traffic[asin]["total_sessions"],
+            "total_clicks": asin_wise_ads_sales[asin]["clicks"],
+            "total_impressions": asin_wise_ads_sales[asin]["impressions"],
+            "ctr": asin_wise_ads_sales[asin]["ctr"],
+            "roas": asin_wise_ads_sales[asin]["roas"],
+            "acos": asin_wise_ads_sales[asin]["acos"],
+            "tacos": round(100 * asin_wise_ads_sales[asin]["spend"] / data["sales"], 2) if data["sales"] else 0,
+        }
+    return result
