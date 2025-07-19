@@ -134,9 +134,9 @@ def get_total_sales(
     return total_sales_data
 
 
-def get_total_traffic(*, seller: Seller, start_date: datetime.date, end_date: datetime.date) -> List[Dict]:
-    logger.info(f"{seller.pk=}, {start_date=}, {end_date=}")
-    total_traffic = get_seller_central_traffic_data(seller=seller, start_date=start_date, end_date=end_date)
+def get_total_traffic(*, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]] = None) -> List[Dict]:
+    logger.info(f"{seller.pk=}, {start_date=}, {end_date=}, {asins=}")
+    total_traffic = get_seller_central_traffic_data(seller=seller, start_date=start_date, end_date=end_date, asins=asins)
     total_traffic_data = serialize_seller_central_traffic(traffics=total_traffic)
     return total_traffic_data
 
@@ -398,16 +398,16 @@ def get_search_query_brand_report(*, user_id: int, amazon_seller_id: str, start_
         raise ServiceException(f"seller does not exist {amazon_seller_id=}, {user_id=}")
 
 
-def get_product_analysis(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str) -> Dict:
+def get_product_analysis(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str, asins: Optional[List[str]]) -> Dict:
     logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}, {user_id=}")
-    total_sales_data = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
-    total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
-    ads_sales_data = get_ads_sales(seller=seller, start_date=start_date, end_date=end_date)
+    total_sales_data = get_total_sales(seller=seller, start_date=start_date, end_date=end_date, asins=asins)
+    total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date, asins=asins)
+    ads_sales_data = get_ads_sales(seller=seller, start_date=start_date, end_date=end_date, asins=asins)
     data = aggregate_data_by_asin(total_sales_data=total_sales_data, total_traffic_data=total_traffic_data, ads_sales_data=ads_sales_data)
     return data
 

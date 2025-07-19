@@ -44,8 +44,11 @@ def get_seller_central_sales_data(
     return data
 
 
-def get_seller_central_traffic_data(*, seller: Seller, start_date: datetime.date, end_date: datetime.date) -> QuerySet[SellerCentralTraffic]:
-    return SellerCentralTraffic.objects.filter(seller=seller, sessions_date__gte=start_date, sessions_date__lte=end_date)
+def get_seller_central_traffic_data(*, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]] = None) -> QuerySet[SellerCentralTraffic]:
+    base_filter = Q(seller=seller, sessions_date__gte=start_date, sessions_date__lte=end_date)
+    if asins:
+        base_filter &= Q(child_asin__in=asins)
+    return SellerCentralTraffic.objects.filter(base_filter)
 
 
 def get_regions() -> BaseManager[RegionDetail]:
