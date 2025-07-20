@@ -11,7 +11,7 @@ from django.db.models import QuerySet
 
 # Local
 from amazon_ads.constants import GraphDataType, MatchType, State
-from amazon_ads.keywords import NegativeKeywordEndpoint
+from amazon_ads.keywords import KeywordEndpoint, NegativeKeywordEndpoint
 from amazon_ads.utils.amazon_ads_api import amazon_ads_api
 from authentication.services import get_ads_access_token
 import utils.datetime as dt
@@ -388,6 +388,45 @@ def create_negative_keyword(
     )
     logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
     return response, status_code
+
+
+def create_keyword(
+    *,
+    amazon_seller_id: str,
+    user_id: int,
+    campaign_id: str,
+    ad_group_id: str,
+    keyword: str,
+    match_type: str,
+    state: str,
+    bid: float,
+) -> Tuple[Dict, int]:
+    logger.info(f"{amazon_seller_id=}, {user_id=}, {campaign_id=}, {ad_group_id=}, {keyword=}, {match_type=}, {state=}")
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    region = get_region_by_country_code(country_code=seller.country_code)
+    access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    status_code, response = amazon_ads_api.sp_keywords(
+        access_token=access_token,
+        region=region,
+        profile_id=seller.profile_id,
+        endpoint=KeywordEndpoint.CREATE.value,
+        data={
+        "keywords": [
+            {
+                "campaignId": campaign_id,
+                "adGroupId": ad_group_id,
+                "keywordText": keyword,
+                "matchType": match_type,
+                "state": state,
+                "bid": bid
+            }
+        ]
+    })
+    logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
+    return response, status_code
+
 
 def delete_negative_keywords(*, amazon_seller_id: str, user_id: int, campaign_ids: List[str], ad_group_ids: List[str]) -> Dict:
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)

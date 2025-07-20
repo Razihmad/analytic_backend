@@ -5,3 +5,6 @@ class NegativeKeywordEndpoint(Enum):
     CREATE = "/sp/negativeKeywords"
     UPDATE = "/sp/negativeKeywords"
     DELETE = "/sp/negativeKeywords/delete"
+
+class KeywordEndpoint(Enum):
+    CREATE = "/sp/keywords"
