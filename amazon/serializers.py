@@ -144,6 +144,7 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
     if total_sales_data["clicks"]:
         total_sales_data["cpc"] = round(float(total_sales_data["ads_spend"] / total_sales_data["clicks"]), 2)
     total_sales_data["ads_revenue"] = int(total_sales_data["ads_revenue"])
+    total_sales_data["ads_spend"] = int(total_sales_data["ads_spend"])
     return total_sales_data
 
 
