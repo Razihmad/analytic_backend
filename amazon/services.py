@@ -430,6 +430,8 @@ def aggregate_data_by_asin(*, total_sales_data: List[Dict], total_traffic_data: 
         ads_asin_to_campaigns[data["asin"]].append({
             "campaign_name": data["campaign_name"],
             "campaign_id": data["campaign_id"],
+            "ad_group_name": data["ad_group_name"],
+            "ad_group_id": data["ad_group_id"],
         })
         asin_wise_ads_sales[data["asin"]] = asin_data
     for data in total_traffic_data:

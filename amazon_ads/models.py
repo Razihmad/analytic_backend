@@ -18,6 +18,8 @@ class AmazonAdsSaleAsin(models.Model):
     campaign_type = models.CharField(max_length=256, null=True, blank=True)
     campaign_name = models.CharField(max_length=256, null=True)
     campaign_id = models.CharField(max_length=256, null=True)
+    ad_group_name = models.CharField(max_length=256, null=True)
+    ad_group_id = models.CharField(max_length=256, null=True)
     orders = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
