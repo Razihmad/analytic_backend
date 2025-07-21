@@ -8,3 +8,4 @@ class NegativeKeywordEndpoint(Enum):
 
 class KeywordEndpoint(Enum):
     CREATE = "/sp/keywords"
+    LIST = "/sp/keywords/list"

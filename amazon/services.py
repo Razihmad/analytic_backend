@@ -416,6 +416,7 @@ def aggregate_data_by_asin(*, total_sales_data: List[Dict], total_traffic_data: 
     asin_wise_sales = defaultdict(lambda:defaultdict(int))
     asin_wise_traffic = defaultdict(lambda:defaultdict(int))
     asin_wise_ads_sales = defaultdict(lambda:defaultdict(int))
+    ads_asin_to_campaigns = defaultdict(list)
     result = {}
     for data in ads_sales_data:
         asin_data = asin_wise_ads_sales[data["asin"]]
@@ -426,6 +427,10 @@ def aggregate_data_by_asin(*, total_sales_data: List[Dict], total_traffic_data: 
         asin_data["ctr"] = round(100 * asin_data["clicks"] / asin_data["impressions"], 2) if asin_data["impressions"] else 0
         asin_data["roas"] = round(asin_data["sales"] / asin_data["spend"], 2) if asin_data["spend"] else 0
         asin_data["acos"] = round(100 * asin_data["spend"] / asin_data["sales"], 2) if asin_data["sales"] else 0
+        ads_asin_to_campaigns[data["asin"]].append({
+            "campaign_name": data["campaign_name"],
+            "campaign_id": data["campaign_id"],
+        })
         asin_wise_ads_sales[data["asin"]] = asin_data
     for data in total_traffic_data:
         asin_data = asin_wise_traffic[data["child_asin"]]
@@ -452,5 +457,6 @@ def aggregate_data_by_asin(*, total_sales_data: List[Dict], total_traffic_data: 
             "roas": asin_wise_ads_sales[asin]["roas"],
             "acos": asin_wise_ads_sales[asin]["acos"],
             "tacos": round(100 * asin_wise_ads_sales[asin]["spend"] / data["sales"], 2) if data["sales"] else 0,
+            "campaigns": ads_asin_to_campaigns.get(asin, []),
         }
     return result

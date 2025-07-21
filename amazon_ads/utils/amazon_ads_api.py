@@ -137,10 +137,10 @@ class AmazonAds:
         headers["Content-Type"] = "application/vnd.spKeyword.v3+json"
         headers["Accept"] = "application/vnd.spKeyword.v3+json"
         url = base_url + endpoint
-        if data:
-            response = requests.post(url=url, headers=headers, json=data)
-        else:
-            response = requests.get(url=url, headers=headers)
+        # if data:
+        response = requests.post(url=url, headers=headers, json=data)
+        # else:
+            # response = requests.post(url=url, headers=headers)
         return response.status_code, response.json()
 
 amazon_ads_api = AmazonAds()

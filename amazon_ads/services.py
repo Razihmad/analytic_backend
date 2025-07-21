@@ -438,3 +438,18 @@ def delete_negative_keywords(*, amazon_seller_id: str, user_id: int, campaign_id
         "campaignId": campaign_ids,
     })
     return response
+
+
+def list_keywords(*, amazon_seller_id: str, user_id: int) -> List[Dict]:
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    region = get_region_by_country_code(country_code=seller.country_code)
+    access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    response = amazon_ads_api.sp_keywords(
+        access_token=access_token,
+        region=region,
+        profile_id=seller.profile_id,
+        endpoint=KeywordEndpoint.LIST.value,
+    )
+    return response
