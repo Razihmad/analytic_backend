@@ -381,7 +381,7 @@ def start_fetching_search_term_report(
         report_id = response.get("reportId")
         logger.info(f"report_id: {report_id=}")
         if not report_id:
-            logger.info(f"report_id not found, {response=}, {user_id=}, {amazon_seller_id=}, {region=}, {profile_id=}, {ad_account_id=}, {report_type=}")
+            logger.info(f"report_id not found, {user_id=}, {amazon_seller_id=}, {region=}, {profile_id=}, {ad_account_id=}, {report_type=}")
             return
         logger.info(f"report_id: {user_id=}, {amazon_seller_id=}, {region=}, {report_id=}, {profile_id=}, {ad_account_id=}, {report_type=}")
         start_tasks_to_check_report_status.apply_async(

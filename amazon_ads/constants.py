@@ -153,7 +153,7 @@ SD_TARGETING_REPORT_COLUMNS = [
 SB_TARGETING_REPORT_COLUMNS = [
     'impressions', 'clicks', 'cost', 'purchases', "sales", "unitsSold",
     'keywordId', 'keywordText', 'date', 'campaignName', 'campaignId',
-    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', ' targetingText', "targetingId"
+    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', 'targetingText', "targetingId"
 ]
 
 TARGETING_REPORT_COLUMNS_MAPPING = {
