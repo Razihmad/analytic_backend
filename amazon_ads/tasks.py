@@ -360,7 +360,11 @@ def start_fetching_search_term_report(
     time_unit = "DAILY"
     group_by = ["searchTerm"]
     for ad_product in AdProduct._member_names_:
-        report_type = SEARCH_TERM_TO_REPORT_TYPE_MAPPING[ad_product]
+        report_type = SEARCH_TERM_TO_REPORT_TYPE_MAPPING.get(ad_product)
+        if not report_type:
+            logger.info(f"report_type not found, {ad_product=}, {user_id=}, {amazon_seller_id=}, {region=}, {profile_id=}, {ad_account_id=}")
+            continue
+
         columns = SEARCH_TERM_REPORT_COLUMNS_MAPPING[report_type]
         data = amazon_ads_api.prepare_payload_for_report(
             report_type=report_type,
