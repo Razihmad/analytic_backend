@@ -172,24 +172,24 @@ def serialize_campaign_sales_report(*, campaign_sales: QuerySet[AmazonAdsSaleCam
     return result, cumulative_data
 
 
-def serialize_search_term_report_data(*, data: List[Dict]):
-    return prepare_data_for_search_term_insertion(data=data)
+def serialize_search_term_report_data(*, data: List[Dict], campaign_type: str):
+    return prepare_data_for_search_term_insertion(data=data, campaign_type=campaign_type)
 
 
-def prepare_data_for_search_term_insertion(*, data: List[Dict]) -> List[Dict]:
+def prepare_data_for_search_term_insertion(*, data: List[Dict], campaign_type: str) -> List[Dict]:
     amazon_ads_sale_search_term_data = []
     for item in data:
         model_data = {
             'search_term': item.get('searchTerm'),
-            'keyword': item.get('keyword'),
+            'keyword': item.get('keyword') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('keywordText'),
             'ad_group_name': item.get('adGroupName'),
             "ad_group_id": item.get('adGroupId'),
-            'sales': item.get('sales14d'),
+            'sales': item.get('sales14d') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('sales'),
             'cost': item.get('cost'),
             'impressions': item.get('impressions'),
             'clicks': item.get('clicks'),
-            'units_sold': item.get('unitsSoldClicks14d'),
-            'orders': item.get('purchases14d'),
+            'units_sold': item.get('unitsSoldClicks14d') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('unitsSold'),
+            'orders': item.get('purchases14d') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('purchases'),
             'targeting': item.get('targeting'),
             'campaign_name': item.get('campaignName'),
             'campaign_id': item.get('campaignId'),

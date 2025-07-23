@@ -62,6 +62,7 @@ class SearchTerm(models.Model):
     targeting = models.CharField(max_length=256)
     campaign_name = models.CharField(max_length=256)
     campaign_id = models.CharField(max_length=256)
+    campaign_type = models.CharField(max_length=256, default="SPONSORED_PRODUCTS")
     keyword = models.CharField(max_length=256)
     keyword_id = models.CharField(max_length=256)
     keyword_type = models.CharField(max_length=256)

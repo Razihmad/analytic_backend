@@ -8,6 +8,7 @@ class AdsReportTypeId(Enum):
     SD_CAMPAING = "sdCampaigns"
     SB_CAMPAIGN = "sbCampaigns"
     SP_SEARCH_TERM = "spSearchTerm"
+    SB_SEARCH_TERM = "sbSearchTerm"
     SP_TARGETING = "spTargeting"
     SD_TARGETING = "sdTargeting"
     SB_TARGETING = "sbTargeting"
@@ -129,7 +130,7 @@ SEARCH_TERM_REPORT_COLUMNS = [
 SB_SEARCH_TERM_REPORT_COLUMNS = [
     'impressions', 'clicks', 'cost', 'purchases', "sales", "unitsSold",
     'keywordId', 'keywordText', 'date', 'searchTerm', 'campaignName', 'campaignId',
-    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', 'targeting'
+    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType'
 ]
 
 SEARCH_TERM_REPORT_COLUMNS_MAPPING = {
