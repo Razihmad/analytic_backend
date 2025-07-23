@@ -142,18 +142,18 @@ SEARCH_TERM_REPORT_COLUMNS_MAPPING = {
 SP_TARGETING_REPORT_COLUMNS = [
     'impressions', 'clicks', 'cost', 'purchases14d', "sales14d", "unitsSoldClicks14d",
     'keywordId', 'keyword', 'date', 'campaignName', 'campaignId',
-    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', 'targeting', "targetingId,"
+    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', 'targeting'
 ]
 
 SD_TARGETING_REPORT_COLUMNS = [
     'impressions', 'clicks', 'cost', 'purchases', "sales", "unitsSold",
-    'date', 'campaignName', 'campaignId', 'adGroupName', 'adGroupId', 'targetingText', "targetingId,"
+    'date', 'campaignName', 'campaignId', 'adGroupName', 'adGroupId', 'targetingText', "targetingId"
 ]
 
 SB_TARGETING_REPORT_COLUMNS = [
     'impressions', 'clicks', 'cost', 'purchases', "sales", "unitsSold",
     'keywordId', 'keywordText', 'date', 'campaignName', 'campaignId',
-    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', ' targetingText', "targetingId,"
+    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', ' targetingText', "targetingId"
 ]
 
 TARGETING_REPORT_COLUMNS_MAPPING = {
