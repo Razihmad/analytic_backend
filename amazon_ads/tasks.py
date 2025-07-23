@@ -3,13 +3,14 @@ from datetime import timedelta, date
 
 from celery import shared_task
 
-from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, bulk_upsert_amazon_ads_sales, bulk_upsert_search_term_report_data
-from amazon_ads.serializers import group_ad_sales_by_asin, group_ad_sales_by_campaign, serialize_search_term_report_data
+from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, bulk_upsert_amazon_ads_sales, bulk_upsert_search_term_report_data, bulk_upsert_targeting_report_data
+from amazon_ads.serializers import group_ad_sales_by_asin, group_ad_sales_by_campaign, serialize_search_term_report_data, serialize_targeting_report_data
+from amazon_ads.services import prepare_targeting_bulk_insert
 from authentication.services import get_ads_access_token
 from utils.utils import get_region_by_country_code
 import utils.datetime as dt
 
-from amazon_ads.constants import AD_PRODUCT_COLUMN_MAPPING, CAMPAIGN_COLUMNS, CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT, CAMPAIGN_TO_REPORT_TYPE_MAPPING, SEARCH_TERM_REPORT_COLUMNS, SP_CAMPAIGN_REPORT_COLUMNS, AdProduct, AdsReportTypeId, CampaignStatus, GroupBy, ReportStatus
+from amazon_ads.constants import AD_PRODUCT_COLUMN_MAPPING, CAMPAIGN_COLUMNS, CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT, CAMPAIGN_TO_REPORT_TYPE_MAPPING, SEARCH_TERM_REPORT_COLUMNS, SEARCH_TERM_TO_REPORT_TYPE_MAPPING, SP_CAMPAIGN_REPORT_COLUMNS, TARGETING_REPORT_COLUMNS, TARGETING_REPORT_COLUMNS_MAPPING, TARGETING_TO_REPORT_TYPE_MAPPING, AdProduct, AdsReportTypeId, CampaignStatus, GroupBy, ReportStatus
 from amazon_ads.utils.amazon_ads_api import amazon_ads_api
 
 logger = logging.getLogger(__name__)
@@ -158,6 +159,15 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
         logger.info(f"[DATA_UPSERTED], {user_id=}, {report_id=} {ad_account_id=}, {report_type=}, {len(data)=}")
         return
 
+    if report_type in [AdsReportTypeId.SP_TARGETING.value, AdsReportTypeId.SD_TARGETING.value, AdsReportTypeId.SB_TARGETING.value]:
+        logger.info(f"processing targeting report {user_id=}, {report_id=}, {report_type=}, {ad_account_id=}, {len(data)=}")
+        data = serialize_targeting_report_data(data=data, campaign_type=campaign_type)
+        logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
+        data = prepare_targeting_bulk_insert(data=data, ad_account_id=ad_account_id)
+        logger.info(f"[DATA_PREPARED]{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
+        data = bulk_upsert_targeting_report_data(data=data)
+        logger.info(f"[DATA_UPSERTED], {user_id=}, {report_id=} {ad_account_id=}, {report_type=}, {len(data)=}")
+        return
 
 @shared_task
 def start_fetching_ad_sales_data_by_campaign(
@@ -329,6 +339,10 @@ def start_fetching_search_term_report(
     report_type = AdsReportTypeId.SP_SEARCH_TERM.value
     time_unit = "DAILY"
     group_by = ["searchTerm"]
+    for ad_group in AdProduct._member_names_:
+        report_type = SEARCH_TERM_TO_REPORT_TYPE_MAPPING[ad_group]
+        columns = SEARCH_TERM_REPORT_COLUMNS
+        pass
     data = amazon_ads_api.prepare_payload_for_report(
         report_type=report_type,
         name=f"{report_type} | {start_date}-{end_date}",
@@ -354,3 +368,51 @@ def start_fetching_search_term_report(
         countdown=300,
         queue="process_ads_report"
     )
+
+
+
+@shared_task
+def start_fetching_targeting_report(
+    amazon_seller_id: str,
+    start_date: str,
+    end_date: str,
+    country_code: str,
+    profile_id: str,
+    ad_account_id: int,
+    user_id: int
+):
+    logger.info(f"start_fetching_targeting_report, {start_date=}, {end_date=}, {ad_account_id=}, {profile_id=}, {user_id=}")
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    region = get_region_by_country_code(country_code=country_code)
+    access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    time_unit = "DAILY"
+    group_by = ["targeting"]
+    for ad_group in AdProduct._member_names_:
+        report_type = TARGETING_TO_REPORT_TYPE_MAPPING[ad_group]
+        columns = TARGETING_REPORT_COLUMNS_MAPPING[report_type]
+        data = amazon_ads_api.prepare_payload_for_report(
+            report_type=report_type,
+            name=f"{report_type} | {start_date}-{end_date}",
+            start_date=start_date.strftime("%Y-%m-%d"),
+            end_date=end_date.strftime("%Y-%m-%d"),
+            time_unit=time_unit,
+            group_by=group_by,
+            columns=columns,
+            ad_product=ad_group,
+        )
+        response = amazon_ads_api.create_report(access_token, region, profile_id, data)
+        logger.info(f"report created, {response=}, {start_date=}, {end_date}")
+        report_id = response.get("reportId")
+        logger.info(f"report_id: {report_id=}")
+        if not report_id:
+            print(f"report_id not found, {response=}")
+            return
+        logger.info(f"report_id: {user_id=}, {amazon_seller_id=}, {region=}, {report_id=}, {profile_id=}, {ad_account_id=}, {report_type=}")
+        start_tasks_to_check_report_status.apply_async(
+            args=[
+                user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, ad_group,
+            ],
+            countdown=300,
+            queue="process_ads_report"
+        )

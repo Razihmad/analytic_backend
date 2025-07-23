@@ -8,6 +8,9 @@ class AdsReportTypeId(Enum):
     SD_CAMPAING = "sdCampaigns"
     SB_CAMPAIGN = "sbCampaigns"
     SP_SEARCH_TERM = "spSearchTerm"
+    SP_TARGETING = "spTargeting"
+    SD_TARGETING = "sdTargeting"
+    SB_TARGETING = "sbTargeting"
 
 
 class GroupBy(Enum):
@@ -62,6 +65,16 @@ CAMPAIGN_TO_REPORT_TYPE_MAPPING = {
     "SPONSORED_DISPLAY": "sdCampaigns",
 }
 
+TARGETING_TO_REPORT_TYPE_MAPPING = {
+    "SPONSORED_PRODUCTS": "spTargeting",
+    "SPONSORED_BRANDS": "sbTargeting",
+    "SPONSORED_DISPLAY": "sdTargeting",
+}
+SEARCH_TERM_TO_REPORT_TYPE_MAPPING = {
+    "SPONSORED_PRODUCTS": "spSearchTerm",
+    "SPONSORED_BRANDS": "sbSearchTerm",
+}
+
 CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT = {
     "SPONSORED_PRODUCTS": "spAdvertisedProduct",
     "SPONSORED_BRANDS": "sbCampaigns",
@@ -113,6 +126,40 @@ SEARCH_TERM_REPORT_COLUMNS = [
     'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', 'targeting'
 ]
 
+SB_SEARCH_TERM_REPORT_COLUMNS = [
+    'impressions', 'clicks', 'cost', 'purchases', "sales", "unitsSold",
+    'keywordId', 'keywordText', 'date', 'searchTerm', 'campaignName', 'campaignId',
+    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', 'targeting'
+]
+
+SEARCH_TERM_REPORT_COLUMNS_MAPPING = {
+    "spSearchTerm": SEARCH_TERM_REPORT_COLUMNS,
+    "sbSearchTerm": SB_SEARCH_TERM_REPORT_COLUMNS,
+}
+
+
+SP_TARGETING_REPORT_COLUMNS = [
+    'impressions', 'clicks', 'cost', 'purchases14d', "sales14d", "unitsSoldClicks14d",
+    'keywordId', 'keyword', 'date', 'campaignName', 'campaignId',
+    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', 'targeting', "targetingId,"
+]
+
+SD_TARGETING_REPORT_COLUMNS = [
+    'impressions', 'clicks', 'cost', 'purchases', "sales", "unitsSold",
+    'date', 'campaignName', 'campaignId', 'adGroupName', 'adGroupId', 'targetingText', "targetingId,"
+]
+
+SB_TARGETING_REPORT_COLUMNS = [
+    'impressions', 'clicks', 'cost', 'purchases', "sales", "unitsSold",
+    'keywordId', 'keywordText', 'date', 'campaignName', 'campaignId',
+    'keywordBid', 'adGroupName', 'adGroupId', 'keywordType', 'matchType', ' targetingText', "targetingId,"
+]
+
+TARGETING_REPORT_COLUMNS_MAPPING = {
+    "spTargeting": SP_TARGETING_REPORT_COLUMNS,
+    "sdTargeting": SD_TARGETING_REPORT_COLUMNS,
+    "sbTargeting": SB_TARGETING_REPORT_COLUMNS,
+}
 
 class BiddingStrategy(Enum):
     MANUAL = "MANUAL"

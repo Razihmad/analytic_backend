@@ -87,3 +87,44 @@ class SearchTerm(models.Model):
     @property
     def cvr(self):
         return round(self.orders / self.clicks * 100, 3) if self.clicks else 0
+
+
+
+class Targeting(models.Model):
+    seller = models.ForeignKey(Seller, on_delete=models.CASCADE)
+    cost = models.CharField(max_length=256)
+    sales = models.FloatField()
+    units_sold = models.IntegerField()
+    orders = models.IntegerField()
+    cost = models.FloatField()
+    impressions = models.IntegerField()
+    clicks = models.IntegerField()
+    targeting = models.CharField(max_length=256)
+    campaign_name = models.CharField(max_length=256)
+    campaign_id = models.CharField(max_length=256)
+    keyword = models.CharField(max_length=256)
+    keyword_id = models.CharField(max_length=256)
+    keyword_type = models.CharField(max_length=256)
+    keyword_bid = models.CharField(max_length=256)
+    ad_group_name = models.CharField(max_length=256)
+    ad_group_id = models.CharField(max_length=256)
+    campaign_type = models.CharField(max_length=256)
+    targeting_date = models.DateField()
+    match_type = models.CharField(max_length=256)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ["seller", "targeting", "campaign_id", "targeting_date"]
+
+    @property
+    def acos(self):
+        return round(self.cost / self.sales * 100, 3) if self.sales else 0
+
+    @property
+    def roas(self):
+        return round(self.sales / self.cost, 3) if self.cost else 0
+
+    @property
+    def cvr(self):
+        return round(self.orders / self.clicks * 100, 3) if self.clicks else 0

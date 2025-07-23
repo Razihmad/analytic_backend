@@ -19,10 +19,10 @@ from amazon.models import Seller
 from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data, get_asins_by_camapagin_ids, get_campaign_sales_report, get_serach_term_report_data
 from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data, serialize_campaign_sales_report, serialize_search_term_report
 from amazon_ads.tasks import (
-    start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetching_search_term_report, start_fetcing_ad_sales_data_by_asin
+    start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetching_search_term_report, start_fetching_targeting_report, start_fetcing_ad_sales_data_by_asin
 )
 from base.exception import ServiceException
-from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm
+from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm, Targeting
 from utils.utils import get_region_by_country_code
 
 logger = logging.getLogger(__name__)
@@ -146,6 +146,18 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
         ],
         queue="process_ads_report"
     )
+    start_fetching_targeting_report.apply_async(
+        args=[
+            amazon_seller_id,
+            start_date,
+            end_date,
+            country_code,
+            ads_profile.profile_id,
+            ads_profile.id,
+            user_id,
+        ],
+        queue="process_ads_report"
+    )
 
 
 def get_ads_data_for_graph(*, seller: Seller, graph_data_type: str, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]]):
@@ -225,6 +237,15 @@ def prepare_search_term_bulk_insert(*, data: List[Dict], ad_account_id: int) -> 
         search_terms.append(search_term)
     return search_terms
 
+def prepare_targeting_bulk_insert(*, data: List[Dict], ad_account_id: int) -> List[Targeting]:
+    targeting = []
+    for record in data:
+        targeting = Targeting(
+            seller_id=ad_account_id,
+            **record
+        )
+        targeting.append(targeting)
+    return targeting
 
 def get_and_serialize_serach_term_report_data(
     *,

@@ -203,6 +203,36 @@ def prepare_data_for_search_term_insertion(*, data: List[Dict]) -> List[Dict]:
     return amazon_ads_sale_search_term_data
 
 
+def serialize_targeting_report_data(*, data: List[Dict]):
+    return prepare_data_for_targeting_insertion(data=data)
+
+
+def prepare_data_for_targeting_insertion(*, data: List[Dict], campaign_type: str) -> List[Dict]:
+    amazon_ads_sale_targeting_data = []
+    for item in data:
+        model_data = {
+            'keyword': item.get('keyword'),
+            'ad_group_name': item.get('adGroupName'),
+            "ad_group_id": item.get('adGroupId'),
+            'sales': item.get('sales14d') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('sales'),
+            'cost': item.get('cost'),
+            'impressions': item.get('impressions'),
+            'clicks': item.get('clicks'),
+            'units_sold': item.get('unitsSoldClicks14d') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('unitsSold'),
+            'orders': item.get('purchases14d') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('purchases'),
+            'targeting': item.get('targeting') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('targetingText'),
+            'campaign_name': item.get('campaignName'),
+            'campaign_id': item.get('campaignId'),
+            'keyword_id': item.get('keywordId'),
+            'keyword_type': item.get('keyword') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('keywordText'),
+            'keyword_bid': item.get('keywordBid'),
+            'targeting_date': item.get('date'),
+            'match_type': item.get('matchType'),
+        }
+        amazon_ads_sale_targeting_data.append(model_data)
+    return amazon_ads_sale_targeting_data
+
+
 def serialize_search_term_report(*, search_terms: QuerySet[SearchTerm], campaign_to_asins: Dict) -> List[Dict]:
     result = []
     for data in search_terms:
