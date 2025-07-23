@@ -142,6 +142,22 @@ class AmazonAds:
         # else:
             # response = requests.post(url=url, headers=headers)
         return response.status_code, response.json()
+    
+    def sp_negative_targeting(
+        self,
+        access_token: str,
+        region: str,
+        profile_id: str,
+        endpoint: str,
+        data: Dict
+    ) -> Tuple[int, Dict]:
+        headers = self._get_headers(access_token=access_token, profile_id=profile_id)
+        base_url = self._get_base_url(region=region)
+        headers["Content-Type"] = "application/vnd.spNegativeTargetingClause.v3+json"
+        headers["Accept"] = "application/vnd.spNegativeTargetingClause.v3+json"
+        url = base_url + endpoint
+        response = requests.post(url=url, headers=headers, json=data)
+        return response.status_code, response.json()
 
 amazon_ads_api = AmazonAds()
 # report_id="375146d7-6e84-40ef-9626-0cb9eb60ace8"

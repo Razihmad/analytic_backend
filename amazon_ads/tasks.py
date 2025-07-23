@@ -172,7 +172,7 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
         logger.info(f"processing search term report {user_id=}, {report_id=}, {report_type=}, {ad_account_id=}, {len(data)=}")
         data = serialize_search_term_report_data(data=data, campaign_type=campaign_type)
         logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
-        data = prepare_search_term_bulk_insert(data=data, ad_account_id=ad_account_id)
+        data = prepare_search_term_bulk_insert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         logger.info(f"[DATA_PREPARED]{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
 
         data = bulk_upsert_search_term_report_data(data=data)
@@ -183,7 +183,7 @@ def download_file_and_process_report_data(user_id: int, report_id: str, url: str
         logger.info(f"processing targeting report {user_id=}, {report_id=}, {report_type=}, {ad_account_id=}, {len(data)=}")
         data = serialize_targeting_report_data(data=data, campaign_type=campaign_type)
         logger.info(f"{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
-        data = prepare_targeting_bulk_insert(data=data, ad_account_id=ad_account_id)
+        data = prepare_targeting_bulk_insert(data=data, ad_account_id=ad_account_id, campaign_type=campaign_type)
         logger.info(f"[DATA_PREPARED]{user_id=}, {report_id=}, {ad_account_id=}, {len(data)=}")
         data = bulk_upsert_targeting_report_data(data=data)
         logger.info(f"[DATA_UPSERTED], {user_id=}, {report_id=} {ad_account_id=}, {report_type=}, {len(data)=}")

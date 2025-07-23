@@ -203,8 +203,8 @@ def prepare_data_for_search_term_insertion(*, data: List[Dict], campaign_type: s
     return amazon_ads_sale_search_term_data
 
 
-def serialize_targeting_report_data(*, data: List[Dict]):
-    return prepare_data_for_targeting_insertion(data=data)
+def serialize_targeting_report_data(*, data: List[Dict], campaign_type: str):
+    return prepare_data_for_targeting_insertion(data=data, campaign_type=campaign_type)
 
 
 def prepare_data_for_targeting_insertion(*, data: List[Dict], campaign_type: str) -> List[Dict]:

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from rangefilter.filters import DateRangeFilter
 
-from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm
+from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm, Targeting
 # Register your models here.
 
 
@@ -32,6 +32,10 @@ class SearchTerm(admin.ModelAdmin):
     # ordering = ("-search_term_date",)
     readonly_fields = ("seller",)
 
-    # def get_queryset(self, request):
-    #     qs = super().get_queryset(request)
-    #     return qs.filter(seller=request.user)
+
+@admin.register(Targeting)
+class TargetingAdmin(admin.ModelAdmin):
+    list_display = ("seller", "targeting", "targeting_date", "keyword", "campaign_name","ad_group_name", "impressions", "clicks", "orders", "sales", "campaign_type")
+    search_fields = ("targeting", "keyword", "campaign_name")
+    # ordering = ("-search_term_date",)
+    readonly_fields = ("seller",)

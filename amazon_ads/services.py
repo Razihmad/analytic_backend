@@ -227,25 +227,27 @@ def get_and_serialize_campaign_report_data(
     return serialize_campaign_sales_report(campaign_sales=campaign_sales)
 
 
-def prepare_search_term_bulk_insert(*, data: List[Dict], ad_account_id: int) -> List[SearchTerm]:
+def prepare_search_term_bulk_insert(*, data: List[Dict], ad_account_id: int, campaign_type: str) -> List[SearchTerm]:
     search_terms = []
     for record in data:
         search_term = SearchTerm(
             seller_id=ad_account_id,
+            campaign_type=campaign_type,
             **record
         )
         search_terms.append(search_term)
     return search_terms
 
-def prepare_targeting_bulk_insert(*, data: List[Dict], ad_account_id: int) -> List[Targeting]:
-    targeting = []
+def prepare_targeting_bulk_insert(*, data: List[Dict], ad_account_id: int, campaign_type: str) -> List[Targeting]:
+    targetings = []
     for record in data:
         targeting = Targeting(
             seller_id=ad_account_id,
+            campaign_type=campaign_type,
             **record
         )
-        targeting.append(targeting)
-    return targeting
+        targetings.append(targeting)
+    return targetings
 
 def get_and_serialize_serach_term_report_data(
     *,
@@ -474,3 +476,34 @@ def list_keywords(*, amazon_seller_id: str, user_id: int) -> List[Dict]:
         endpoint=KeywordEndpoint.LIST.value,
     )
     return response
+
+
+
+def create_negative_targeting(
+    *, amazon_seller_id: str, user_id: int, campaign_id: str, ad_group_id: str, asin: str
+) -> Tuple[Dict, int]:
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    region = get_region_by_country_code(country_code=seller.country_code)
+    access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    status_code, response = amazon_ads_api.sp_negative_targeting(
+        access_token=access_token, region=region, profile_id=seller.profile_id, endpoint="/sp/negativeTargets",
+        data={
+            "negativeTargetingClauses": [
+                {
+                    "expression": [
+                        {
+                            "type": "ASIN_SAME_AS", 
+                            "value": asin,
+                        }
+                    ],
+                    "campaignId": campaign_id,
+                    "adGroupId": ad_group_id,
+                    "state": "ENABLED"
+                }
+            ]
+        }
+    )
+    logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
+    return response, status_code
