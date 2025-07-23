@@ -59,7 +59,7 @@ class SearchTerm(models.Model):
     cost = models.FloatField()
     impressions = models.IntegerField()
     clicks = models.IntegerField()
-    targeting = models.CharField(max_length=256)
+    targeting = models.CharField(max_length=256, null=True, blank=True)
     campaign_name = models.CharField(max_length=256)
     campaign_id = models.CharField(max_length=256)
     campaign_type = models.CharField(max_length=256, default="SPONSORED_PRODUCTS")

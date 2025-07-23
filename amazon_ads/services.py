@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.db.models import QuerySet
 
 # Local
-from amazon_ads.constants import GraphDataType, MatchType, State
+from amazon_ads.constants import AdProduct, GraphDataType, MatchType, State
 from amazon_ads.keywords import KeywordEndpoint, NegativeKeywordEndpoint
 from amazon_ads.utils.amazon_ads_api import amazon_ads_api
 from authentication.services import get_ads_access_token
@@ -480,30 +480,60 @@ def list_keywords(*, amazon_seller_id: str, user_id: int) -> List[Dict]:
 
 
 def create_negative_targeting(
-    *, amazon_seller_id: str, user_id: int, campaign_id: str, ad_group_id: str, asin: str
+    *, amazon_seller_id: str, user_id: int, campaign_id: str, ad_group_id: str, asin: str, campaign_type: str
 ) -> Tuple[Dict, int]:
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
     region = get_region_by_country_code(country_code=seller.country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
-    status_code, response = amazon_ads_api.sp_negative_targeting(
-        access_token=access_token, region=region, profile_id=seller.profile_id, endpoint="/sp/negativeTargets",
-        data={
-            "negativeTargetingClauses": [
-                {
-                    "expression": [
-                        {
-                            "type": "ASIN_SAME_AS", 
-                            "value": asin,
-                        }
-                    ],
-                    "campaignId": campaign_id,
-                    "adGroupId": ad_group_id,
-                    "state": "ENABLED"
-                }
-            ]
-        }
-    )
-    logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
-    return response, status_code
+    if campaign_type == AdProduct.SPONSORED_PRODUCTS.value:        
+        status_code, response = amazon_ads_api.add_negative_product_targeting(
+            access_token=access_token,
+            region=region,
+            profile_id=seller.profile_id,
+            endpoint="/sp/negativeTargets",
+            content_type="application/vnd.spNegativeTargetingClause.v3+json",
+            accept="application/vnd.spNegativeTargetingClause.v3+json",
+            data={
+                "negativeTargets": [
+                    {
+                        "expression": [
+                            {
+                                "type": "ASIN_SAME_AS", 
+                                "value": asin,
+                            }
+                        ],
+                        "campaignId": campaign_id,
+                        "adGroupId": ad_group_id,
+                        "state": "ENABLED"
+                    }
+                ]
+            }
+        )
+        logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
+        return response, status_code
+    elif campaign_type == AdProduct.SPONSORED_BRANDS.value:
+        status_code, response = amazon_ads_api.add_negative_product_targeting(
+            access_token=access_token,
+            region=region,
+            profile_id=seller.profile_id,
+            endpoint="/sb/negativeTargets",
+            content_type="application/json",
+            data={
+                "negativeTargets": [
+                    {
+                        "expressions": [
+                            {
+                                "type": "asinBrandSameAs", 
+                                "value": asin,
+                            }
+                        ],
+                        "campaignId": campaign_id,
+                        "adGroupId": ad_group_id,
+                    }
+                ]
+            }
+        )
+        logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
+        return response, status_code

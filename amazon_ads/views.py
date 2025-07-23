@@ -5,7 +5,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 import utils.datetime as dt
-from amazon_ads.services import create_keyword, create_negative_keyword, create_portfolio, delete_negative_keywords, fetch_ads_data_by_date, get_and_serialize_campaign_report_data, get_and_serialize_serach_term_report_data, get_negative_keywords, get_portfolios, process_campaign_sb_report_file, start_fetching_amazon_ads_data
+from amazon_ads.services import create_keyword, create_negative_keyword, create_negative_targeting, create_portfolio, delete_negative_keywords, fetch_ads_data_by_date, get_and_serialize_campaign_report_data, get_and_serialize_serach_term_report_data, get_negative_keywords, get_portfolios, process_campaign_sb_report_file, start_fetching_amazon_ads_data
 from base.decorators import handle_exception
 from base.response import status_200
 # Create your views here.
@@ -258,3 +258,29 @@ class CreateKeyword(APIView):
         if status_code == 207:
             return status_200(message="keyword created", data={"message": "Keyword created", "data": response})
         return status_200(message="keyword creation failed", data={"message": "Keyword creation failed", "data": response})
+
+
+class NegativeProductTargeting(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    @handle_exception
+    def post(self, request):
+        logger.info(request.data)
+        amazon_seller_id = request.data.get("amazon_seller_id")
+        campaign_id = request.data.get("campaign_id")
+        ad_group_id = request.data.get("ad_group_id")
+        asin = request.data.get("asin")
+        campaign_type = request.data.get("campaign_type")
+        user = request.user
+        response, status_code = create_negative_targeting(
+            amazon_seller_id=amazon_seller_id,
+            user_id=user.id,
+            campaign_id=campaign_id,
+            ad_group_id=ad_group_id,
+            asin=asin,
+            campaign_type=campaign_type
+        )
+        if status_code == 207:
+            return status_200(message="negative product targeting created", data={"message": "Negative product targeting created", "data": response})
+        return status_200(message="negative product targeting creation failed", data={"message": "Negative product targeting creation failed", "data": response})
