@@ -104,6 +104,8 @@ def get_targeting_report_data(
     ad_group_name: Optional[str] = None,
     query_params: Optional[Dict] = None,
     match_type: Optional[str] = None,
+    page_size: int = 100,
+    page_number: int = 1,
 ):
     base_filter = Q(seller_id=seller_id, targeting_date__range=[start_date, end_date])
     if query_params:

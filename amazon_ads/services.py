@@ -548,6 +548,8 @@ def get_and_serialize_targeting_report_data(
     ad_group_name: Optional[str] = None,
     query_params: Optional[Dict] = None,
     match_type: Optional[str] = None,
+    page_size: int = 100,
+    page_number: int = 1,
 ) -> List[Dict]:
     logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
@@ -563,12 +565,47 @@ def get_and_serialize_targeting_report_data(
         campaign_name=campaign_name,
         ad_group_name=ad_group_name,
         query_params=query_params,
-        match_type=match_type
+        match_type=match_type,
+        page_size=page_size,
+        page_number=page_number
     )
+    targeting_data = targeting_data.order_by("-targeting_date")[page_number * page_size: (page_number + 1) * page_size]
     campaign_to_asins = get_asins_by_campaign_ids(search_term_data=targeting_data, start_date=start_date, end_date=end_date)
     data = serialize_targeting_report(targeting_data=targeting_data, campaign_to_asins=campaign_to_asins)
-    aggregated_data = get_targeting_aggregated_data(targeting_data=data)
-    return data, aggregated_data
+    return data
+
+
+def get_targeting_graph_data(
+    *,
+    user_id: int,
+    amazon_seller_id: str,
+    start_date: str,
+    end_date: str,
+    campaign_name: Optional[str] = None,
+    ad_group_name: Optional[str] = None,
+    query_params: Optional[Dict] = None,
+    match_type: Optional[str] = None,
+):
+    logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    logger.info(f"{user_id=}, {seller.id=}, {start_date=}, {end_date=}")
+    targeting_data = get_targeting_report_data(
+        seller_id=seller.id,
+        start_date=start_date,
+        end_date=end_date,
+        campaign_name=campaign_name,
+        ad_group_name=ad_group_name,
+        query_params=query_params,
+        match_type=match_type,
+    )
+    data = serialize_targeting_report(targeting_data=targeting_data, campaign_to_asins={})
+    aggregated_data = get_targeting_aggregated_data(targeting_data=data)    
+    return aggregated_data
+
 
 def get_targeting_aggregated_data(*, targeting_data: List[Dict]) -> Dict:
     impressions = 0
