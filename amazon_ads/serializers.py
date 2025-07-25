@@ -5,7 +5,7 @@ from typing import Dict, List
 import pandas as pd
 from django.db.models import QuerySet
 from amazon_ads.constants import AdProduct
-from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm
+from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm, Targeting
 
 
 def serialize_ads_sales_data(*, sales: QuerySet[AmazonAdsSaleAsin]) -> List[Dict]:
@@ -255,6 +255,36 @@ def serialize_search_term_report(*, search_terms: QuerySet[SearchTerm], campaign
             "keyword_type": data.keyword_type,
             "keyword_bid": data.keyword_bid,
             "search_term_date": data.search_term_date,
+            "match_type": data.match_type,
+            "acos": data.acos,
+            "roas": data.roas,
+            "cvr": data.cvr,
+        })
+    return result
+
+
+def serialize_targeting_report(*, targeting_data: QuerySet[Targeting], campaign_to_asins: Dict) -> List[Dict]:
+    result = []
+    for data in targeting_data:
+        result.append({
+            "targeting": data.targeting,
+            "keyword": data.keyword,
+            "ad_group": data.ad_group_name,
+            "ad_group_id": data.ad_group_id,
+            "sales": data.sales,
+            "cost": data.cost,
+            "impressions": data.impressions,
+            "clicks": data.clicks,
+            "units_sold": data.units_sold,
+            "orders": data.orders,
+            "targetting": data.targeting,
+            "campaign_name": data.campaign_name,
+            "campaign_id": data.campaign_id,
+            "asins": campaign_to_asins.get(data.campaign_id, []),
+            "keyword_id": data.keyword_id,
+            "keyword_type": data.keyword_type,
+            "keyword_bid": data.keyword_bid,
+            "targeting_date": data.targeting_date,
             "match_type": data.match_type,
             "acos": data.acos,
             "roas": data.roas,

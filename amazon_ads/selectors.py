@@ -93,3 +93,32 @@ def get_asins_by_camapagin_ids(*, campaign_ids: set[str], start_date: datetime.d
     return AmazonAdsSaleAsin.objects.filter(
         campaign_id__in=campaign_ids, sales_date__range=[start_date, end_date]
     ).only("asin", "campaign_id", "campaign_name")
+
+
+def get_targeting_report_data(
+    *,
+    seller_id: int,
+    start_date: datetime.date,
+    end_date: datetime.date,
+    campaign_name: Optional[str] = None,
+    ad_group_name: Optional[str] = None,
+    query_params: Optional[Dict] = None,
+    match_type: Optional[str] = None,
+):
+    base_filter = Q(seller_id=seller_id, targeting_date__range=[start_date, end_date])
+    if query_params:
+        for param, value in query_params.items():
+            if "__" in param:
+                field, lookup = param.split("__", 1)
+            else:
+                field, lookup = param, "exact"
+            lookup_exp = f"{field}__{lookup}"
+            base_filter &= Q(**{lookup_exp: value})
+
+    if campaign_name:
+        base_filter &= Q(campaign_name__icontains=campaign_name)
+    if ad_group_name:
+        base_filter &= Q(ad_group_name__icontains=ad_group_name)
+    if match_type:
+        base_filter &= Q(match_type=match_type)
+    return Targeting.objects.filter(base_filter)

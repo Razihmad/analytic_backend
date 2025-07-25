@@ -16,8 +16,8 @@ from amazon_ads.utils.amazon_ads_api import amazon_ads_api
 from authentication.services import get_ads_access_token
 import utils.datetime as dt
 from amazon.models import Seller
-from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data, get_asins_by_camapagin_ids, get_campaign_sales_report, get_serach_term_report_data
-from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data, serialize_campaign_sales_report, serialize_search_term_report
+from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data, get_asins_by_camapagin_ids, get_campaign_sales_report, get_serach_term_report_data, get_targeting_report_data
+from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data, serialize_campaign_sales_report, serialize_search_term_report, serialize_targeting_report
 from amazon_ads.tasks import (
     start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetching_search_term_report, start_fetching_targeting_report, start_fetcing_ad_sales_data_by_asin
 )
@@ -537,3 +537,89 @@ def create_negative_targeting(
         )
         logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
         return response, status_code
+
+def get_and_serialize_targeting_report_data(
+    *,
+    user_id: int,
+    amazon_seller_id: str,
+    start_date: str,
+    end_date: str,
+    campaign_name: Optional[str] = None,
+    ad_group_name: Optional[str] = None,
+    query_params: Optional[Dict] = None,
+    match_type: Optional[str] = None,
+) -> List[Dict]:
+    logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
+    start_date = dt.convert_str_to_date(date_str=start_date)
+    end_date = dt.convert_str_to_date(date_str=end_date)
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    logger.info(f"{user_id=}, {seller.id=}, {start_date=}, {end_date=}")
+    targeting_data = get_targeting_report_data(
+        seller_id=seller.id,
+        start_date=start_date,
+        end_date=end_date,
+        campaign_name=campaign_name,
+        ad_group_name=ad_group_name,
+        query_params=query_params,
+        match_type=match_type
+    )
+    campaign_to_asins = get_asins_by_campaign_ids(search_term_data=targeting_data, start_date=start_date, end_date=end_date)
+    data = serialize_targeting_report(targeting_data=targeting_data, campaign_to_asins=campaign_to_asins)
+    aggregated_data = get_targeting_aggregated_data(targeting_data=data)
+    return data, aggregated_data
+
+def get_targeting_aggregated_data(*, targeting_data: List[Dict]) -> Dict:
+    impressions = 0
+    clicks = 0
+    sales = 0
+    orders = 0
+    spends = 0
+    graph_data = defaultdict(lambda: defaultdict(int))
+    for data in targeting_data:
+        impressions += data["impressions"]
+        clicks += data["clicks"]
+        sales += data["sales"]
+        orders += data["orders"]
+        spends += data["cost"]
+        graph_data["impressions"][str(data["targeting_date"])] += data["impressions"]
+        graph_data["clicks"][str(data["targeting_date"])] += data["clicks"]
+        graph_data["sales"][str(data["targeting_date"])] += int(data["sales"])
+        graph_data["orders"][str(data["targeting_date"])] += data["orders"]
+        graph_data["spends"][str(data["targeting_date"])] += int(data["cost"])
+        graph_data["acos"][str(data["targeting_date"])] = round(
+            100 * graph_data["spends"][str(data["targeting_date"])] / graph_data["sales"][str(data["targeting_date"])], 2
+        ) if graph_data["sales"][str(data["targeting_date"])] > 0 else 0
+        graph_data["roas"][str(data["targeting_date"])] = round(
+            graph_data["sales"][str(data["targeting_date"])] / graph_data["spends"][str(data["targeting_date"])], 2
+        ) if graph_data["spends"][str(data["targeting_date"])] > 0 else 0
+        graph_data["ctr"][str(data["targeting_date"])] = round(
+            100 * graph_data["clicks"][str(data["targeting_date"])] / graph_data["impressions"][str(data["targeting_date"])], 2
+        ) if graph_data["impressions"][str(data["targeting_date"])] > 0 else 0
+        graph_data["cpc"][str(data["targeting_date"])] = round(
+            graph_data["spends"][str(data["targeting_date"])] / graph_data["clicks"][str(data["targeting_date"])], 2
+        ) if graph_data["clicks"][str(data["targeting_date"])] > 0 else 0
+        graph_data["cpr"][str(data["targeting_date"])] = round(
+            graph_data["spends"][str(data["targeting_date"])] / graph_data["orders"][str(data["targeting_date"])], 2
+        ) if graph_data["orders"][str(data["targeting_date"])] > 0 else 0
+
+    sorted_graph_data = {}
+
+    for metric, values in graph_data.items():
+        sorted_graph_data[metric] = OrderedDict(sorted(values.items(), key=lambda item: item[0]))
+
+    return {
+        "impressions": impressions,
+        "clicks": clicks,
+        "sales": int(sales),
+        "orders": orders,
+        "spends": int(spends),
+        "acos": round(100 * spends / sales, 2) if sales > 0 else 0,
+        "roas": round(sales / spends, 2) if spends > 0 else 0,
+        "ctr": round(100 * clicks / impressions, 2) if impressions > 0 else 0,
+        "cpc": round(spends / clicks, 2) if clicks > 0 else 0,
+        "cpr": round(spends / orders, 2) if orders > 0 else 0,
+        "graph_data": sorted_graph_data,
+    }
+

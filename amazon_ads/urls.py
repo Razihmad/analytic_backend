@@ -9,6 +9,7 @@ from amazon_ads.views import (
     GetSearchTermReportData,
     NegativeKeyword,
     NegativeProductTargeting,
+    GetTargetingReportData,
 )
 
 urlpatterns = [
@@ -20,4 +21,5 @@ urlpatterns = [
     path("negativeKeyword/", NegativeKeyword.as_view(), name="negative-keyword"),
     path("createKeyword/", CreateKeyword.as_view(), name="create-keyword"),
     path("negativeProductTargeting/", NegativeProductTargeting.as_view(), name="negative-product-targeting"),
+    path("getTargetingReportData/", GetTargetingReportData.as_view(), name="get-targeting-report-data"),
 ]
