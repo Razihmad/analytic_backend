@@ -52,7 +52,6 @@ class AmazonAdsSaleCampaign(models.Model):
 class SearchTerm(models.Model):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE)
     search_term = models.CharField(max_length=256)
-    cost = models.CharField(max_length=256)
     sales = models.FloatField()
     units_sold = models.IntegerField()
     orders = models.IntegerField()
@@ -88,6 +87,14 @@ class SearchTerm(models.Model):
     @property
     def cvr(self):
         return round(self.orders / self.clicks * 100, 3) if self.clicks else 0
+    
+    @property
+    def spend(self):
+        return self.cost
+    
+    @property
+    def cpc(self):
+        return self.cost / self.clicks if self.clicks else 0
 
 
 
@@ -129,3 +136,8 @@ class Targeting(models.Model):
     @property
     def cvr(self):
         return round(self.orders / self.clicks * 100, 3) if self.clicks else 0
+    
+    @property
+    def spend(self):
+        return self.spend
+    
