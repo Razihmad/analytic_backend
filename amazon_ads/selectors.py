@@ -107,6 +107,11 @@ def get_serach_term_report_data(
             default=ExpressionWrapper(F("cost") / F("clicks"), output_field=FloatField()),
             output_field=FloatField()
         ),
+        ctr=Case(
+            When(impressions=0, then=Value(0.0)),
+            default=ExpressionWrapper(F("clicks") / F("impressions") * 100, output_field=FloatField()),
+            output_field=FloatField()
+        ),
     ).filter(base_filter)
 
 
@@ -163,6 +168,11 @@ def get_targeting_report_data(
         cpc=Case(
             When(clicks=0, then=Value(0.0)),
             default=ExpressionWrapper(F("cost") / F("clicks"), output_field=FloatField()),
+            output_field=FloatField()
+        ),
+        ctr=Case(
+            When(impressions=0, then=Value(0.0)),
+            default=ExpressionWrapper(F("clicks") / F("impressions") * 100, output_field=FloatField()),
             output_field=FloatField()
         ),
     ).filter(base_filter)
