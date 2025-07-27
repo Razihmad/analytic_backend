@@ -1,7 +1,7 @@
 import datetime
 from typing import Dict, List, Optional
 
-from django.db.models import QuerySet, Q
+from django.db.models import Case, ExpressionWrapper, FloatField, F, QuerySet, Q, Value, When
 
 from amazon_ads.models import AmazonAdsSaleAsin, AmazonAdsSaleCampaign, SearchTerm, Targeting
 from amazon.models import Seller
@@ -86,7 +86,28 @@ def get_serach_term_report_data(
         base_filter &= Q(ad_group_name__icontains=ad_group_name)
     if match_type:
         base_filter &= Q(match_type=match_type)
-    return SearchTerm.objects.filter(base_filter)
+    return SearchTerm.objects.annotate(
+        acos=Case(
+            When(sales=0, then=Value(0.0)),
+            default=ExpressionWrapper(F("cost") / F("sales") * 100, output_field=FloatField()),
+            output_field=FloatField()
+        ),
+        roas=Case(
+            When(cost=0, then=Value(0.0)),
+            default=ExpressionWrapper(F("sales") / F("cost"), output_field=FloatField()),
+            output_field=FloatField()
+        ),
+        cvr=Case(
+            When(clicks=0, then=Value(0.0)),
+            default=ExpressionWrapper(F("orders") / F("clicks") * 100, output_field=FloatField()),
+            output_field=FloatField()
+        ),
+        cpc=Case(
+            When(clicks=0, then=Value(0.0)),
+            default=ExpressionWrapper(F("cost") / F("clicks"), output_field=FloatField()),
+            output_field=FloatField()
+        ),
+    ).filter(base_filter)
 
 
 def get_asins_by_camapagin_ids(*, campaign_ids: set[str], start_date: datetime.date, end_date: datetime.date) -> QuerySet[AmazonAdsSaleAsin]:
@@ -123,4 +144,25 @@ def get_targeting_report_data(
         base_filter &= Q(ad_group_name__icontains=ad_group_name)
     if match_type:
         base_filter &= Q(match_type=match_type)
-    return Targeting.objects.filter(base_filter)
+    return Targeting.objects.annotate(
+        acos=Case(
+            When(sales=0, then=Value(0.0)),
+            default=ExpressionWrapper(F("cost") / F("sales") * 100, output_field=FloatField()),
+            output_field=FloatField()
+        ),
+        roas=Case(
+            When(cost=0, then=Value(0.0)),
+            default=ExpressionWrapper(F("sales") / F("cost"), output_field=FloatField()),
+            output_field=FloatField()
+        ),
+        cvr=Case(
+            When(clicks=0, then=Value(0.0)),
+            default=ExpressionWrapper(F("orders") / F("clicks") * 100, output_field=FloatField()),
+            output_field=FloatField()
+        ),
+        cpc=Case(
+            When(clicks=0, then=Value(0.0)),
+            default=ExpressionWrapper(F("cost") / F("clicks"), output_field=FloatField()),
+            output_field=FloatField()
+        ),
+    ).filter(base_filter)

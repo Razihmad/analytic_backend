@@ -76,25 +76,25 @@ class SearchTerm(models.Model):
     class Meta:
         unique_together = ["seller", "search_term", "campaign_id", "search_term_date"]
 
-    @property
-    def acos(self):
-        return round(self.cost / self.sales * 100, 3) if self.sales else 0
+    # @property
+    # def acos(self):
+    #     return round(self.cost / self.sales * 100, 3) if self.sales else 0
 
-    @property
-    def roas(self):
-        return round(self.sales / self.cost, 3) if self.cost else 0
+    # @property
+    # def roas(self):
+    #     return round(self.sales / self.cost, 3) if self.cost else 0
 
-    @property
-    def cvr(self):
-        return round(self.orders / self.clicks * 100, 3) if self.clicks else 0
+    # @property
+    # def cvr(self):
+    #     return round(self.orders / self.clicks * 100, 3) if self.clicks else 0
     
-    @property
-    def spend(self):
-        return self.cost
+    # @property
+    # def spend(self):
+    #     return self.cost
     
-    @property
-    def cpc(self):
-        return self.cost / self.clicks if self.clicks else 0
+    # @property
+    # def cpc(self):
+    #     return self.cost / self.clicks if self.clicks else 0
 
 
 
@@ -125,19 +125,18 @@ class Targeting(models.Model):
     class Meta:
         unique_together = ["seller", "targeting", "campaign_id", "targeting_date"]
 
-    @property
-    def acos(self):
-        return round(self.cost / self.sales * 100, 3) if self.sales else 0
+    # @property
+    # def acos(self):
+    #     return round(self.cost / self.sales * 100, 3) if self.sales else 0
 
-    @property
-    def roas(self):
-        return round(self.sales / self.cost, 3) if self.cost else 0
+    # @property
+    # def roas(self):
+    #     return round(self.sales / self.cost, 3) if self.cost else 0
 
-    @property
-    def cvr(self):
-        return round(self.orders / self.clicks * 100, 3) if self.clicks else 0
+    # @property
+    # def cvr(self):
+    #     return round(self.orders / self.clicks * 100, 3) if self.clicks else 0
     
-    @property
-    def spend(self):
-        return self.spend
-    
+    # @property
+    # def spend(self):
+    #     return self.spend

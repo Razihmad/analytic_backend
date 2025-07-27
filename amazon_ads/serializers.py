@@ -256,9 +256,10 @@ def serialize_search_term_report(*, search_terms: QuerySet[SearchTerm], campaign
             "keyword_bid": data.keyword_bid,
             "search_term_date": data.search_term_date,
             "match_type": data.match_type,
-            "acos": data.acos,
-            "roas": data.roas,
-            "cvr": data.cvr,
+            "acos": round(data.cost / data.sales * 100, 3) if data.sales else 0,
+            "roas": round(data.sales / data.cost, 3) if data.cost else 0,
+            "cvr": round(data.orders / data.clicks * 100, 3) if data.clicks else 0,
+            "cpc": round(data.cost / data.clicks, 3) if data.clicks else 0,
         })
     return result
 
@@ -286,8 +287,9 @@ def serialize_targeting_report(*, targeting_data: QuerySet[Targeting], campaign_
             "keyword_bid": data.keyword_bid,
             "targeting_date": data.targeting_date,
             "match_type": data.match_type,
-            "acos": data.acos,
-            "roas": data.roas,
-            "cvr": data.cvr,
+            "acos": round(data.cost / data.sales * 100, 3) if data.sales else 0,
+            "roas": round(data.sales / data.cost, 3) if data.cost else 0,
+            "cvr": round(data.orders / data.clicks * 100, 3) if data.clicks else 0,
+            "cpc": round(data.cost / data.clicks, 3) if data.clicks else 0,
         })
     return result
