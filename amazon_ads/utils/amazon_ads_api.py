@@ -137,12 +137,27 @@ class AmazonAds:
         headers["Content-Type"] = "application/vnd.spKeyword.v3+json"
         headers["Accept"] = "application/vnd.spKeyword.v3+json"
         url = base_url + endpoint
-        # if data:
         response = requests.post(url=url, headers=headers, json=data)
-        # else:
-            # response = requests.post(url=url, headers=headers)
         return response.status_code, response.json()
-    
+
+    def update_keyword(
+        self,
+        access_token: str,
+        region: str,
+        profile_id: str,
+        endpoint: str,
+        data: Dict,
+        content_type: str,
+        accept: str,
+    ) -> Tuple[int, Dict]:
+        headers = self._get_headers(access_token=access_token, profile_id=profile_id)
+        base_url = self._get_base_url(region=region)
+        headers["Content-Type"] = content_type
+        headers["Accept"] = accept
+        url = base_url + endpoint
+        response = requests.put(url=url, headers=headers, json=data)
+        return response.status_code, response.json()
+
     def add_negative_product_targeting(
         self,
         access_token: str,

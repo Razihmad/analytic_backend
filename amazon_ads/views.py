@@ -5,7 +5,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 
 import utils.datetime as dt
-from amazon_ads.services import create_keyword, create_negative_keyword, create_negative_targeting, create_portfolio, delete_negative_keywords, fetch_ads_data_by_date, get_and_serialize_campaign_report_data, get_and_serialize_serach_term_report_data, get_and_serialize_targeting_report_data, get_negative_keywords, get_portfolios, get_targeting_graph_data, process_campaign_sb_report_file, start_fetching_amazon_ads_data
+from amazon_ads.services import create_keyword, create_negative_keyword, create_negative_targeting, create_portfolio, delete_negative_keywords, fetch_ads_data_by_date, get_and_serialize_campaign_report_data, get_and_serialize_serach_term_report_data, get_and_serialize_targeting_report_data, get_negative_keywords, get_portfolios, get_targeting_graph_data, process_campaign_sb_report_file, start_fetching_amazon_ads_data, update_keyword
 from base.decorators import handle_exception
 from base.response import status_200
 # Create your views here.
@@ -258,6 +258,21 @@ class CreateKeyword(APIView):
         if status_code == 207:
             return status_200(message="keyword created", data={"message": "Keyword created", "data": response})
         return status_200(message="keyword creation failed", data={"message": "Keyword creation failed", "data": response})
+    
+    @handle_exception
+    def put(self, request):
+        logger.info(request.data)
+        user = request.user
+        amazon_seller_id = request.data.get("amazon_seller_id")
+        data = request.data.get("data")
+        response, status_code = update_keyword(
+            amazon_seller_id=amazon_seller_id,
+            user_id=user.id,
+            data=data
+        )
+        if status_code == 207:
+            return status_200(message="keyword updated", data={"message": "Keyword updated", "data": response})
+        return status_200(message="keyword update failed", data={"message": "Keyword update failed", "data": response})
 
 
 class NegativeProductTargeting(APIView):
@@ -299,11 +314,9 @@ class GetTargetingReportData(APIView):
         campaign_name = request.data.get("campaign_name")
         ad_group_name = request.data.get("ad_group_name")
         match_type = request.data.get("match_type")
-        page_size = request.data.get("page_size", 100)
-        page_number = request.data.get("page_number", 1)
         query_params = request.query_params
         logger.info(f"{request.data=}, {query_params=}")
-        data = get_and_serialize_targeting_report_data(
+        data, aggregated_data = get_and_serialize_targeting_report_data(
             user_id=request.user.id,
             amazon_seller_id=amazon_seller_id,
             start_date=start_date,
@@ -312,10 +325,8 @@ class GetTargetingReportData(APIView):
             ad_group_name=ad_group_name,
             query_params=query_params,
             match_type=match_type,
-            page_size=page_size,
-            page_number=page_number
         )
-        return status_200(message="targeting report fetched", data={"data": data})
+        return status_200(message="targeting report fetched", data={"data": data, "aggregated_data": aggregated_data})
 
 
 class GetTargetingReportGraphData(APIView):

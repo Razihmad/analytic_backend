@@ -450,6 +450,30 @@ def create_keyword(
     logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
     return response, status_code
 
+def update_keyword(
+    *,
+    amazon_seller_id: str,
+    user_id: int,
+    data: Dict,
+) -> Tuple[Dict, int]:
+    seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    if not seller:
+        raise ServiceException(f"seller does not exist {amazon_seller_id=}")
+    region = get_region_by_country_code(country_code=seller.country_code)
+    access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    status_code, response = amazon_ads_api.update_keyword(
+        access_token=access_token,
+        region=region,
+        profile_id=seller.profile_id,
+        endpoint=KeywordEndpoint.CREATE.value,
+        data={
+            "keywords": data
+        },
+        content_type="application/vnd.spKeyword.v3+json",
+        accept="application/vnd.spKeyword.v3+json"
+    )
+    return response, status_code
+
 
 def delete_negative_keywords(*, amazon_seller_id: str, user_id: int, campaign_ids: List[str], ad_group_ids: List[str]) -> Dict:
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
@@ -548,9 +572,7 @@ def get_and_serialize_targeting_report_data(
     ad_group_name: Optional[str] = None,
     query_params: Optional[Dict] = None,
     match_type: Optional[str] = None,
-    page_size: int = 100,
-    page_number: int = 1,
-) -> List[Dict]:
+) -> Tuple[List[Dict], Dict]:
     logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
@@ -566,13 +588,11 @@ def get_and_serialize_targeting_report_data(
         ad_group_name=ad_group_name,
         query_params=query_params,
         match_type=match_type,
-        page_size=page_size,
-        page_number=page_number
     )
-    targeting_data = targeting_data.order_by("-targeting_date")[page_number * page_size: (page_number + 1) * page_size]
     campaign_to_asins = get_asins_by_campaign_ids(search_term_data=targeting_data, start_date=start_date, end_date=end_date)
     data = serialize_targeting_report(targeting_data=targeting_data, campaign_to_asins=campaign_to_asins)
-    return data
+    aggregated_data = get_targeting_aggregated_data(targeting_data=data)
+    return data, aggregated_data
 
 
 def get_targeting_graph_data(
