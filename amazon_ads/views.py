@@ -268,7 +268,9 @@ class CreateKeyword(APIView):
         response, status_code = update_keyword(
             amazon_seller_id=amazon_seller_id,
             user_id=user.id,
-            data=data
+            data=data,
+            content_type="application/vnd.spKeyword.v3+json",
+            accept="application/vnd.spKeyword.v3+json"
         )
         if status_code == 207:
             return status_200(message="keyword updated", data={"message": "Keyword updated", "data": response})

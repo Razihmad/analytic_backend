@@ -455,22 +455,37 @@ def update_keyword(
     amazon_seller_id: str,
     user_id: int,
     data: Dict,
+    content_type: str,
+    accept: str,
+    campaign_type: str,
 ) -> Tuple[Dict, int]:
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
     region = get_region_by_country_code(country_code=seller.country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    if campaign_type == AdProduct.SPONSORED_PRODUCTS.value:
+        status_code, response = amazon_ads_api.update_keyword(
+            access_token=access_token,
+            region=region,
+            profile_id=seller.profile_id,
+            endpoint=KeywordEndpoint.CREATE.value,
+            data={
+                "keywords": data
+            },
+            content_type=content_type,
+            accept=accept
+        )
+        return response, status_code
+
     status_code, response = amazon_ads_api.update_keyword(
         access_token=access_token,
         region=region,
         profile_id=seller.profile_id,
-        endpoint=KeywordEndpoint.CREATE.value,
-        data={
-            "keywords": data
-        },
-        content_type="application/vnd.spKeyword.v3+json",
-        accept="application/vnd.spKeyword.v3+json"
+        endpoint="/sb/keywords",
+        data=data,
+        content_type=content_type,
+        accept=accept
     )
     return response, status_code
 
