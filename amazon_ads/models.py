@@ -116,9 +116,12 @@ class Targeting(models.Model):
     keyword_bid = models.CharField(max_length=256, null=True, blank=True)
     ad_group_name = models.CharField(max_length=256)
     ad_group_id = models.CharField(max_length=256)
+    campaign_status = models.CharField(max_length=256, null=True, blank=True)
     campaign_type = models.CharField(max_length=256)
     targeting_date = models.DateField()
     match_type = models.CharField(max_length=256, null=True, blank=True)
+    keyword_status = models.CharField(max_length=256, null=True, blank=True)
+    top_of_search_is = models.CharField(max_length=256, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

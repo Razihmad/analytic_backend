@@ -484,8 +484,8 @@ def update_keyword(
         profile_id=seller.profile_id,
         endpoint="/sb/keywords",
         data=data,
-        content_type=content_type,
-        accept=accept
+        content_type="application/json",
+        accept="application/json"
     )
     return response, status_code
 

@@ -228,6 +228,9 @@ def prepare_data_for_targeting_insertion(*, data: List[Dict], campaign_type: str
             'keyword_bid': item.get('keywordBid'),
             'targeting_date': item.get('date'),
             'match_type': item.get('matchType'),
+            'campaign_status': item.get('campaignStatus'),
+            "keyword_status": item.get('adKeywordStatus'),
+            "top_of_search_is": item.get('topOfSearchImpressionShare'),
         }
         amazon_ads_sale_targeting_data.append(model_data)
     return amazon_ads_sale_targeting_data
