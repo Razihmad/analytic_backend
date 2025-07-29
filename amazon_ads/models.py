@@ -100,7 +100,6 @@ class SearchTerm(models.Model):
 
 class Targeting(models.Model):
     seller = models.ForeignKey(Seller, on_delete=models.CASCADE)
-    cost = models.CharField(max_length=256)
     sales = models.FloatField()
     units_sold = models.IntegerField()
     orders = models.IntegerField()
@@ -117,7 +116,7 @@ class Targeting(models.Model):
     ad_group_name = models.CharField(max_length=256)
     ad_group_id = models.CharField(max_length=256)
     campaign_status = models.CharField(max_length=256, null=True, blank=True)
-    campaign_type = models.CharField(max_length=256)
+    campaign_type = models.CharField(max_length=256, null=True, blank=True)
     targeting_date = models.DateField()
     match_type = models.CharField(max_length=256, null=True, blank=True)
     keyword_status = models.CharField(max_length=256, null=True, blank=True)
@@ -126,7 +125,7 @@ class Targeting(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ["seller", "targeting", "campaign_id", "targeting_date"]
+        unique_together = ["seller", "targeting", "keyword_id", "campaign_id", "targeting_date", "campaign_type"]
 
     # @property
     # def acos(self):

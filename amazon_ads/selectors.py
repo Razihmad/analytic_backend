@@ -51,7 +51,9 @@ def bulk_upsert_search_term_report_data(*, data: List[SearchTerm]):
 
 
 def bulk_upsert_targeting_report_data(*, data: List[Targeting]):
-    return Targeting.objects.bulk_create(data, ignore_conflicts=True, batch_size=500)
+    return Targeting.objects.bulk_create(data, update_conflicts=True, update_fields=[
+        "sales", "impressions", "clicks", "cost", "orders", "campaign_id", "campaign_status", "keyword_status", "top_of_search_is"
+    ], unique_fields=['seller', 'targeting', 'keyword_id', 'campaign_id', 'targeting_date', 'campaign_type'])
 
 
 def get_serach_term_report_data(
