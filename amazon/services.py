@@ -398,7 +398,14 @@ def get_search_query_brand_report(*, user_id: int, amazon_seller_id: str, start_
         raise ServiceException(f"seller does not exist {amazon_seller_id=}, {user_id=}")
 
 
-def get_product_analysis(*, user_id: int, amazon_seller_id: str, start_date: str, end_date: str, asins: Optional[List[str]]) -> Dict:
+def get_product_analysis(
+    *,
+    user_id: int,
+    amazon_seller_id: str,
+    start_date: str,
+    end_date: str,
+    asins: Optional[List[str]] = None,
+) -> Dict:
     logger.info(f"{user_id=}, {amazon_seller_id=}, {start_date=}, {end_date=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
@@ -418,6 +425,7 @@ def aggregate_data_by_asin(*, total_sales_data: List[Dict], total_traffic_data: 
     asin_wise_ads_sales = defaultdict(lambda:defaultdict(int))
     ads_asin_to_campaigns = defaultdict(list)
     result = {}
+    campaign_id_to_campaign_data = defaultdict(lambda:defaultdict(int))
     for data in ads_sales_data:
         asin_data = asin_wise_ads_sales[data["asin"]]
         asin_data["sales"] += data["sales"]
@@ -427,12 +435,61 @@ def aggregate_data_by_asin(*, total_sales_data: List[Dict], total_traffic_data: 
         asin_data["ctr"] = round(100 * asin_data["clicks"] / asin_data["impressions"], 2) if asin_data["impressions"] else 0
         asin_data["roas"] = round(asin_data["sales"] / asin_data["spend"], 2) if asin_data["spend"] else 0
         asin_data["acos"] = round(100 * asin_data["spend"] / asin_data["sales"], 2) if asin_data["sales"] else 0
-        ads_asin_to_campaigns[data["asin"]].append({
-            "campaign_name": data["campaign_name"],
-            "campaign_id": data["campaign_id"],
-            "ad_group_name": data["ad_group_name"],
-            "ad_group_id": data["ad_group_id"],
+        campaign_name = data["campaign_name"]
+        campaign_id = data["campaign_id"]
+        ad_group_name = data["ad_group_name"]
+        ad_group_id = data["ad_group_id"]
+        campaign_type = data["campaign_type"]
+        sales = data["sales"]
+        spend = data["spend"]
+        clicks = data["clicks"]
+        impressions = data["impressions"]
+        ctr = data["ctr"]
+        roas = data["roas"]
+        acos = data["acos"]
+        # keep the map of asin to campaign ids
+        ads_asin_to_campaigns[data["asin"]].append(campaign_id)
+        # keep the map of campaign id to campaign data and ad groups
+        campaign_data = campaign_id_to_campaign_data[campaign_id]
+        campaign_data["sales"] += sales
+        campaign_data["spend"] += spend
+        campaign_data["clicks"] += clicks
+        campaign_data["impressions"] += impressions
+        campaign_data["ctr"] = round(100 * campaign_data["clicks"] / campaign_data["impressions"], 2) if campaign_data["impressions"] else 0
+        campaign_data["roas"] = round(campaign_data["sales"] / campaign_data["spend"], 2) if campaign_data["spend"] else 0
+        campaign_data["acos"] = round(100 * campaign_data["spend"] / campaign_data["sales"], 2) if campaign_data["sales"] else 0
+        campaign_data["campaign_name"] = campaign_name
+        campaign_data["campaign_id"] = campaign_id
+        if not campaign_data.get("ad_groups", None):
+            campaign_data["ad_groups"] = []
+        campaign_data["ad_groups"].append({
+            "ad_group_name": ad_group_name,
+            "ad_group_id": ad_group_id,
+            "sales": sales,
+            "spend": spend,
+            "clicks": clicks,
+            "impressions": impressions,
+            "ctr": ctr,
+            "roas": roas,
+            "acos": acos,
         })
+        campaign_data["campaign_type"] = campaign_type
+        campaign_id_to_campaign_data[campaign_id] = campaign_data
+
+        # ads_asin_to_campaigns[data["asin"]].append({
+        #     "campaign_name": data["campaign_name"],
+        #     "campaign_id": data["campaign_id"],
+        #     "ad_group_name": data["ad_group_name"],
+        #     "ad_group_id": data["ad_group_id"],
+        #     "campaign_type": data["campaign_type"],
+        #     "sales": data["sales"],
+        #     "spend": data["spend"],
+        #     "clicks": data["clicks"],
+        #     "impressions": data["impressions"],
+        #     "ctr": data["ctr"],
+        #     "roas": data["roas"],
+        #     "acos": data["acos"],
+        # })
         asin_wise_ads_sales[data["asin"]] = asin_data
     for data in total_traffic_data:
         asin_data = asin_wise_traffic[data["child_asin"]]
@@ -446,6 +503,10 @@ def aggregate_data_by_asin(*, total_sales_data: List[Dict], total_traffic_data: 
         asin_wise_sales[data["child_asin"]] = asin_data
     
     for asin, data in asin_wise_sales.items():
+        campaigns = ads_asin_to_campaigns.get(asin, [])
+        campaign_data = []
+        for campaign_id in campaigns:
+            campaign_data.append(campaign_id_to_campaign_data[campaign_id])
         result[asin] = {
             "total_sales": int(data["sales"]),
             "total_ads_sales": int(asin_wise_ads_sales[asin]["sales"]),
@@ -459,6 +520,6 @@ def aggregate_data_by_asin(*, total_sales_data: List[Dict], total_traffic_data: 
             "roas": asin_wise_ads_sales[asin]["roas"],
             "acos": asin_wise_ads_sales[asin]["acos"],
             "tacos": round(100 * asin_wise_ads_sales[asin]["spend"] / data["sales"], 2) if data["sales"] else 0,
-            "campaigns": ads_asin_to_campaigns.get(asin, []),
+            "campaigns": campaign_data,
         }
     return result

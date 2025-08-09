@@ -25,7 +25,20 @@ class AmazonAdsSaleAsin(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['amazon_ads', 'asin', 'sales_date', "campaign_type", "campaign_id"]
+        unique_together = ['amazon_ads', 'asin', 'sales_date', "campaign_type", "campaign_id", "ad_group_id"]
+
+    @property
+    def acos(self):
+        return round(self.cost / self.sales * 100, 2) if self.sales else 0
+
+    @property
+    def roas(self):
+        return round(self.sales / self.cost, 2) if self.cost else 0
+    
+    @property
+    def ctr(self):
+        return round(self.clicks / self.impressions * 100, 2) if self.impressions else 0
+
 
 
 class AmazonAdsSaleCampaign(models.Model):

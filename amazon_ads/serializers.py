@@ -27,6 +27,10 @@ def serialize_ads_sales_data(*, sales: QuerySet[AmazonAdsSaleAsin]) -> List[Dict
                 "campaign_id": sale.campaign_id,
                 "ad_group_name": sale.ad_group_name,
                 "ad_group_id": sale.ad_group_id,
+                "acos": sale.acos,
+                "roas": sale.roas,
+                "ctr": sale.ctr,
+                "campaign_type": sale.campaign_type,
             }
         )
     return serialized_data
@@ -68,7 +72,9 @@ def prepare_data_for_insertion(*, sales: List[Dict], campaign_type: str) -> List
             'orders': total_orders,
             'campaign_type': 'sponsored_products',  # Based on the data source
             'campaign_name': item.get('campaignName'),  # Taking first item's campaign name
-            'campaign_id': item.get('campaignId')  # Taking first item's campaign ID
+            'campaign_id': item.get('campaignId'),  # Taking first item's campaign ID
+            'ad_group_name': item.get('adGroupName'),
+            'ad_group_id': item.get('adGroupId'),
         }
         amazon_ads_sale_asin_data.append(model_data)
     return amazon_ads_sale_asin_data

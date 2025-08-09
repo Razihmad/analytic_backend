@@ -1,5 +1,5 @@
 import datetime
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from django.db.models import QuerySet, Q
 from django.db.models.manager import BaseManager
@@ -33,11 +33,20 @@ def bulk_create_return_data(*, data: List[SellerCentralReturn]):
 
 
 def get_seller_central_sales_data(
-    *, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]], fields: Optional[List[str]]
+    *, seller: Seller, start_date: datetime.date, end_date: datetime.date, asins: Optional[List[str]], fields: Optional[List[str]], query_params: Optional[Dict] = None
 ) -> QuerySet[SellerCentralSale]:
     base_filter = Q(seller=seller, sales_date__gte=start_date, sales_date__lte=end_date)
     if asins:
         base_filter &= Q(child_asin__in=asins)
+    if query_params:
+        for param, value in query_params.items():
+            if "__" in param:
+                field, lookup = param.split("__", 1)
+            else:
+                field, lookup = param, "exact"
+            lookup_exp = f"{field}__{lookup}"
+            base_filter &= Q(**{lookup_exp: value})
+
     data = SellerCentralSale.objects.filter(base_filter)
     if fields:
         return data.values("sales_date", *fields)

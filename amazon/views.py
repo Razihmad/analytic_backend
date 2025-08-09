@@ -194,6 +194,8 @@ class GetProductAnalysis(APIView):
         start_date = request.data.get("start_date")
         end_date = request.data.get("end_date")
         asins = request.data.get("asins", [])
+        query_params = request.query_params
+
         logger.info(f"{asins=}, {start_date=}, {end_date=}, {amazon_seller_id=}, {user.id=}")
         product_analysis = get_product_analysis(
             user_id=user.id,
