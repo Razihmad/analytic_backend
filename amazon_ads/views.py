@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.permissions import IsAuthenticated
 
+from amazon_ads.models import Targeting
 import utils.datetime as dt
 from amazon_ads.services import create_keyword, create_negative_keyword, create_negative_targeting, create_portfolio, delete_negative_keywords, fetch_ads_data_by_date, get_and_serialize_campaign_report_data, get_and_serialize_serach_term_report_data, get_and_serialize_targeting_report_data, get_negative_keywords, get_portfolios, get_targeting_graph_data, process_campaign_sb_report_file, start_fetching_amazon_ads_data, update_keyword
 from base.decorators import handle_exception
@@ -265,14 +266,23 @@ class CreateKeyword(APIView):
         user = request.user
         amazon_seller_id = request.data.get("amazon_seller_id")
         data = request.data.get("data")
+        campaign_type = request.data.get("campaign_type")
+        id = request.data.get("id")
         response, status_code = update_keyword(
             amazon_seller_id=amazon_seller_id,
             user_id=user.id,
             data=data,
             content_type="application/vnd.spKeyword.v3+json",
-            accept="application/vnd.spKeyword.v3+json"
+            accept="application/vnd.spKeyword.v3+json",
+            campaign_type=campaign_type
         )
         if status_code == 207:
+            for item in data:
+                logger.info(f"{item=}")
+                Targeting.objects.filter(id=item.get("id")).update(
+                    keyword_bid=item.get("bid"),
+                    keyword_status=item.get("state")
+                )
             return status_200(message="keyword updated", data={"message": "Keyword updated", "data": response})
         return status_200(message="keyword update failed", data={"message": "Keyword update failed", "data": response})
 

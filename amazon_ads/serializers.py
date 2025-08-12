@@ -278,6 +278,7 @@ def serialize_targeting_report(*, targeting_data: QuerySet[Targeting], campaign_
     result = []
     for data in targeting_data:
         result.append({
+            "id": data.id,
             "targeting": data.targeting,
             "keyword": data.keyword,
             "ad_group": data.ad_group_name,
@@ -288,7 +289,6 @@ def serialize_targeting_report(*, targeting_data: QuerySet[Targeting], campaign_
             "clicks": data.clicks,
             "units_sold": data.units_sold,
             "orders": data.orders,
-            "targetting": data.targeting,
             "campaign_name": data.campaign_name,
             "campaign_type": data.campaign_type,
             "campaign_id": data.campaign_id,
@@ -297,7 +297,9 @@ def serialize_targeting_report(*, targeting_data: QuerySet[Targeting], campaign_
             "keyword_type": data.keyword_type,
             "keyword_bid": data.keyword_bid,
             "targeting_date": data.targeting_date,
+            "keyword_status": data.keyword_status,
             "match_type": data.match_type,
+            "top_of_search_is": data.top_of_search_is,
             "acos": round(data.cost / data.sales * 100, 3) if data.sales else 0,
             "roas": round(data.sales / data.cost, 3) if data.cost else 0,
             "cvr": round(data.orders / data.clicks * 100, 3) if data.clicks else 0,
