@@ -39,3 +39,4 @@ class TargetingAdmin(admin.ModelAdmin):
     search_fields = ("targeting", "keyword", "campaign_name")
     # ordering = ("-search_term_date",)
     readonly_fields = ("seller",)
+    list_filter = (("targeting_date", DateRangeFilter), "campaign_type",  ('created_at', DateRangeFilter), )

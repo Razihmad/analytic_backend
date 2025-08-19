@@ -132,6 +132,7 @@ def get_targeting_report_data(
     ad_group_name: Optional[str] = None,
     query_params: Optional[Dict] = None,
     match_type: Optional[str] = None,
+    targeting: Optional[str] = None,
 ):
     base_filter = Q(seller_id=seller_id, targeting_date__range=[start_date, end_date])
     if query_params:
@@ -145,6 +146,8 @@ def get_targeting_report_data(
 
     if campaign_name:
         base_filter &= Q(campaign_name__icontains=campaign_name)
+    if targeting:
+        base_filter &= Q(targeting__icontains=targeting)
     if ad_group_name:
         base_filter &= Q(ad_group_name__icontains=ad_group_name)
     if match_type:
@@ -175,4 +178,4 @@ def get_targeting_report_data(
             default=ExpressionWrapper(F("clicks") / F("impressions") * 100, output_field=FloatField()),
             output_field=FloatField()
         ),
-    ).filter(base_filter)
+    ).filter(base_filter).order_by("-created_at")

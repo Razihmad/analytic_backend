@@ -316,6 +316,7 @@ class GetTargetingReportData(APIView):
         campaign_name = request.data.get("campaign_name")
         ad_group_name = request.data.get("ad_group_name")
         match_type = request.data.get("match_type")
+        targeting = request.data.get("search_term")
         query_params = request.query_params
         logger.info(f"{request.data=}, {query_params=}")
         data, aggregated_data = get_and_serialize_targeting_report_data(
@@ -327,6 +328,7 @@ class GetTargetingReportData(APIView):
             ad_group_name=ad_group_name,
             query_params=query_params,
             match_type=match_type,
+            targeting=targeting
         )
         return status_200(message="targeting report fetched", data={"data": data, "aggregated_data": aggregated_data})
 
