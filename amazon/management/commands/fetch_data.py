@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from amazon.tasks import fetch_sales_report_by_date_range
-from amazon_ads.tasks import start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetching_search_term_report
+from amazon_ads.tasks import start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetching_search_term_report, start_fetching_targeting_report
 import utils.datetime as dt
 from amazon.models import Seller
 
@@ -53,6 +53,18 @@ class Command(BaseCommand):
                 str(end_date),
                 country_code,
                 profile_id,
+                seller.id,
+                user_id,
+            ],
+            queue="process_ads_report"
+        )
+        start_fetching_targeting_report.apply_async(
+            args=[
+                amazon_seller_id,
+                str(start_date),
+                str(end_date),
+                country_code,
+                seller.profile_id,
                 seller.id,
                 user_id,
             ],
