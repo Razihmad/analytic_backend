@@ -239,22 +239,12 @@ class CreateKeyword(APIView):
     def post(self, request):
         logger.info(request.data)
         amazon_seller_id = request.data.get("amazon_seller_id")
-        campaign_id = request.data.get("campaign_id")
-        ad_group_id = request.data.get("ad_group_id")
-        keyword = request.data.get("keyword")
-        match_type = request.data.get("match_type")
-        state = request.data.get("state")
-        bid = request.data.get("bid")
+        keywords = request.data.get("keywords", [])
         user = request.user
         response, status_code = create_keyword(
             amazon_seller_id=amazon_seller_id,
             user_id=user.id,
-            campaign_id=campaign_id,
-            ad_group_id=ad_group_id,
-            keyword=keyword,
-            match_type=match_type,
-            state=state,
-            bid=bid
+            keywords=keywords
         )
         if status_code == 207:
             return status_200(message="keyword created", data={"message": "Keyword created", "data": response})

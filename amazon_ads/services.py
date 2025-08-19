@@ -419,14 +419,9 @@ def create_keyword(
     *,
     amazon_seller_id: str,
     user_id: int,
-    campaign_id: str,
-    ad_group_id: str,
-    keyword: str,
-    match_type: str,
-    state: str,
-    bid: float,
+    keywords: List[Dict],
 ) -> Tuple[Dict, int]:
-    logger.info(f"{amazon_seller_id=}, {user_id=}, {campaign_id=}, {ad_group_id=}, {keyword=}, {match_type=}, {state=}")
+    logger.info(f"{amazon_seller_id=}, {user_id=}, {keywords=}")
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
@@ -440,17 +435,18 @@ def create_keyword(
         data={
         "keywords": [
             {
-                "campaignId": campaign_id,
-                "adGroupId": ad_group_id,
-                "keywordText": keyword,
-                "matchType": match_type,
-                "state": state,
-                "bid": bid
-            }
+                "campaignId": keyword_data.get("campaign_id"),
+                "adGroupId": keyword_data.get("ad_group_id"),
+                "keywordText": keyword_data.get("keyword"),
+                "matchType": keyword_data.get("match_type"),
+                "state": keyword_data.get("state"),
+                "bid": keyword_data.get("bid")
+            } for keyword_data in keywords
         ]
     })
     logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
     return response, status_code
+
 
 def update_keyword(
     *,
