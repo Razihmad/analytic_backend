@@ -259,8 +259,8 @@ def get_asin_categorization_by_sales(*, user_id: int, amazon_seller_id: int, sta
     for data in total_sales_data:
         cur_data = asin_wise_sales[data["child_asin"]]
         ads_sales, ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=ads_sales_data, asin=data["child_asin"])
-        cur_data["ads_sales"] = ads_sales
-        cur_data["ads_spend"] = ads_spend
+        cur_data["ads_sales"] = int(ads_sales)
+        cur_data["ads_spend"] = int(ads_spend)
         total_sessions, sku = get_sessions_and_sku_of_asin(traffic_data=total_traffic_data, asin=data["child_asin"])
         cur_data["total_sessions"] = total_sessions + cur_data.get("total_sessions", 0)
         cur_data["sku"] = sku
