@@ -559,8 +559,7 @@ def create_negative_targeting(
     region = get_region_by_country_code(country_code=seller.country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     sp_data, sb_data = prepare_negative_targeting_data(products=products)
-    logger.info(f"{sp_data=}, {sb_data=}")
-    return {}, 207
+    logger.info(f"{sp_data=}, {sb_data=}, {user_id=}")
     if sp_data:
         status_code, response = amazon_ads_api.add_negative_product_targeting(
             access_token=access_token,
