@@ -285,18 +285,12 @@ class NegativeProductTargeting(APIView):
     def post(self, request):
         logger.info(request.data)
         amazon_seller_id = request.data.get("amazon_seller_id")
-        campaign_id = request.data.get("campaign_id")
-        ad_group_id = request.data.get("ad_group_id")
-        asin = request.data.get("asin")
-        campaign_type = request.data.get("campaign_type")
+        products = request.data.get("products", [])
         user = request.user
         response, status_code = create_negative_targeting(
             amazon_seller_id=amazon_seller_id,
             user_id=user.id,
-            campaign_id=campaign_id,
-            ad_group_id=ad_group_id,
-            asin=asin,
-            campaign_type=campaign_type
+            products=products
         )
         if status_code == 207:
             return status_200(message="negative product targeting created", data={"message": "Negative product targeting created", "data": response})
@@ -331,34 +325,3 @@ class GetTargetingReportData(APIView):
             targeting=targeting
         )
         return status_200(message="targeting report fetched", data={"data": data, "aggregated_data": aggregated_data})
-
-
-class GetTargetingReportGraphData(APIView):
-    authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    @handle_exception
-    def post(self, request):
-        start_date = request.data.get("start_date", str(dt.now(with_tz=True).date() - timedelta(days=8)))
-        end_date = request.data.get("end_date", str(dt.now(with_tz=True).date() - timedelta(days=2)))
-        amazon_seller_id = request.data.get("amazon_seller_id")
-        campaign_name = request.data.get("campaign_name")
-        ad_group_name = request.data.get("ad_group_name")
-        match_type = request.data.get("match_type")
-        query_params = request.query_params
-        logger.info(f"{request.data=}, {query_params=}")
-        data = get_targeting_graph_data(
-            user_id=request.user.id,
-            amazon_seller_id=amazon_seller_id,
-            start_date=start_date,
-            end_date=end_date,
-            campaign_name=campaign_name,
-            ad_group_name=ad_group_name,
-            match_type=match_type,
-            query_params=query_params
-        )
-
-        return status_200(
-            message="targeting report graph data fetched",
-            data={"message": "Targeting report graph data fetched", "data": data}
-        )

@@ -514,17 +514,52 @@ def list_keywords(*, amazon_seller_id: str, user_id: int) -> List[Dict]:
     )
     return response
 
+def prepare_negative_targeting_data(*, products: List[Dict]) -> Tuple[List[Dict], List[Dict]]:
+    sp_data = []
+    sb_data = []
+    for product in products:
+        logger.info(f"{product=}, {product.get('campaign_type')=}")
+        if product.get("campaign_type") == AdProduct.SPONSORED_PRODUCTS.value:
+            for ad_group_id in product.get("ad_group_ids"):
+                data = {
+                    "expression": [
+                        {
+                            "type": "ASIN_SAME_AS", 
+                            "value": product.get("asin"),
+                        }
+                    ],
+                    "campaignId": product.get("campaign_id"),
+                    "adGroupId": ad_group_id,
+                    "state": "ENABLED"
+                }
+                sp_data.append(data)
+        elif product.get("campaign_type") == AdProduct.SPONSORED_BRANDS.value:
+            for ad_group_id in product.get("ad_group_ids"):
+                data = {
+                        "expression": [
+                            {
+                                "type": "asinBrandSameAs", 
+                                "value": product.get("asin"),
+                            }
+                        ],
+                        "campaignId": product.get("campaign_id"),
+                        "adGroupId": product.get("ad_group_id"),
+                    }
+            sb_data.append(data)
+    return sp_data, sb_data
 
 
 def create_negative_targeting(
-    *, amazon_seller_id: str, user_id: int, campaign_id: str, ad_group_id: str, asin: str, campaign_type: str
+    *, amazon_seller_id: str, user_id: int, products: List[Dict]
 ) -> Tuple[Dict, int]:
+    
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
     region = get_region_by_country_code(country_code=seller.country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
-    if campaign_type == AdProduct.SPONSORED_PRODUCTS.value:        
+    sp_data, sb_data = prepare_negative_targeting_data(products=products)
+    if sp_data:
         status_code, response = amazon_ads_api.add_negative_product_targeting(
             access_token=access_token,
             region=region,
@@ -533,24 +568,12 @@ def create_negative_targeting(
             content_type="application/vnd.spNegativeTargetingClause.v3+json",
             accept="application/vnd.spNegativeTargetingClause.v3+json",
             data={
-                "negativeTargets": [
-                    {
-                        "expression": [
-                            {
-                                "type": "ASIN_SAME_AS", 
-                                "value": asin,
-                            }
-                        ],
-                        "campaignId": campaign_id,
-                        "adGroupId": ad_group_id,
-                        "state": "ENABLED"
-                    }
-                ]
+                "negativeTargets": sp_data
             }
         )
         logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
         return response, status_code
-    elif campaign_type == AdProduct.SPONSORED_BRANDS.value:
+    elif sb_data:
         status_code, response = amazon_ads_api.add_negative_product_targeting(
             access_token=access_token,
             region=region,
@@ -558,18 +581,7 @@ def create_negative_targeting(
             endpoint="/sb/negativeTargets",
             content_type="application/json",
             data={
-                "negativeTargets": [
-                    {
-                        "expressions": [
-                            {
-                                "type": "asinBrandSameAs", 
-                                "value": asin,
-                            }
-                        ],
-                        "campaignId": campaign_id,
-                        "adGroupId": ad_group_id,
-                    }
-                ]
+                "negativeTargets": sb_data
             }
         )
         logger.info(f"{status_code=}, {amazon_seller_id=}, {user_id=}")
