@@ -453,6 +453,8 @@ def prepare_keyword_and_targeting_data(*, data: List[Dict]) -> Tuple[Dict, Dict]
     sp_targetings = []
     sd_keywords = []
     sd_targetings = []
+    sb_keywords = []
+    sb_targetings = []
     for item in data:
         if item.get("campaign_type") == AdProduct.SPONSORED_PRODUCTS.value:
             if item.get("match_type") in ["EXACT", "PHRASE", "BROAD"]:
@@ -470,8 +472,16 @@ def prepare_keyword_and_targeting_data(*, data: List[Dict]) -> Tuple[Dict, Dict]
                 })
 
         elif item.get("campaign_type") == AdProduct.SPONSORED_DISPLAY.value:
+            # in SP Display we have only targeting
+            sd_targetings.append({
+                "targetId": item.get("keyword_id"),
+                "bid": item.get("bid"),
+                "state": item.get("state").lower()
+            })
+
+        elif item.get("campaign_type") == AdProduct.SPONSORED_BRANDS.value:
             if item.get("match_type") in ["EXACT", "PHRASE", "BROAD"]:
-                sd_keywords.append({
+                sb_keywords.append({
                     "keywordId": item.get("keyword_id"),
                     "bid": item.get("bid"),
                     "state": item.get("state"),
@@ -479,13 +489,13 @@ def prepare_keyword_and_targeting_data(*, data: List[Dict]) -> Tuple[Dict, Dict]
                     "campaignId": item.get("campaign_id"),
                 })
             else:
-                sd_targetings.append({
+                sb_targetings.append({
                     "targetId": item.get("keyword_id"),
                     "bid": item.get("bid"),
                     "state": item.get("state")
                 })
 
-    return sp_keywords, sp_targetings, sd_keywords, sd_targetings
+    return sp_keywords, sp_targetings, sd_keywords, sd_targetings, sb_keywords, sb_targetings
 
 
 def update_keyword(
@@ -498,7 +508,7 @@ def update_keyword(
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
     region = get_region_by_country_code(country_code=seller.country_code)
-    sp_keywords, sp_targetings, sd_keywords, sd_targetings = prepare_keyword_and_targeting_data(data=data)
+    sp_keywords, sp_targetings, sd_keywords, sd_targetings, sb_keywords, sb_targetings = prepare_keyword_and_targeting_data(data=data)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     logger.info(f"{sp_keywords=}, {sp_targetings=}, {sd_keywords=}, {sd_targetings=}, {user_id=}")
     if sp_keywords:
@@ -537,31 +547,30 @@ def update_keyword(
             content_type="application/json",
         )
         return response, status_code
+    
+    if sb_keywords:
+        status_code, response = amazon_ads_api.update_keyword(
+            access_token=access_token,
+            region=region,
+            profile_id=seller.profile_id,
+            endpoint="/sb/keywords",
+            data=sb_keywords,
+            content_type="application/json",
+        )
+        return response, status_code
+    
+    if sb_targetings:
+        status_code, response = amazon_ads_api.update_targeting_by_target_id(
+            access_token=access_token,
+            region=region,
+            profile_id=seller.profile_id,
+            endpoint="/sb/targets",
+            data={"targets": sb_targetings},
+            content_type="application/json",
+        )
+        return response, status_code
 
-    # if campaign_type == AdProduct.SPONSORED_PRODUCTS.value:
-    #     status_code, response = amazon_ads_api.update_keyword(
-    #         access_token=access_token,
-    #         region=region,
-    #         profile_id=seller.profile_id,
-    #         endpoint=KeywordEndpoint.CREATE.value,
-    #         data={
-    #             "keywords": data
-    #         },
-    #         content_type=content_type,
-    #         accept=accept
-    #     )
-    #     return response, status_code
-
-    # status_code, response = amazon_ads_api.update_keyword(
-    #     access_token=access_token,
-    #     region=region,
-    #     profile_id=seller.profile_id,
-    #     endpoint="/sb/keywords",
-    #     data=data,
-    #     content_type="application/json",
-    #     accept="application/json"
-    # )
-    return response, status_code
+    return {}, 200
 
 
 def delete_negative_keywords(*, amazon_seller_id: str, user_id: int, campaign_ids: List[str], ad_group_ids: List[str]) -> Dict:

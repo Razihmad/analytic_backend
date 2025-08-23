@@ -148,12 +148,13 @@ class AmazonAds:
         endpoint: str,
         data: Dict,
         content_type: str,
-        accept: str,
+        accept: Optional[str] = None,
     ) -> Tuple[int, Dict]:
         headers = self._get_headers(access_token=access_token, profile_id=profile_id)
         base_url = self._get_base_url(region=region)
         headers["Content-Type"] = content_type
-        headers["Accept"] = accept
+        if accept:
+            headers["Accept"] = accept
         url = base_url + endpoint
         response = requests.put(url=url, headers=headers, json=data)
         return response.status_code, response.json()
