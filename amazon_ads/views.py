@@ -246,6 +246,7 @@ class CreateKeyword(APIView):
             user_id=user.id,
             keywords=keywords
         )
+        logger.info(f"{response=}, {status_code=}, {user.id=}")
         if status_code == 207:
             return status_200(message="keyword created", data={"message": "Keyword created", "data": response})
         return status_200(message="keyword creation failed", data={"message": "Keyword creation failed", "data": response})
@@ -256,16 +257,12 @@ class CreateKeyword(APIView):
         user = request.user
         amazon_seller_id = request.data.get("amazon_seller_id")
         data = request.data.get("data")
-        campaign_type = request.data.get("campaign_type")
-        id = request.data.get("id")
         response, status_code = update_keyword(
             amazon_seller_id=amazon_seller_id,
             user_id=user.id,
             data=data,
-            content_type="application/vnd.spKeyword.v3+json",
-            accept="application/vnd.spKeyword.v3+json",
-            campaign_type=campaign_type
         )
+        logger.info(f"{response=}, {status_code=}, {user.id=}")
         if status_code == 207:
             for item in data:
                 logger.info(f"{item=}")

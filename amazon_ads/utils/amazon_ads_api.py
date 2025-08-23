@@ -177,6 +177,23 @@ class AmazonAds:
         response = requests.post(url=url, headers=headers, json=data)
         return response.status_code, response.json()
     
+    def update_targeting_by_target_id(
+        self,
+        access_token: str,
+        region: str,
+        profile_id: str,
+        endpoint: str,
+        data: Dict,
+        content_type: str,
+    ) -> Tuple[int, Dict]:
+        headers = self._get_headers(access_token=access_token, profile_id=profile_id)
+        base_url = self._get_base_url(region=region)
+        headers["Content-Type"] = content_type
+        headers["Accept"] = content_type
+        url = base_url + endpoint
+        response = requests.put(url=url, headers=headers, json=data)
+        return response.status_code, response.json()
+
     # def sb_negative_targeting(
     #     self,
     #     access_token: str,

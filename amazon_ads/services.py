@@ -448,43 +448,119 @@ def create_keyword(
     return response, status_code
 
 
+def prepare_keyword_and_targeting_data(*, data: List[Dict]) -> Tuple[Dict, Dict]:
+    sp_keywords = []
+    sp_targetings = []
+    sd_keywords = []
+    sd_targetings = []
+    for item in data:
+        if item.get("campaign_type") == AdProduct.SPONSORED_PRODUCTS.value:
+            if item.get("match_type") in ["EXACT", "PHRASE", "BROAD"]:
+                sp_keywords.append({
+                    "keywordId": item.get("keyword_id"),
+                    "bid": item.get("bid"),
+                    "state": item.get("state")
+                })
+            else:
+                # {'targetingClauses': [{'bid': 17.18, 'targetId': '166723612143632'}]}
+                sp_targetings.append({
+                    "targetId": item.get("keyword_id"),
+                    "bid": item.get("bid"),
+                    "state": item.get("state")
+                })
+
+        elif item.get("campaign_type") == AdProduct.SPONSORED_DISPLAY.value:
+            if item.get("match_type") in ["EXACT", "PHRASE", "BROAD"]:
+                sd_keywords.append({
+                    "keywordId": item.get("keyword_id"),
+                    "bid": item.get("bid"),
+                    "state": item.get("state"),
+                    "adGroupId": item.get("ad_group_id"),
+                    "campaignId": item.get("campaign_id"),
+                })
+            else:
+                sd_targetings.append({
+                    "targetId": item.get("keyword_id"),
+                    "bid": item.get("bid"),
+                    "state": item.get("state")
+                })
+
+    return sp_keywords, sp_targetings, sd_keywords, sd_targetings
+
+
 def update_keyword(
     *,
     amazon_seller_id: str,
     user_id: int,
     data: Dict,
-    content_type: str,
-    accept: str,
-    campaign_type: str,
 ) -> Tuple[Dict, int]:
     seller = get_ads_profile_by_user_and_seller_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     if not seller:
         raise ServiceException(f"seller does not exist {amazon_seller_id=}")
     region = get_region_by_country_code(country_code=seller.country_code)
+    sp_keywords, sp_targetings, sd_keywords, sd_targetings = prepare_keyword_and_targeting_data(data=data)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
-    if campaign_type == AdProduct.SPONSORED_PRODUCTS.value:
+    logger.info(f"{sp_keywords=}, {sp_targetings=}, {sd_keywords=}, {sd_targetings=}, {user_id=}")
+    if sp_keywords:
         status_code, response = amazon_ads_api.update_keyword(
             access_token=access_token,
             region=region,
             profile_id=seller.profile_id,
             endpoint=KeywordEndpoint.CREATE.value,
             data={
-                "keywords": data
+                "keywords": sp_keywords
             },
-            content_type=content_type,
-            accept=accept
+            content_type="application/vnd.spKeyword.v3+json",
+            accept="application/vnd.spKeyword.v3+json"
+        )
+        return response, status_code
+    if sp_targetings:
+        status_code, response = amazon_ads_api.update_targeting_by_target_id(
+            access_token=access_token,
+            region=region,
+            profile_id=seller.profile_id,
+            endpoint="/sp/targets",
+            data={
+                "targetingClauses": sp_targetings
+            },
+            content_type="application/vnd.spTargetingClause.v3+json",
         )
         return response, status_code
 
-    status_code, response = amazon_ads_api.update_keyword(
-        access_token=access_token,
-        region=region,
-        profile_id=seller.profile_id,
-        endpoint="/sb/keywords",
-        data=data,
-        content_type="application/json",
-        accept="application/json"
-    )
+    if sd_targetings:
+        status_code, response = amazon_ads_api.update_targeting_by_target_id(
+            access_token=access_token,
+            region=region,
+            profile_id=seller.profile_id,
+            endpoint="/sd/targets",
+            data=sd_targetings,
+            content_type="application/json",
+        )
+        return response, status_code
+
+    # if campaign_type == AdProduct.SPONSORED_PRODUCTS.value:
+    #     status_code, response = amazon_ads_api.update_keyword(
+    #         access_token=access_token,
+    #         region=region,
+    #         profile_id=seller.profile_id,
+    #         endpoint=KeywordEndpoint.CREATE.value,
+    #         data={
+    #             "keywords": data
+    #         },
+    #         content_type=content_type,
+    #         accept=accept
+    #     )
+    #     return response, status_code
+
+    # status_code, response = amazon_ads_api.update_keyword(
+    #     access_token=access_token,
+    #     region=region,
+    #     profile_id=seller.profile_id,
+    #     endpoint="/sb/keywords",
+    #     data=data,
+    #     content_type="application/json",
+    #     accept="application/json"
+    # )
     return response, status_code
 
 
