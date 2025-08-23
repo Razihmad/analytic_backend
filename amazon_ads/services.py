@@ -472,19 +472,21 @@ def prepare_keyword_and_targeting_data(*, data: List[Dict]) -> Tuple[Dict, Dict]
                 })
 
         elif item.get("campaign_type") == AdProduct.SPONSORED_DISPLAY.value:
-            # in SP Display we have only targeting
-            sd_targetings.append({
+            target_to_update = {
                 "targetId": item.get("keyword_id"),
-                "bid": item.get("bid"),
                 "state": item.get("state").lower()
-            })
+            }
+            # in SP Display we have only targeting
+            if item.get("bid"):
+                target_to_update["bid"] = item.get("bid")
+            sd_targetings.append(target_to_update)
 
         elif item.get("campaign_type") == AdProduct.SPONSORED_BRANDS.value:
             if item.get("match_type") in ["EXACT", "PHRASE", "BROAD"]:
                 sb_keywords.append({
                     "keywordId": item.get("keyword_id"),
                     "bid": item.get("bid"),
-                    "state": item.get("state"),
+                    "state": item.get("state").lower(),
                     "adGroupId": item.get("ad_group_id"),
                     "campaignId": item.get("campaign_id"),
                 })
@@ -492,7 +494,9 @@ def prepare_keyword_and_targeting_data(*, data: List[Dict]) -> Tuple[Dict, Dict]
                 sb_targetings.append({
                     "targetId": item.get("keyword_id"),
                     "bid": item.get("bid"),
-                    "state": item.get("state")
+                    "state": item.get("state").lower(),
+                    "adGroupId": item.get("ad_group_id"),
+                    "campaignId": item.get("campaign_id"),
                 })
 
     return sp_keywords, sp_targetings, sd_keywords, sd_targetings, sb_keywords, sb_targetings
@@ -510,7 +514,7 @@ def update_keyword(
     region = get_region_by_country_code(country_code=seller.country_code)
     sp_keywords, sp_targetings, sd_keywords, sd_targetings, sb_keywords, sb_targetings = prepare_keyword_and_targeting_data(data=data)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
-    logger.info(f"{sp_keywords=}, {sp_targetings=}, {sd_keywords=}, {sd_targetings=}, {user_id=}")
+    logger.info(f"{sp_keywords=}, {sp_targetings=}, {sd_keywords=}, {sd_targetings=}, {sb_keywords=}, {sb_targetings=}, {user_id=}")
     if sp_keywords:
         status_code, response = amazon_ads_api.update_keyword(
             access_token=access_token,
