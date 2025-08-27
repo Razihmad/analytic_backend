@@ -29,6 +29,7 @@ class LoginWithAmazon:
             "application_id": self.app_id,
             "state": marketplace_id
         }
+        logger.info(f"query_params: {country=}, {country_code=}, {query_params=}, {base_url=}, {self.environment=}")
         if self.environment != Environment.PRODUCTION.value:
             query_params["version"] = "beta"
         path = "/apps/authorize/consent"
