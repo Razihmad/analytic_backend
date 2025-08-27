@@ -17,7 +17,7 @@ from authentication.services import get_ads_access_token
 import utils.datetime as dt
 from amazon.models import Seller
 from amazon_ads.selectors import bulk_upsert_amazon_ads_campaign_sales, get_ads_profile_by_user_and_seller_id, get_ads_sales_data, get_asins_by_camapagin_ids, get_campaign_sales_report, get_serach_term_report_data, get_targeting_report_data
-from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data, serialize_campaign_sales_report, serialize_search_term_report, serialize_targeting_report
+from amazon_ads.serializers import group_ads_sales_data_by_date, serialize_ads_sales_data, serialize_campaign_sales_report, serialize_campaign_sales_report_data, serialize_search_term_report, serialize_targeting_report
 from amazon_ads.tasks import (
     start_fetching_ad_sales_data_by_campaign, start_fetching_amazon_ads_by_date_range, start_fetching_amazon_ads_campaign_by_date_range, start_fetching_search_term_report, start_fetching_targeting_report, start_fetcing_ad_sales_data_by_asin
 )
@@ -92,6 +92,21 @@ def get_ads_sales(*, seller: Optional[Seller], start_date: datetime.date, end_da
     ads_sales = get_ads_sales_data(profile=seller, start_date=start_date, end_date=end_date, asins=asins, fields=fields)
     ads_sales_data = serialize_ads_sales_data(sales=ads_sales)
     return ads_sales_data
+
+def get_campaign_sales_data(
+    *,
+    seller: Seller,
+    start_date: datetime.date,
+    end_date: datetime.date,
+) -> List[Dict]:
+    logger.info(f"{seller.user_id=}, {seller.amazon_seller_id=}, {start_date=}, {end_date=}")
+    campaign_sales = get_campaign_sales_report(
+        seller_id=seller.id,
+        start_date=start_date,
+        end_date=end_date,
+    )
+    campaign_sales_data = serialize_campaign_sales_report_data(campaign_sales=campaign_sales)
+    return campaign_sales_data
 
 
 def verify_and_get_ads_profile(*, user_id: int, amazon_seller_id: Optional[str]) -> Optional[Seller]:

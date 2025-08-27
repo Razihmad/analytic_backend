@@ -15,7 +15,7 @@ from amazon.serializers import (
 from amazon.tasks import fetch_seller_central_report_data_by_date, fetch_seller_central_return_report_data_by_date
 from amazon_ads.constants import GraphDataType
 from amazon_ads.selectors import get_ads_sales_data
-from amazon_ads.services import get_ads_data_for_graph, get_ads_sales, verify_and_get_ads_profile
+from amazon_ads.services import get_ads_data_for_graph, get_ads_sales, get_campaign_sales_data, verify_and_get_ads_profile
 from authentication.services import get_access_token
 from base.exception import ServiceException
 import utils.datetime as dt
@@ -158,7 +158,6 @@ def get_sales_report_data(
     amazon_seller_id: str,
     start_date_str: str,
     end_date_str: str,
-    asins: Optional[str] = None,
     prev_start_date: str,
     prev_end_date: str,
 ) -> Dict:
@@ -173,11 +172,11 @@ def get_sales_report_data(
     current_total_traffic = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
     prev_total_traffiic = get_total_traffic(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
 
-    current_period_ads_sales = get_ads_sales(
-        seller=seller, start_date=start_date, end_date=end_date, asins=asins
+    current_period_ads_sales = get_campaign_sales_data(
+        seller=seller, start_date=start_date, end_date=end_date
     )
-    prev_period_ads_sales = get_ads_sales(
-        seller=seller, start_date=prev_start_date, end_date=prev_end_date, asins=asins
+    prev_period_ads_sales = get_campaign_sales_data(
+        seller=seller, start_date=prev_start_date, end_date=prev_end_date
     )
     current_period_report = process_total_and_sales_data(
         total_sales=current_period_total_sales, ads_sale=current_period_ads_sales, traffic_data=current_total_traffic

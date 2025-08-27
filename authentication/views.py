@@ -38,8 +38,8 @@ class AmazonLogin(APIView):
 
     @handle_exception
     def post(self, request):
-        country = request.GET.get("country", "India")
-        country_code = request.GET.get("country_code", "IN")
+        country = request.data.get("country", "India")
+        country_code = request.data.get("country_code", "IN")
         logger.info(f"country: {country}, country_code: {country_code}")
         url, marketplace_id = get_amazon_login_uri(country=country, country_code=country_code)
         request.session["state"] = marketplace_id
