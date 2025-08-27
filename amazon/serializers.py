@@ -89,6 +89,7 @@ def process_total_and_sales_data(*, total_sales: List[Dict], ads_sale: List[Dict
         total_sales_data["total_orders"] += sale["orders"]
         total_sales_data["total_units"] += sale["units_ordered"]
 
+    total_sales_data["total_revenue"] = int(total_sales_data["total_revenue"])
     for sale in ads_sale:
         total_sales_data["ads_revenue"] += sale["sales"]
         total_sales_data["ads_spend"] += sale["spend"]

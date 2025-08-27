@@ -167,8 +167,8 @@ def get_sales_report_data(
     prev_start_date = dt.convert_str_to_date(date_str=prev_start_date)
     prev_end_date = dt.convert_str_to_date(date_str=prev_end_date)
     seller = verify_and_get_seller(user_id=user_id, amazon_seller_id=amazon_seller_id)
-    current_period_total_sales = get_total_sales(seller=seller, start_date=start_date, end_date=end_date, asins=asins)
-    prev_period_total_sales = get_total_sales(seller=seller, start_date=prev_start_date, end_date=prev_end_date, asins=asins)
+    current_period_total_sales = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
+    prev_period_total_sales = get_total_sales(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
     current_total_traffic = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
     prev_total_traffiic = get_total_traffic(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
 
