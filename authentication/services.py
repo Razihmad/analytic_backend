@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_amazon_login_uri(*, country: str, country_code: str):
-
+    logger.info(f"country: {country}, country_code: {country_code}")
     return amazon_login.generate_login_url(country=country, country_code=country_code)
 
 
