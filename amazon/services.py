@@ -54,6 +54,7 @@ def prepare_and_bulk_create_sales_data(*, data: List[Dict]):
             units_ordered=sale["units_ordered"],
             sales=sale["sales"],
             orders=sale["orders"],
+            sku=sale["sku"],
         )
         for sale in data
     ]

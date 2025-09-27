@@ -68,6 +68,7 @@ def prepare_data_to_bulk_upsert(
                 campaign_id=item["campaign_id"],
                 ad_group_name=item["ad_group_name"],
                 ad_group_id=item["ad_group_id"],
+                sku=item["sku"],
             )
         )
     return bulk_upsert_data
