@@ -1,8 +1,10 @@
 from django.contrib import admin
 from rangefilter.filters import DateRangeFilter
+from import_export.admin import ImportExportModelAdmin
 
 # Register your models here.
-from amazon.models import Seller, SellerCentralSale, RegionDetail, SellerCentralTraffic
+from amazon.models import AsinMapper, Seller, SellerCentralSale, RegionDetail, SellerCentralTraffic
+from amazon.resources import AsinMapperResource
 
 
 @admin.register(SellerCentralSale)
@@ -40,3 +42,24 @@ class RegionDetailAdmin(admin.ModelAdmin):
     list_filter = ('marketplace_id', 'is_active')
     search_fields = ('country', 'region')
     ordering = ('marketplace_id',)
+
+
+@admin.register(AsinMapper)
+class AsinMapperAdmin(ImportExportModelAdmin):
+    resource_class = AsinMapperResource
+    list_display = ('asin', 'sku', 'title', 'product_type', 'product', 'created_at')
+    search_fields = ('asin', 'sku', 'title', 'product')
+    list_filter = ('product_type', 'product', 'created_at')
+    ordering = ('-created_at',)
+    
+    # Import/Export settings
+    import_template_name = 'admin/import_export/import.html'
+    export_template_name = 'admin/import_export/export.html'
+    
+    # Configure import settings
+    def get_import_resource_kwargs(self, request, *args, **kwargs):
+        return {
+            'import_id_fields': ('asin', 'sku'),
+            'skip_unchanged': True,
+            'report_skipped': True,
+        }

@@ -103,3 +103,16 @@ class SearchQueryMarketBasket(models.Model):
 
     class Meta:
         unique_together = ["seller", "asin", "purchased_with_asin", "report_period"]
+
+
+class AsinMapper(models.Model):
+    asin = models.CharField(max_length=255)
+    title = models.CharField(max_length=255)
+    sku = models.CharField(max_length=255)
+    product_type = models.CharField(max_length=255)
+    product = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self) -> str:
+        return f"{self.asin} | {self.sku}"
