@@ -1,9 +1,12 @@
+import logging
 from typing import Dict, List, Union
 
 from django.db.models import QuerySet
 from django.db.models.manager import BaseManager
 from amazon.models import SearchQueryMarketBasket, Seller, SellerCentralSale, SellerCentralTraffic, RegionDetail
 from collections import defaultdict
+
+logger = logging.getLogger(__name__)
 
 
 def serialize_seller_central_sales(*, sales: QuerySet[SellerCentralSale]) -> List[Dict]:
@@ -17,6 +20,7 @@ def serialize_seller_central_sales(*, sales: QuerySet[SellerCentralSale]) -> Lis
                 "units_ordered": sale.units_ordered,
                 "sales": sale.sales,
                 "orders": sale.orders,
+                "sku": sale.sku,
             }
         )
     return result
@@ -193,4 +197,66 @@ def serialize_search_query_market_basket(*, data: QuerySet[SearchQueryMarketBask
                 "end_date": data.end_date,
             }
         )
+    return result
+
+
+def serialize_ads_sales_with_asin_mapper(*, ads_sales_data: List[Dict], asin_mapper_dict: Dict) -> List[Dict]:
+    result = []
+    for data in ads_sales_data:
+        if (data["asin"], data["sku"]) in asin_mapper_dict:
+            result.append({
+                "asin": ads_sales_data["asin"],
+                "sku": ads_sales_data["sku"],
+                "sales": ads_sales_data["sales"],
+                "spend": ads_sales_data["spend"],
+                "product": asin_mapper_dict[(data["asin"], data["sku"])].product,
+                "product_type": asin_mapper_dict[(data["asin"], data["sku"])].product_type,
+            })
+        else:
+            logger.error(f"Asin {data['asin']} with sku {data['sku']} not found in asin_mapper_dict")
+
+    return result
+
+
+def serialize_seller_central_sales_with_asin_mapper(*, total_sales_data: List[Dict], asin_mapper_dict: Dict) -> List[Dict]:
+    result = []
+    for data in total_sales_data:
+        if (data["child_asin"], data["sku"]) in asin_mapper_dict:
+            result.append({
+                "asin": data["child_asin"],
+                "parent_asin": data["parent_asin"],
+                "sales_date": data["sales_date"],
+                "units_ordered": data["units_ordered"],
+                "sales": data["sales"],
+                "orders": data["orders"],
+                "product": asin_mapper_dict[(data["child_asin"], data["sku"])].product,
+                "product_type": asin_mapper_dict[(data["child_asin"], data["sku"])].product_type,
+            })
+        else:
+            logger.error(f"Asin {data['child_asin']} with sku {data['sku']} not found in asin_mapper_dict")
+    return result
+
+
+def serialize_seller_central_traffic_with_asin_mapper(*, traffics: QuerySet[SellerCentralTraffic], asin_mapper_dict: Dict) -> List[Dict]:
+    result = []
+    for traffic in traffics:
+        if (traffic["child_asin"], traffic["sku"]) in asin_mapper_dict:
+            result.append(
+                {
+                    "asin": traffic.child_asin,
+                    "sku": traffic.sku,
+                    "sessions_date": traffic.sessions_date,
+                    "browser_sessions": traffic.browser_sessions,
+                    "mobile_app_sessions": traffic.mobile_app_sessions,
+                    "browser_page_views": traffic.browser_page_views,
+                    "mobile_app_page_views": traffic.mobile_app_page_views,
+                    "unit_sessions_percentage": traffic.unit_sessions_percentage,
+                    "total_sessions": traffic.total_sessions,
+                    "product": asin_mapper_dict[(traffic.child_asin, traffic.sku)].product,
+                    "product_type": asin_mapper_dict[(traffic.child_asin, traffic.sku)].product_type,
+                }
+                )
+        else:
+            logger.error(f"Asin {traffic['child_asin']} with sku {traffic['sku']} not found in asin_mapper_dict")
+
     return result

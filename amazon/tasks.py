@@ -114,6 +114,7 @@ def process_report_document_and_create_entry(url, seller_id):
             "units_ordered": data["salesByAsin"]["unitsOrdered"],
             "sales": data["salesByAsin"]["orderedProductSales"]["amount"],
             "orders": data["salesByAsin"]["totalOrderItems"],
+            "sku": data["sku"],
         }
         asin_traffic = {
             "seller_id": seller_id,

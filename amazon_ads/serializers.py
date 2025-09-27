@@ -54,6 +54,7 @@ def prepare_data_for_insertion(*, sales: List[Dict], campaign_type: str) -> List
         total_orders = item.get('purchases14d', 0) if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('purchases', 0)
         date = item.get('date', '')
         asin = item.get('advertisedAsin', '') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('promotedAsin', '')
+        sku = item.get('advertisedSku', '') if campaign_type == AdProduct.SPONSORED_PRODUCTS.value else item.get('promotedSku', '')
         # Calculate CPC
         cpc = float('0')
         if total_clicks > 0:
@@ -75,6 +76,7 @@ def prepare_data_for_insertion(*, sales: List[Dict], campaign_type: str) -> List
             'campaign_id': item.get('campaignId'),  # Taking first item's campaign ID
             'ad_group_name': item.get('adGroupName'),
             'ad_group_id': item.get('adGroupId'),
+            'sku': sku,
         }
         amazon_ads_sale_asin_data.append(model_data)
     return amazon_ads_sale_asin_data

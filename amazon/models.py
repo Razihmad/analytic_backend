@@ -31,6 +31,7 @@ class SellerCentralSale(models.Model):
     units_ordered = models.IntegerField()
     sales = models.FloatField()
     orders = models.IntegerField()
+    sku = models.CharField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -38,7 +39,7 @@ class SellerCentralSale(models.Model):
         return f"{self.seller.amazon_seller_id}"
 
     class Meta:
-        unique_together = ["seller", "child_asin", "sales_date"]
+        unique_together = ["seller", "child_asin", "sales_date", "sku"]
 
 
 class SellerCentralTraffic(models.Model):

@@ -85,6 +85,7 @@ SP_ADVERTISED_PRODUCT_COLUMNS = [
     "date",
     "costPerClick",
     "advertisedAsin",
+    "advertisedSku"
     "impressions",
     "clicks",
     "cost",
@@ -102,7 +103,7 @@ SP_ADVERTISED_PRODUCT_COLUMNS = [
 ]
 
 SD_ADVERTISED_PRODUCT_COLUMNS = [
-    "date", "impressions", "clicks", "cost", "sales", "promotedAsin", "purchases", "unitsSoldClicks", "campaignName", "campaignId", "adGroupId", "adGroupName"
+    "date", "impressions", "clicks", "cost", "sales", "promotedAsin", "promotedSku", "purchases", "unitsSoldClicks", "campaignName", "campaignId", "adGroupId", "adGroupName"
 ]
 
 AD_PRODUCT_COLUMN_MAPPING = {

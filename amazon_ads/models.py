@@ -7,6 +7,7 @@ from amazon.models import Seller
 class AmazonAdsSaleAsin(models.Model):
     amazon_ads = models.ForeignKey(Seller, on_delete=models.CASCADE)
     asin = models.CharField(max_length=255)
+    sku = models.CharField(max_length=255, null=True, blank=True)
     sales_date = models.DateField()
     sales = models.FloatField()
     units_sold = models.IntegerField()
@@ -25,7 +26,7 @@ class AmazonAdsSaleAsin(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ['amazon_ads', 'asin', 'sales_date', "campaign_type", "campaign_id", "ad_group_id"]
+        unique_together = ['amazon_ads', 'asin', 'sales_date', "campaign_type", "campaign_id", "ad_group_id", "sku"]
 
     @property
     def acos(self):

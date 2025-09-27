@@ -3,14 +3,19 @@ import logging
 import datetime
 from typing import Dict, List, Optional, Tuple
 
+from click import group
+
 
 from amazon.serializers import (
     group_total_sales_data_by_date,
     process_total_and_sales_data,
+    serialize_ads_sales_with_asin_mapper,
     serialize_amazon_profile_account,
     serialize_regions_details,
     serialize_seller_central_sales,
-    serialize_seller_central_traffic
+    serialize_seller_central_sales_with_asin_mapper,
+    serialize_seller_central_traffic,
+    serialize_seller_central_traffic_with_asin_mapper
 )
 from amazon.tasks import fetch_seller_central_report_data_by_date, fetch_seller_central_return_report_data_by_date
 from amazon_ads.constants import GraphDataType
@@ -247,6 +252,8 @@ def get_asin_categorization_by_sales(
     prev_end_date: str,
     group_by: str,
 ) -> Tuple[List, List, List]:
+    group_by = group_by.lower()
+
     logger.info(f"{start_date=}, {end_date=}, {user_id=}, {amazon_seller_id=}, {prev_start_date=}, {prev_end_date=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
@@ -254,33 +261,43 @@ def get_asin_categorization_by_sales(
     prev_end_date = dt.convert_str_to_date(date_str=prev_end_date)
     seller = get_seller_by_user_id(user_id=user_id, amazon_seller_id=amazon_seller_id)
     logger.info(f"{start_date=}, {end_date=}, {user_id=}, {seller=}")
-    total_sales_data = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
-    prev_total_sales_data = get_total_sales(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
-    total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
-    prev_total_traffic_data = get_total_traffic(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
-    ads_sales_data = get_ads_sales_data(
-        profile=seller, start_date=start_date, end_date=end_date, fields=["sales", "spend", "asin"], asins=None
-    )
-    prev_ads_sales_data = get_ads_sales_data(
-        profile=seller, start_date=prev_start_date, end_date=prev_end_date, fields=["sales", "spend", "asin"], asins=None
-    )
-    ads_sales_data = group_ads_data_by_asin(total_ads_sales=ads_sales_data)
-    prev_ads_sales_data = group_ads_data_by_asin(total_ads_sales=prev_ads_sales_data)
-    total_sales = 0
-    asins = set()
-    for data in total_sales_data:
-        total_sales += data["sales"]
-    prev_total_sales = 0
-    for data in prev_total_sales_data:
-        prev_total_sales += data["sales"]
 
-    asin_greater_than_5_percent = []
-    asin_greater_than_1_percent = []
-    asin_less_than_1_percent = []
-    asin_wise_sales = defaultdict(dict)
+    total_sales_data = get_total_sales(seller=seller, start_date=start_date, end_date=end_date)
+
+    asins = set()
     for data in total_sales_data:
         asins.add(data["child_asin"])
 
+    asin_mapper = get_asin_mapper_by_asins(asins=asins)
+    asin_mapper_dict = {(asin_mapper.asin, asin_mapper.sku): asin_mapper for asin_mapper in asin_mapper}
+    total_sales_data = serialize_seller_central_sales_with_asin_mapper(total_sales_data=total_sales_data, asin_mapper_dict=asin_mapper_dict)
+    prev_total_sales_data = get_total_sales(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
+    prev_total_sales_data = serialize_seller_central_sales_with_asin_mapper(total_sales_data=prev_total_sales_data, asin_mapper_dict=asin_mapper_dict)
+
+    total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
+    total_traffic_data = serialize_seller_central_traffic_with_asin_mapper(traffics=total_traffic_data, asin_mapper_dict=asin_mapper_dict)
+    prev_total_traffic_data = get_total_traffic(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
+    prev_total_traffic_data = serialize_seller_central_traffic_with_asin_mapper(traffics=prev_total_traffic_data, asin_mapper_dict=asin_mapper_dict)
+
+
+
+    ads_sales_data = get_ads_sales_data(
+        profile=seller, start_date=start_date, end_date=end_date, fields=["sales", "spend", "asin", "sku"], asins=None
+    )
+    prev_ads_sales_data = get_ads_sales_data(
+        profile=seller, start_date=prev_start_date, end_date=prev_end_date, fields=["sales", "spend", "asin", "sku"], asins=None
+    )
+    ads_sales_data = serialize_ads_sales_with_asin_mapper(ads_sales_data=ads_sales_data, asin_mapper_dict=asin_mapper_dict)
+    prev_ads_sales_data = serialize_ads_sales_with_asin_mapper(ads_sales_data=prev_ads_sales_data, asin_mapper_dict=asin_mapper_dict)
+
+    ads_sales_data = group_ads_data_by_field(total_ads_sales=ads_sales_data, group_by=group_by)
+    prev_ads_sales_data = group_ads_data_by_field(total_ads_sales=prev_ads_sales_data, group_by=group_by)
+
+    # asin_greater_than_5_percent = []
+    # asin_greater_than_1_percent = []
+    # asin_less_than_1_percent = []
+    asin_wise_sales = defaultdict(dict)
+    for data in total_sales_data:
         cur_data = asin_wise_sales[data["child_asin"]]
         ads_sales, ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=ads_sales_data, asin=data["child_asin"])
         cur_data["ads_sales"] = int(ads_sales)
@@ -306,9 +323,7 @@ def get_asin_categorization_by_sales(
         cur_data["prev_units_ordered"] = data["units_ordered"] + cur_data.get("prev_units_ordered", 0)
         asin_wise_sales[data["child_asin"]] = cur_data
 
-    asin_mapper = get_asin_mapper_by_asins(asins=asins)
-    asin_mapper_dict = {asin_mapper.asin: asin_mapper for asin_mapper in asin_mapper}
-    tier_1_sales, tier_2_sales, tier_3_sales = 0, 0, 0
+    # tier_1_sales, tier_2_sales, tier_3_sales = 0, 0, 0
     for _, data in asin_wise_sales.items():
         sales = float(data.get("sales"))
         prev_sales = float(data.get("prev_sales", 0))
@@ -327,15 +342,15 @@ def get_asin_categorization_by_sales(
         data["acos"] = round(100 * float(data["ads_spend"]) / ads_sales, 3) if ads_sales else 0
         data["prev_acos"] = round(100 * prev_ads_spend / prev_ads_sales, 3) if prev_ads_sales else 0
 
-        if data["sales"] > total_sales * 0.05:
-            asin_greater_than_5_percent.append(data)
-            tier_1_sales += data["sales"]
-        elif data["sales"] > total_sales * 0.01:
-            asin_greater_than_1_percent.append(data)
-            tier_2_sales += data["sales"]
-        else:
-            asin_less_than_1_percent.append(data)
-            tier_3_sales += data["sales"]
+        # if data["sales"] > total_sales * 0.05:
+        #     asin_greater_than_5_percent.append(data)
+        #     tier_1_sales += data["sales"]
+        # elif data["sales"] > total_sales * 0.01:
+        #     asin_greater_than_1_percent.append(data)
+        #     tier_2_sales += data["sales"]
+        # else:
+        #     asin_less_than_1_percent.append(data)
+        #     tier_3_sales += data["sales"]
 
     total_asins = len(total_sales_data)
     logger.info(f"{start_date=}, {end_date=}, {user_id=}, {seller=}, {total_asins=}")
@@ -363,16 +378,16 @@ def get_ad_sales_by_asin(*, ads_sales_by_asin: List[Dict], asin: str) -> Tuple:
     return data[0], data[1]
 
 
-def group_ads_data_by_asin(*, total_ads_sales: List[Dict]) -> Dict:
+def group_ads_data_by_field(*, total_ads_sales: List[Dict], group_by: str) -> Dict:
     result = defaultdict(list)
     for data in total_ads_sales:
-        cur_result = result[data["asin"]]
+        cur_result = result[data[group_by]]
         if not cur_result:
             cur_result = [0, 0]
         cur_result[0] += data["sales"]
         cur_result[1] += data["spend"]
-        result[data["asin"]] = cur_result
-
+        result[data[group_by]] = cur_result
+        
     return result
 
 
