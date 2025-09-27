@@ -211,6 +211,7 @@ def serialize_ads_sales_with_asin_mapper(*, ads_sales_data: List[Dict], asin_map
                 "spend": ads_sales_data["spend"],
                 "product": asin_mapper_dict[(data["asin"], data["sku"])].product,
                 "product_type": asin_mapper_dict[(data["asin"], data["sku"])].product_type,
+                "brand": asin_mapper_dict[(data["asin"], data["sku"])].brand,
             })
         else:
             logger.error(f"Asin {data['asin']} with sku {data['sku']} not found in asin_mapper_dict")
@@ -231,6 +232,7 @@ def serialize_seller_central_sales_with_asin_mapper(*, total_sales_data: List[Di
                 "orders": data["orders"],
                 "product": asin_mapper_dict[(data["child_asin"], data["sku"])].product,
                 "product_type": asin_mapper_dict[(data["child_asin"], data["sku"])].product_type,
+                "brand": asin_mapper_dict[(data["child_asin"], data["sku"])].brand,
             })
         else:
             logger.error(f"Asin {data['child_asin']} with sku {data['sku']} not found in asin_mapper_dict")
@@ -243,17 +245,18 @@ def serialize_seller_central_traffic_with_asin_mapper(*, traffics: QuerySet[Sell
         if (traffic["child_asin"], traffic["sku"]) in asin_mapper_dict:
             result.append(
                 {
-                    "asin": traffic.child_asin,
-                    "sku": traffic.sku,
-                    "sessions_date": traffic.sessions_date,
-                    "browser_sessions": traffic.browser_sessions,
-                    "mobile_app_sessions": traffic.mobile_app_sessions,
-                    "browser_page_views": traffic.browser_page_views,
-                    "mobile_app_page_views": traffic.mobile_app_page_views,
-                    "unit_sessions_percentage": traffic.unit_sessions_percentage,
-                    "total_sessions": traffic.total_sessions,
-                    "product": asin_mapper_dict[(traffic.child_asin, traffic.sku)].product,
-                    "product_type": asin_mapper_dict[(traffic.child_asin, traffic.sku)].product_type,
+                    "asin": traffic["child_asin"],
+                    "sku": traffic["sku"],
+                    "sessions_date": traffic["sessions_date"],
+                    "browser_sessions": traffic["browser_sessions"],
+                    "mobile_app_sessions": traffic["mobile_app_sessions"],
+                    "browser_page_views": traffic["browser_page_views"],
+                    "mobile_app_page_views": traffic["mobile_app_page_views"],
+                    "unit_sessions_percentage": traffic["unit_sessions_percentage"],
+                    "total_sessions": traffic["total_sessions"],
+                    "product": asin_mapper_dict[(traffic["child_asin"], traffic["sku"])].product,
+                    "product_type": asin_mapper_dict[(traffic["child_asin"], traffic["sku"])].product_type,
+                    "brand": asin_mapper_dict[(traffic["child_asin"], traffic["sku"])].brand,
                 }
                 )
         else:
