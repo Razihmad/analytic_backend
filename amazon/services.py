@@ -245,6 +245,7 @@ def get_asin_categorization_by_sales(
     end_date: str,
     prev_start_date: str,
     prev_end_date: str,
+    group_by: str,
 ) -> Tuple[List, List, List]:
     logger.info(f"{start_date=}, {end_date=}, {user_id=}, {amazon_seller_id=}, {prev_start_date=}, {prev_end_date=}")
     start_date = dt.convert_str_to_date(date_str=start_date)
@@ -266,6 +267,7 @@ def get_asin_categorization_by_sales(
     ads_sales_data = group_ads_data_by_asin(total_ads_sales=ads_sales_data)
     prev_ads_sales_data = group_ads_data_by_asin(total_ads_sales=prev_ads_sales_data)
     total_sales = 0
+    asins = set()
     for data in total_sales_data:
         total_sales += data["sales"]
     prev_total_sales = 0
@@ -276,7 +278,6 @@ def get_asin_categorization_by_sales(
     asin_greater_than_1_percent = []
     asin_less_than_1_percent = []
     asin_wise_sales = defaultdict(dict)
-    asins = set()
     for data in total_sales_data:
         asins.add(data["child_asin"])
 
@@ -339,12 +340,13 @@ def get_asin_categorization_by_sales(
     total_asins = len(total_sales_data)
     logger.info(f"{start_date=}, {end_date=}, {user_id=}, {seller=}, {total_asins=}")
     if not total_asins:
-        return {}, {}, {}
+        return {}
 
-    tier_1_data = {"asin_percentage": round(100 * tier_1_sales / total_sales, 2), "data": asin_greater_than_5_percent}
-    tier_2_data = {"asin_percentage": round(100 * tier_2_sales / total_sales, 2), "data": asin_greater_than_1_percent}
-    tier_3_data = {"asin_percentage": round(100 * tier_3_sales / total_sales, 2), "data": asin_less_than_1_percent}
-    return tier_1_data, tier_2_data, tier_3_data
+    # tier_1_data = {"asin_percentage": round(100 * tier_1_sales / total_sales, 2), "data": asin_greater_than_5_percent}
+    # tier_2_data = {"asin_percentage": round(100 * tier_2_sales / total_sales, 2), "data": asin_greater_than_1_percent}
+    # tier_3_data = {"asin_percentage": round(100 * tier_3_sales / total_sales, 2), "data": asin_less_than_1_percent}
+    # return tier_1_data, tier_2_data, tier_3_data
+    return asin_wise_sales
 
 
 def get_sessions_and_sku_of_asin(*, traffic_data: List[Dict], asin: str) -> Tuple[int, str]:

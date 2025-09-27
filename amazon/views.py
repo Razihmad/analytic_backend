@@ -156,15 +156,17 @@ class GetAsinTierSale(APIView):
         end_date = request.data.get("end_date")
         prev_start_date = request.data.get("prev_start_date")
         prev_end_date = request.data.get("prev_end_date")
-        tier_1, tier_2, tier_3 = get_asin_categorization_by_sales(
+        group_by = request.data.get("group_by")
+        data = get_asin_categorization_by_sales(
             user_id=user.id,
             amazon_seller_id=amazon_seller_id,
             start_date=start_date,
             end_date=end_date,
             prev_start_date=prev_start_date,
             prev_end_date=prev_end_date,
+            group_by=group_by,
         )
-        return status_200(message="Tier wise sales", data={"tier_one": tier_1, "tier_two": tier_2, "tier_three": tier_3})
+        return status_200(message="Tier wise sales", data={"data": data})
 
 
 class GetGraphData(APIView):
