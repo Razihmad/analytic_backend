@@ -14,7 +14,7 @@ def get_ads_profile_by_user_and_seller_id(*, user_id: int, amazon_seller_id: str
 def bulk_upsert_amazon_ads_sales(*, data: List[AmazonAdsSaleAsin]):
     return AmazonAdsSaleAsin.objects.bulk_create(data, update_conflicts=True, update_fields=[
         "sales", "units_sold", "cost", "impressions", "clicks", "spend", "orders", "cpc"
-    ], unique_fields=['amazon_ads', 'asin', 'sales_date', "campaign_type", "campaign_id", "ad_group_id"])
+    ], unique_fields=['amazon_ads', 'asin', 'sales_date', "campaign_type", "campaign_id", "ad_group_id", "sku"])
 
 
 def bulk_upsert_amazon_ads_campaign_sales(*, data: List[AmazonAdsSaleCampaign]):

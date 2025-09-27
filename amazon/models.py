@@ -64,7 +64,7 @@ class SellerCentralTraffic(models.Model):
         return self.browser_page_views + self.mobile_app_page_views
 
     class Meta:
-        unique_together = ["seller", "sessions_date", "child_asin"]
+        unique_together = ["seller", "sessions_date", "child_asin", "sku"]
 
 
 class SellerCentralReturn(models.Model):
