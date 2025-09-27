@@ -299,7 +299,7 @@ def get_asin_categorization_by_sales(
     # asin_less_than_1_percent = []
     asin_wise_sales = defaultdict(dict)
     for data in total_sales_data:
-        cur_data = asin_wise_sales[data["child_asin"]]
+        cur_data = asin_wise_sales[data[group_by]]
         ads_sales, ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=ads_sales_data, asin=data["child_asin"])
         cur_data["ads_sales"] = int(ads_sales)
         cur_data["ads_spend"] = int(ads_spend)
@@ -313,7 +313,7 @@ def get_asin_categorization_by_sales(
         asin_wise_sales[data["child_asin"]] = cur_data
 
     for data in prev_total_sales_data:
-        cur_data = asin_wise_sales[data["child_asin"]]
+        cur_data = asin_wise_sales[data[group_by]]
         prev_ads_sales, prev_ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=prev_ads_sales_data, asin=data["child_asin"])
         cur_data["prev_ads_sales"] = int(prev_ads_sales)
         cur_data["prev_ads_spend"] = int(prev_ads_spend)
