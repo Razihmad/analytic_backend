@@ -300,10 +300,10 @@ def get_asin_categorization_by_sales(
     asin_wise_sales = defaultdict(dict)
     for data in total_sales_data:
         cur_data = asin_wise_sales[data[group_by]]
-        ads_sales, ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=ads_sales_data, asin=data[group_by])
+        ads_sales, ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=ads_sales_data, asin=data[group_by], group_by=group_by)
         cur_data["ads_sales"] = int(ads_sales)
         cur_data["ads_spend"] = int(ads_spend)
-        total_sessions, sku = get_sessions_and_sku_of_asin(traffic_data=total_traffic_data, asin=data["child_asin"])
+        total_sessions, sku = get_sessions_and_sku_of_asin(traffic_data=total_traffic_data, asin=data[group_by], group_by=group_by)
         cur_data["total_sessions"] = total_sessions + cur_data.get("total_sessions", 0)
         cur_data["sku"] = sku
         cur_data["sales"] = cur_data.get("sales", 0) + data["sales"]
@@ -314,10 +314,10 @@ def get_asin_categorization_by_sales(
 
     for data in prev_total_sales_data:
         cur_data = asin_wise_sales[data[group_by]]
-        prev_ads_sales, prev_ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=prev_ads_sales_data, asin=data[group_by])
+        prev_ads_sales, prev_ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=prev_ads_sales_data, asin=data[group_by], group_by=group_by)
         cur_data["prev_ads_sales"] = int(prev_ads_sales)
         cur_data["prev_ads_spend"] = int(prev_ads_spend)
-        prev_total_sessions, _ = get_sessions_and_sku_of_asin(traffic_data=prev_total_traffic_data, asin=data[group_by])
+        prev_total_sessions, _ = get_sessions_and_sku_of_asin(traffic_data=prev_total_traffic_data, asin=data[group_by], group_by=group_by)
         cur_data["prev_total_sessions"] = prev_total_sessions + cur_data.get("prev_total_sessions", 0)
         cur_data["prev_sales"] = cur_data.get("prev_sales", 0) + data["sales"]
         cur_data["prev_orders"] = cur_data.get("prev_orders", 0) + data["orders"]
@@ -365,15 +365,15 @@ def get_asin_categorization_by_sales(
     return asin_wise_sales
 
 
-def get_sessions_and_sku_of_asin(*, traffic_data: List[Dict], asin: str) -> Tuple[int, str]:
+def get_sessions_and_sku_of_asin(*, traffic_data: List[Dict], asin: str, group_by: str) -> Tuple[int, str]:
     for data in traffic_data:
-        if data.get("child_asin", "") == asin:
+        if data.get(group_by, "") == asin:
             return data["total_sessions"], data["sku"]
     return 0, ""
 
 
-def get_ad_sales_by_asin(*, ads_sales_by_asin: List[Dict], asin: str) -> Tuple:
-    data = ads_sales_by_asin.get(asin, [])
+def get_ad_sales_by_asin(*, ads_sales_by_asin: List[Dict], asin: str, group_by: str) -> Tuple:
+    data = ads_sales_by_asin.get(group_by, [])
     if not data:
         return 0, 0
     return data[0], data[1]
