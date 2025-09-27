@@ -12,10 +12,11 @@ class AsinMapperResource(resources.ModelResource):
     sku = Field(attribute='sku', column_name='sku')
     product_type = Field(attribute='product_type', column_name='product_type')
     product = Field(attribute='product', column_name='product')
+    brand = Field(attribute='brand', column_name='brand')
     
     class Meta:
         model = AsinMapper
-        fields = ('asin', 'title', 'sku', 'product_type', 'product')
+        fields = ('asin', 'title', 'sku', 'product_type', 'product', 'brand')
         import_id_fields = ('asin', 'sku')  # Use asin and sku as unique identifiers
         skip_unchanged = True
         report_skipped = True

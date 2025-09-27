@@ -47,9 +47,9 @@ class RegionDetailAdmin(admin.ModelAdmin):
 @admin.register(AsinMapper)
 class AsinMapperAdmin(ImportExportModelAdmin):
     resource_class = AsinMapperResource
-    list_display = ('asin', 'sku', 'title', 'product_type', 'product', 'created_at')
-    search_fields = ('asin', 'sku', 'title', 'product')
-    list_filter = ('product_type', 'product', 'created_at')
+    list_display = ('asin', 'sku', 'title', 'product_type', 'product', 'brand', 'created_at')
+    search_fields = ('asin', 'sku', 'title', 'product', 'brand')
+    list_filter = ('product_type', 'product', 'created_at', "brand")
     ordering = ('-created_at',)
     
     # Import/Export settings
