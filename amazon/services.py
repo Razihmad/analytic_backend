@@ -285,10 +285,10 @@ def get_asin_categorization_by_sales(
 
 
     ads_sales_data = get_ads_sales_data(
-        profile=seller, start_date=start_date, end_date=end_date, fields=["sales", "spend", "asin", "sku"], asins=None
+        profile=seller, start_date=start_date, end_date=end_date, fields=["sales", "spend", "asin", "sku", "clicks", "impressions"], asins=None
     )
     prev_ads_sales_data = get_ads_sales_data(
-        profile=seller, start_date=prev_start_date, end_date=prev_end_date, fields=["sales", "spend", "asin", "sku"], asins=None
+        profile=seller, start_date=prev_start_date, end_date=prev_end_date, fields=["sales", "spend", "asin", "sku", "clicks", "impressions"], asins=None
     )
     ads_sales_data = serialize_ads_sales_with_asin_mapper(ads_sales_data=ads_sales_data, asin_mapper_dict=asin_mapper_dict)
     prev_ads_sales_data = serialize_ads_sales_with_asin_mapper(ads_sales_data=prev_ads_sales_data, asin_mapper_dict=asin_mapper_dict)
@@ -296,16 +296,19 @@ def get_asin_categorization_by_sales(
     ads_sales_data = group_ads_data_by_field(total_ads_sales=ads_sales_data, group_by=group_by)
     prev_ads_sales_data = group_ads_data_by_field(total_ads_sales=prev_ads_sales_data, group_by=group_by)
 
-    # asin_greater_than_5_percent = []
-    # asin_greater_than_1_percent = []
-    # asin_less_than_1_percent = []
     asin_wise_sales = defaultdict(dict)
+    total_spend = 0
+    total_sales = 0
     for data in total_sales_data:
         key = data[group_by] # group_by can be asin, product, product_type, brand
         cur_data = asin_wise_sales[key]
-        ads_sales, ads_spend = get_ad_sales_by_key(ads_sales_by_asin=ads_sales_data, key=key)
+        ads_sales, ads_spend, ads_clicks, impressions = get_ad_sales_by_key(ads_sales_by_asin=ads_sales_data, key=key)
         cur_data["ads_sales"] = int(ads_sales)
         cur_data["ads_spend"] = int(ads_spend)
+        cur_data["ads_clicks"] = int(ads_clicks)
+        cur_data["impressions"] = int(impressions)
+        total_spend += ads_spend
+        total_sales += data["sales"]
 
         total_sessions_and_sku = total_traffic_data.get(key, [0, ""])
         cur_data["total_sessions"] = total_sessions_and_sku[0]
@@ -316,12 +319,18 @@ def get_asin_categorization_by_sales(
         cur_data[group_by] = data[group_by]
         asin_wise_sales[data[group_by]] = cur_data
 
+    prev_total_spend = 0
+    prev_total_sales = 0
     for data in prev_total_sales_data:
         key = data[group_by] # group_by can be asin, product, product_type, brand
         cur_data = asin_wise_sales[data[group_by]]
-        prev_ads_sales, prev_ads_spend = get_ad_sales_by_key(ads_sales_by_asin=prev_ads_sales_data, key=key)
+        prev_ads_sales, prev_ads_spend, prev_ads_clicks, prev_impressions = get_ad_sales_by_key(ads_sales_by_asin=prev_ads_sales_data, key=key)
         cur_data["prev_ads_sales"] = int(prev_ads_sales)
         cur_data["prev_ads_spend"] = int(prev_ads_spend)
+        cur_data["prev_ads_clicks"] = int(prev_ads_clicks)
+        cur_data["prev_impressions"] = int(prev_impressions)
+        prev_total_spend += prev_ads_spend
+        prev_total_sales += data["sales"]
         prev_total_sessions_and_sku = prev_total_traffic_data.get(key, [0, ""])
         cur_data["prev_total_sessions"] = prev_total_sessions_and_sku[0]
         cur_data["prev_sku"] = prev_total_sessions_and_sku[1]
@@ -330,25 +339,53 @@ def get_asin_categorization_by_sales(
         cur_data["prev_units_ordered"] = data["units_ordered"] + cur_data.get("prev_units_ordered", 0)
         asin_wise_sales[data[group_by]] = cur_data
 
-    # tier_1_sales, tier_2_sales, tier_3_sales = 0, 0, 0
     result = []
     for key, data in asin_wise_sales.items():
-        sales = float(data.get("sales"))
-        prev_sales = float(data.get("prev_sales", 0))
-        ads_sales = float(data.get("ads_sales"))
-        prev_ads_sales = float(data.get("prev_ads_sales", 0))
-        prev_ads_spend = float(data.get("prev_ads_spend", 0))
-        prev_orders = float(data.get("prev_orders", 0))
-        prev_total_sessions = float(data.get("prev_total_sessions", 0))
+        sales = int(data.get("sales"))
+        prev_sales = int(data.get("prev_sales", 0))
+        ads_sales = int(data.get("ads_sales"))
+        prev_ads_sales = int(data.get("prev_ads_sales", 0))
+        prev_ads_spend = int(data.get("prev_ads_spend", 0))
+        prev_orders = int(data.get("prev_orders", 0))
+        prev_total_sessions = int(data.get("prev_total_sessions", 0))
+        spend_percentage = round(100 * float(data["ads_spend"]) / total_spend, 1) if total_spend else 0
+        prev_spend_percentage = round(100 * float(data["prev_ads_spend"]) / prev_total_spend, 1) if prev_total_spend else 0
+        organic_sales = sales - ads_sales
+        organic_sales_percentage = round(100 * organic_sales / sales, 1) if sales else 0
+        prev_organic_sales = prev_sales - prev_ads_sales
+        prev_organic_sales_percentage = round(100 * prev_organic_sales / prev_sales, 1) if prev_sales else 0
+        total_sales_percentage = round(100 * sales / total_sales, 1) if total_sales else 0
+        prev_total_sales_percentage = round(100 * prev_sales / prev_total_sales, 1) if prev_total_sales else 0
+        ads_clicks = int(data.get("ads_clicks", 0))
+        prev_ads_clicks = int(data.get("prev_ads_clicks", 0))
+        ctr = round(100 * float(data["ads_clicks"]) / float(data["impressions"]), 2) if data.get("impressions") else 0
+        prev_ctr = round(100 * float(data["prev_ads_clicks"]) / float(data["prev_impressions"]), 2) if data.get("prev_impressions") else 0
 
-        data["cvr"] = round(100 * float(data["orders"]) / float(data["total_sessions"]), 2) if data.get("total_sessions") else 0
-        data["prev_cvr"] = round(100 * prev_orders / prev_total_sessions, 2) if prev_total_sessions else 0
+        data["cvr"] = round(100 * float(data["orders"]) / float(data["total_sessions"]), 1) if data.get("total_sessions") else 0
+        data["prev_cvr"] = round(100 * prev_orders / prev_total_sessions, 1) if prev_total_sessions else 0
     
-        data["tacos"] = round(100 * float(data["ads_spend"]) / sales, 3) if sales else 0
-        data["prev_tacos"] = round(100 * prev_ads_spend / prev_sales, 3) if prev_sales else 0
+        data["tacos"] = round(100 * float(data["ads_spend"]) / sales, 1) if sales else 0
+        data["prev_tacos"] = round(100 * prev_ads_spend / prev_sales, 1) if prev_sales else 0
 
-        data["acos"] = round(100 * float(data["ads_spend"]) / ads_sales, 3) if ads_sales else 0
-        data["prev_acos"] = round(100 * prev_ads_spend / prev_ads_sales, 3) if prev_ads_sales else 0
+        data["acos"] = round(100 * float(data["ads_spend"]) / ads_sales, 1) if ads_sales else 0
+        data["prev_acos"] = round(100 * prev_ads_spend / prev_ads_sales, 1) if prev_ads_sales else 0
+        data["ads_spend_percentage"] = spend_percentage
+        data["prev_ads_spend_percentage"] = prev_spend_percentage
+        data["organic_sales_percentage"] = organic_sales_percentage
+        data["prev_organic_sales_percentage"] = prev_organic_sales_percentage
+        data["total_sales_percentage"] = total_sales_percentage
+        data["prev_total_sales_percentage"] = prev_total_sales_percentage
+        data["cpc"] = round(100 * float(data["ads_spend"]) / float(ads_clicks), 1) if ads_clicks else 0
+        data["prev_cpc"] = round(100 * prev_ads_spend / prev_ads_clicks, 1) if prev_ads_clicks else 0
+        data["ctr"] = ctr
+        data["prev_ctr"] = prev_ctr
+        data["sales"] = sales
+        data["prev_sales"] = prev_sales
+        data["ads_sales"] = ads_sales
+        data["prev_ads_sales"] = prev_ads_sales
+        data["ads_spend"] = ads_spend
+        data["prev_ads_spend"] = prev_ads_spend
+    
         result.append(data)
 
 
@@ -388,11 +425,11 @@ def get_sessions_and_sku_of_asin(*, traffic_data: List[Dict], asin: str, group_b
     return total_sessions, sku
 
 
-def get_ad_sales_by_key(*, ads_sales_by_asin: List[Dict], key: str) -> Tuple:
+def get_ad_sales_by_key(*, ads_sales_by_asin: List[Dict], key: str) -> Tuple[int, int, int, int]:
     data = ads_sales_by_asin.get(key, [])
     if not data:
-        return 0, 0
-    return data[0], data[1]
+        return 0, 0, 0, 0
+    return data[0], data[1], data[2], data[3]
 
 
 def group_ads_data_by_field(*, total_ads_sales: List[Dict], group_by: str) -> Dict:
@@ -401,11 +438,13 @@ def group_ads_data_by_field(*, total_ads_sales: List[Dict], group_by: str) -> Di
         key = data[group_by] # group_by can be asin, product, product_type, brand
         cur_result = result[key]
         if not cur_result:
-            cur_result = [0, 0]
+            cur_result = [0, 0, 0, 0]
         cur_result[0] += data["sales"]
         cur_result[1] += data["spend"]
+        cur_result[2] += data["clicks"]
+        cur_result[3] += data["impressions"]
         result[key] = cur_result
-        
+
     return result
 
 

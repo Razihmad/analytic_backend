@@ -209,6 +209,8 @@ def serialize_ads_sales_with_asin_mapper(*, ads_sales_data: List[Dict], asin_map
                 "sku": data["sku"],
                 "sales": data["sales"],
                 "spend": data["spend"],
+                "clicks": data["clicks"],
+                "impressions": data["impressions"],
                 "product": asin_mapper_dict[(data["asin"], data["sku"])].product,
                 "product_type": asin_mapper_dict[(data["asin"], data["sku"])].product_type,
                 "brand": asin_mapper_dict[(data["asin"], data["sku"])].brand,

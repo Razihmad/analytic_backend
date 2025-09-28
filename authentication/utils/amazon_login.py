@@ -57,7 +57,7 @@ class LoginWithAmazon:
         url = self.url_for_access_and_refresh_token(refresh_token=refresh_token)
         response = requests.post(url)
         if response.status_code != 200:
-            logger.error("error", response.text)
+            logger.error(f"error {response.text}", exc_info=True)
             raise ServiceException("Error while generating access token")
 
         return response.json()

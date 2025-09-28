@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+import random
 
 from celery import shared_task
 from sp_api.base import ReportType, ReportStatus, Granularity
@@ -79,6 +80,7 @@ def fetch_report_document(
     response = amazon_sp_api.get_report_document_by_id(
         access_token=access_token, document_id=document_id, marketplace=marketplace
     )
+    logger.info(f"Report document fetched for {user_id=}, {response=}, {marketplace=}, {document_id=}")
     is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
     if is_token_expire:
         access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
@@ -215,7 +217,10 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
         start_date = start_date + timedelta(days=1)
         report_id = response.get("reportId")
         logger.info(f"{user_id=}, {report_id=}, {start_date=}")
-        get_report_and_process_data_task.apply_async(args=[user_id, seller.id, report_id, access_token, marketplace, amazon_seller_id, report_type], queue="process_report", countdown=2)
+        get_report_and_process_data_task.apply_async(
+            args=[user_id, seller.id, report_id, access_token, marketplace, amazon_seller_id, report_type], queue="process_report",
+            countdown=20 + random.randint(0, 10)
+        )
 
 
 @shared_task
@@ -236,7 +241,7 @@ def get_report_and_process_data_task(
             args=[
                 user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id, report_type
             ],
-            countdown=20,
+            countdown=20 + random.randint(0, 10),
             queue="process_report"
         )
 
@@ -279,7 +284,7 @@ def fetch_search_query_market_basket_report(
     get_report_and_process_data_task.apply_async(
         args=[user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id, report_type],
         queue="process_report",
-        countdown=100
+        countdown=100 + random.randint(0, 10)
     )
     return response
 
@@ -307,7 +312,7 @@ def fetch_search_query_performance_report(user_id: int, amazon_seller_id: str, s
     get_report_and_process_data_task.apply_async(
         args=[user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id, report_type],
         queue="process_report",
-        countdown=100
+        countdown=100 + random.randint(0, 10)
     )
     return response
 
