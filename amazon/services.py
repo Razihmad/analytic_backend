@@ -277,9 +277,11 @@ def get_asin_categorization_by_sales(
 
     total_traffic_data = get_total_traffic(seller=seller, start_date=start_date, end_date=end_date)
     total_traffic_data = serialize_seller_central_traffic_with_asin_mapper(traffics=total_traffic_data, asin_mapper_dict=asin_mapper_dict)
+    total_traffic_data = group_sessions_and_sku_by_key(traffic_data=total_traffic_data, group_by=group_by)
+
     prev_total_traffic_data = get_total_traffic(seller=seller, start_date=prev_start_date, end_date=prev_end_date)
     prev_total_traffic_data = serialize_seller_central_traffic_with_asin_mapper(traffics=prev_total_traffic_data, asin_mapper_dict=asin_mapper_dict)
-
+    prev_total_traffic_data = group_sessions_and_sku_by_key(traffic_data=prev_total_traffic_data, group_by=group_by)
 
 
     ads_sales_data = get_ads_sales_data(
@@ -299,13 +301,15 @@ def get_asin_categorization_by_sales(
     # asin_less_than_1_percent = []
     asin_wise_sales = defaultdict(dict)
     for data in total_sales_data:
-        cur_data = asin_wise_sales[data[group_by]]
-        ads_sales, ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=ads_sales_data, asin=data[group_by], group_by=group_by)
+        key = data[group_by] # group_by can be asin, product, product_type, brand
+        cur_data = asin_wise_sales[key]
+        ads_sales, ads_spend = get_ad_sales_by_key(ads_sales_by_asin=ads_sales_data, key=key)
         cur_data["ads_sales"] = int(ads_sales)
         cur_data["ads_spend"] = int(ads_spend)
-        total_sessions, sku = get_sessions_and_sku_of_asin(traffic_data=total_traffic_data, asin=data[group_by], group_by=group_by)
-        cur_data["total_sessions"] = total_sessions + cur_data.get("total_sessions", 0)
-        cur_data["sku"] = sku
+
+        total_sessions_and_sku = total_traffic_data.get(key, [0, ""])
+        cur_data["total_sessions"] = total_sessions_and_sku[0]
+        cur_data["sku"] = total_sessions_and_sku[1]
         cur_data["sales"] = cur_data.get("sales", 0) + data["sales"]
         cur_data["orders"] = cur_data.get("orders", 0) + data["orders"]
         cur_data["units_ordered"] = data["units_ordered"] + cur_data.get("units_ordered", 0)
@@ -313,19 +317,22 @@ def get_asin_categorization_by_sales(
         asin_wise_sales[data[group_by]] = cur_data
 
     for data in prev_total_sales_data:
+        key = data[group_by] # group_by can be asin, product, product_type, brand
         cur_data = asin_wise_sales[data[group_by]]
-        prev_ads_sales, prev_ads_spend = get_ad_sales_by_asin(ads_sales_by_asin=prev_ads_sales_data, asin=data[group_by], group_by=group_by)
+        prev_ads_sales, prev_ads_spend = get_ad_sales_by_key(ads_sales_by_asin=prev_ads_sales_data, key=key)
         cur_data["prev_ads_sales"] = int(prev_ads_sales)
         cur_data["prev_ads_spend"] = int(prev_ads_spend)
-        prev_total_sessions, _ = get_sessions_and_sku_of_asin(traffic_data=prev_total_traffic_data, asin=data[group_by], group_by=group_by)
-        cur_data["prev_total_sessions"] = prev_total_sessions + cur_data.get("prev_total_sessions", 0)
+        prev_total_sessions_and_sku = prev_total_traffic_data.get(key, [0, ""])
+        cur_data["prev_total_sessions"] = prev_total_sessions_and_sku[0]
+        cur_data["prev_sku"] = prev_total_sessions_and_sku[1]
         cur_data["prev_sales"] = cur_data.get("prev_sales", 0) + data["sales"]
         cur_data["prev_orders"] = cur_data.get("prev_orders", 0) + data["orders"]
         cur_data["prev_units_ordered"] = data["units_ordered"] + cur_data.get("prev_units_ordered", 0)
         asin_wise_sales[data[group_by]] = cur_data
 
     # tier_1_sales, tier_2_sales, tier_3_sales = 0, 0, 0
-    for _, data in asin_wise_sales.items():
+    result = []
+    for key, data in asin_wise_sales.items():
         sales = float(data.get("sales"))
         prev_sales = float(data.get("prev_sales", 0))
         ads_sales = float(data.get("ads_sales"))
@@ -342,16 +349,8 @@ def get_asin_categorization_by_sales(
 
         data["acos"] = round(100 * float(data["ads_spend"]) / ads_sales, 3) if ads_sales else 0
         data["prev_acos"] = round(100 * prev_ads_spend / prev_ads_sales, 3) if prev_ads_sales else 0
+        result.append(data)
 
-        # if data["sales"] > total_sales * 0.05:
-        #     asin_greater_than_5_percent.append(data)
-        #     tier_1_sales += data["sales"]
-        # elif data["sales"] > total_sales * 0.01:
-        #     asin_greater_than_1_percent.append(data)
-        #     tier_2_sales += data["sales"]
-        # else:
-        #     asin_less_than_1_percent.append(data)
-        #     tier_3_sales += data["sales"]
 
     total_asins = len(total_sales_data)
     logger.info(f"{start_date=}, {end_date=}, {user_id=}, {seller=}, {total_asins=}")
@@ -362,18 +361,35 @@ def get_asin_categorization_by_sales(
     # tier_2_data = {"asin_percentage": round(100 * tier_2_sales / total_sales, 2), "data": asin_greater_than_1_percent}
     # tier_3_data = {"asin_percentage": round(100 * tier_3_sales / total_sales, 2), "data": asin_less_than_1_percent}
     # return tier_1_data, tier_2_data, tier_3_data
-    return asin_wise_sales
+    return result
+
+def group_sessions_and_sku_by_key(*, traffic_data: List[Dict], group_by: str) -> Tuple[int, str]:
+    result = defaultdict(list)
+    for data in traffic_data:
+        key = data[group_by]
+        cur_result = result[key]
+        if not cur_result:
+            cur_result = [0, ""]
+        else:
+            cur_result[0] += data["total_sessions"]
+            cur_result[1] = data["sku"]
+        result[key] = cur_result
+    return result
+
 
 
 def get_sessions_and_sku_of_asin(*, traffic_data: List[Dict], asin: str, group_by: str) -> Tuple[int, str]:
+    total_sessions = 0
+    sku = ""
     for data in traffic_data:
         if data.get(group_by, "") == asin:
-            return data["total_sessions"], data["sku"]
-    return 0, ""
+            total_sessions += data["total_sessions"]
+            sku = data["sku"]
+    return total_sessions, sku
 
 
-def get_ad_sales_by_asin(*, ads_sales_by_asin: List[Dict], asin: str, group_by: str) -> Tuple:
-    data = ads_sales_by_asin.get(group_by, [])
+def get_ad_sales_by_key(*, ads_sales_by_asin: List[Dict], key: str) -> Tuple:
+    data = ads_sales_by_asin.get(key, [])
     if not data:
         return 0, 0
     return data[0], data[1]
@@ -382,12 +398,13 @@ def get_ad_sales_by_asin(*, ads_sales_by_asin: List[Dict], asin: str, group_by: 
 def group_ads_data_by_field(*, total_ads_sales: List[Dict], group_by: str) -> Dict:
     result = defaultdict(list)
     for data in total_ads_sales:
-        cur_result = result[data[group_by]]
+        key = data[group_by] # group_by can be asin, product, product_type, brand
+        cur_result = result[key]
         if not cur_result:
             cur_result = [0, 0]
         cur_result[0] += data["sales"]
         cur_result[1] += data["spend"]
-        result[data[group_by]] = cur_result
+        result[key] = cur_result
         
     return result
 

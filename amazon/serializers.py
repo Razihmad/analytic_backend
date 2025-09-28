@@ -205,10 +205,10 @@ def serialize_ads_sales_with_asin_mapper(*, ads_sales_data: List[Dict], asin_map
     for data in ads_sales_data:
         if (data["asin"], data["sku"]) in asin_mapper_dict:
             result.append({
-                "asin": ads_sales_data["asin"],
-                "sku": ads_sales_data["sku"],
-                "sales": ads_sales_data["sales"],
-                "spend": ads_sales_data["spend"],
+                "asin": data["asin"],
+                "sku": data["sku"],
+                "sales": data["sales"],
+                "spend": data["spend"],
                 "product": asin_mapper_dict[(data["asin"], data["sku"])].product,
                 "product_type": asin_mapper_dict[(data["asin"], data["sku"])].product_type,
                 "brand": asin_mapper_dict[(data["asin"], data["sku"])].brand,
