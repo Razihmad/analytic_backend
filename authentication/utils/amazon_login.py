@@ -39,6 +39,7 @@ class LoginWithAmazon:
         return url, marketplace_id
 
     def url_for_access_and_refresh_token(self, code: Optional[str] = None, refresh_token: Optional[str] = None) -> str:
+        logger.info(f"{code=}, {refresh_token=}, {self.token_base_url=}")
         if code:
             return f"{self.token_base_url}?grant_type=authorization_code&code={code}&client_id={self.client_id}&client_secret={self.client_secret}"
         elif refresh_token:

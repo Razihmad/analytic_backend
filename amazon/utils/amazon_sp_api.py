@@ -69,6 +69,7 @@ class AmazonSpAPI:
     def is_access_token_expired(self, response: Dict) -> bool:
         errors = response.get("errors", [])
         if errors:
+            logger.info(f"{errors=}")
             code = errors[0]["code"]
             details = errors[0]["details"]
             if code == "Unauthorized" and details == "The access token you provided has expired.":

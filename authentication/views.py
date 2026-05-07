@@ -132,8 +132,8 @@ class AmazonAdsCallback(APIView):
     @handle_exception
     def post(self, request, *args, **kwargs):
         code = request.data.get("code")
-        region = request.session["region"]
-        country_code = request.session["ad_country_code"]
+        region = "eu-west-1"
+        country_code = "IN"
         refresh_token, profiles = generate_token_and_get_ads_profile_data(code=code, region=region)
         serailzed_profiles = serialized_ads_profile_data(profiles=profiles, user_id=request.user.id, refresh_token=refresh_token, country_code=country_code)
         bulk_create_ads_profile(profiles=serailzed_profiles)

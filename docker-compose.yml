@@ -1,0 +1,92 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_service
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_service
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5673:5672"   # RabbitMQ protocol
+      - "15673:15672" # Management console
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_service
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    ports:
+      - "8001:8000"
+    environment:
+      DJANGO_SETTINGS_MODULE: project.settings.dev
+      PYTHONUNBUFFERED: 1
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      REDIS_SERVER_URI: redis://redis:6379/1
+      DATABASE_NAME: mydatabase
+      DATABASE_USERNAME: myuser
+      DATABASE_PASSWORD: mypassword
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+    command: python manage.py runserver 0.0.0.0:8000
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ".env"
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DJANGO_SETTINGS_MODULE: project.settings.dev
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      REDIS_SERVER_URI: redis://redis:6379/1
+      DATABASE_NAME: mydatabase
+      DATABASE_USERNAME: myuser
+      DATABASE_PASSWORD: mypassword
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+    command: [ "celery", "-A", "project.celery", "worker", "--concurrency=1", "-l", "info", "-Q", "process_report", "-n", "worker1" ]
+
+  celery-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - ".env"
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DJANGO_SETTINGS_MODULE: project.settings.dev
+      CELERY_BROKER_URL: amqp://guest:guest@rabbitmq:5672//
+      REDIS_SERVER_URI: redis://redis:6379/1
+      DATABASE_NAME: mydatabase
+      DATABASE_USERNAME: myuser
+      DATABASE_PASSWORD: mypassword
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+    command: [ "celery", "-A", "project.celery", "worker", "--concurrency=1", "-l", "info", "-Q", "process_ads_report", "-n", "worker2" ]
+
+
+volumes:
+  postgres_data:

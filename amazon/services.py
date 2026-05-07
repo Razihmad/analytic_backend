@@ -318,7 +318,6 @@ def get_asin_categorization_by_sales(
         cur_data["units_ordered"] = data["units_ordered"] + cur_data.get("units_ordered", 0)
         cur_data[group_by] = data[group_by]
         asin_wise_sales[data[group_by]] = cur_data
-
     prev_total_spend = 0
     prev_total_sales = 0
     for data in prev_total_sales_data:
@@ -339,6 +338,7 @@ def get_asin_categorization_by_sales(
         cur_data["prev_units_ordered"] = data["units_ordered"] + cur_data.get("prev_units_ordered", 0)
         asin_wise_sales[data[group_by]] = cur_data
 
+    logger.info(f"{asin_wise_sales=}")
     result = []
     for key, data in asin_wise_sales.items():
         sales = int(data.get("sales"))
@@ -349,7 +349,7 @@ def get_asin_categorization_by_sales(
         prev_orders = int(data.get("prev_orders", 0))
         prev_total_sessions = int(data.get("prev_total_sessions", 0))
         spend_percentage = round(100 * float(data["ads_spend"]) / total_spend, 1) if total_spend else 0
-        prev_spend_percentage = round(100 * float(data["prev_ads_spend"]) / prev_total_spend, 1) if prev_total_spend else 0
+        prev_spend_percentage = round(100 * float(prev_ads_spend) / prev_total_spend, 1) if prev_total_spend else 0
         organic_sales = sales - ads_sales
         organic_sales_percentage = round(100 * organic_sales / sales, 1) if sales else 0
         prev_organic_sales = prev_sales - prev_ads_sales
