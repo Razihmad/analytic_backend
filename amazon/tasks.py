@@ -232,6 +232,7 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
             queue="process_report"
         )
         prev = new_countdown
+        start_date = start_date + timedelta(days=1)
 
 
 @shared_task
