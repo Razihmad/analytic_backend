@@ -254,7 +254,7 @@ def create_sale_and_traffic_report(access_token, marketplace, report_type, data,
         return
     get_report_and_process_data_task.apply_async(
         args=[user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id, report_type], queue="process_report",
-        countdown=20 + random.randint(50, 150)
+        countdown=20 + random.randint(0, 180)
     )
 
 
@@ -276,14 +276,16 @@ def get_report_and_process_data_task(
             args=[
                 user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id, report_type
             ],
-            countdown=20 + random.randint(0, 10),
+            countdown=20 + random.randint(0, 100),
             queue="process_report"
         )
 
     if status == ReportStatus.DONE.value:
         report_document_id = response.get("reportDocumentId")
         fetch_report_document.apply_async(
-            args=[access_token, report_document_id, marketplace, user_id, seller_id, amazon_seller_id, report_type], queue="process_report", countdown=2
+            args=[access_token, report_document_id, marketplace, user_id, seller_id, amazon_seller_id, report_type],
+            queue="process_report",
+            countdown=20
         )
 
     return status

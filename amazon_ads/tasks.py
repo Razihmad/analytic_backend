@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta, date
+import random
 
 from celery import shared_task
 
@@ -56,7 +57,7 @@ def start_fetcing_ad_sales_data_by_asin(
         current_date = start_date - timedelta(days=1)
         i += 1
 
-
+@shared_task
 def create_ads_data_report_by_date(
     *,
     start_date: date,
@@ -100,7 +101,7 @@ def create_ads_data_report_by_date(
         args=[
             user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, campaign_type,
         ],
-        countdown=300,
+        countdown=300 + random.randint(0, 180),
         queue="process_ads_report"
     )
 
@@ -129,7 +130,7 @@ def start_tasks_to_check_report_status(
             args=[
                 user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, campaign_type,
             ],
-            countdown=300,
+            countdown=300+ random.randint(0, 180),
             queue="process_ads_report"
         )
     elif status == ReportStatus.COMPLETED.value:
@@ -249,17 +250,20 @@ def start_fetching_amazon_ads_by_date_range(
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
     for campaign_type, report_type in CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT.items():
         logger.info(f"{amazon_seller_id=}, {start_date=}, {end_date=}, {campaign_type=}, {report_type=}, {user_id=}, {profile_id=}")
-        create_ads_data_report_by_date(
-            start_date=start_date,
-            end_date=end_date,
-            access_token=access_token,
-            region=region,
-            profile_id=profile_id,
-            user_id=user_id,
-            amazon_seller_id=amazon_seller_id,
-            ad_account_id=ad_account_id,
-            campaign_type=campaign_type,
-            report_type=report_type
+        create_ads_data_report_by_date.apply_async(
+            args=[
+                start_date,
+                end_date,
+                access_token,
+                region,
+                profile_id,
+                user_id,
+                amazon_seller_id,
+                ad_account_id,
+                campaign_type,
+                report_type
+            ],
+            countdown=random.randint(0, 180)
         )
 
 
@@ -336,7 +340,7 @@ def create_ads_campaign_data_report_by_date(
         args=[
             user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, campaign_type,
         ],
-        countdown=300,
+        countdown=300 + random.randint(0, 180),
         queue="process_ads_report"
     )
 
@@ -388,7 +392,7 @@ def start_fetching_search_term_report(
             args=[
                 user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, ad_product,
             ],
-            countdown=300,
+            countdown=300 + random.randint(0, 180),
             queue="process_ads_report"
         )
 
@@ -436,6 +440,6 @@ def start_fetching_targeting_report(
             args=[
                 user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, ad_product,
             ],
-            countdown=300,
+            countdown=300 + random.randint(0, 180),
             queue="process_ads_report"
         )
