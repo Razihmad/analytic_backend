@@ -226,6 +226,7 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
             "dataEndTime": start_date.strftime("%Y-%m-%d"),
         }
         new_countdown = prev + random.randint(10, 100)
+        logger.info(f"{new_countdown=}, ")
         create_sale_and_traffic_report.apply_async(
             args=[access_token, marketplace, report_type, data, amazon_seller_id, user_id, seller.id],
             countdown=new_countdown,
@@ -248,9 +249,8 @@ def create_sale_and_traffic_report(access_token, marketplace, report_type, data,
     is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
     if is_token_expire:
         access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
-    start_date = start_date + timedelta(days=1)
     report_id = response.get("reportId")
-    logger.info(f"{user_id=}, {report_id=}, {start_date=}")
+    logger.info(f"{user_id=}, {report_id=}")
     if not report_id:
         return
     get_report_and_process_data_task.apply_async(

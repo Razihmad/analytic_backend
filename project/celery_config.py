@@ -48,6 +48,10 @@ task_routes = {
         "queue": "process_report",
         "routing_key": "report",
     },
+    "amazon.tasks.create_sale_and_traffic_report": {
+        "queue": "process_report",
+        "routing_key": "report",
+    },
     "amazon_ads.tasks.start_tasks_to_check_report_status": {
         "queue": "process_report",
         "routing_key": "report",
