@@ -217,6 +217,7 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
     start_date = dt.convert_str_to_date(date_str=start_date)
     end_date = dt.convert_str_to_date(date_str=end_date)
     logger.info(f"{access_token=}, {seller=}, {marketplace=}, {amazon_seller_id=}, {user_id=}, {start_date=}, {end_date=}")
+    prev = 0
     while start_date <= end_date:
         report_type = ReportType.GET_SALES_AND_TRAFFIC_REPORT.value
         data = {
@@ -224,11 +225,13 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
             "dataStartTime": start_date.strftime("%Y-%m-%d"),
             "dataEndTime": start_date.strftime("%Y-%m-%d"),
         }
+        new_countdown = prev + random.randint(10, 100)
         create_sale_and_traffic_report.apply_async(
             args=[access_token, marketplace, report_type, data, amazon_seller_id, user_id, seller.id],
-            countdown=random.randint(0, 180),
+            countdown=new_countdown,
             queue="process_report"
         )
+        prev = new_countdown
 
 
 @shared_task
@@ -240,7 +243,7 @@ def create_sale_and_traffic_report(access_token, marketplace, report_type, data,
         report_type=report_type,
         data=data,
     )
-    logger.info(f"{response=}")
+    logger.info(f"{response=}, {amazon_seller_id=}, {user_id=}, {seller_id=}")
     is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
     if is_token_expire:
         access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
