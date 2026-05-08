@@ -229,7 +229,6 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
         logger.info(f"{new_countdown=}, ")
         create_sale_and_traffic_report.apply_async(
             args=[access_token, marketplace, report_type, data, amazon_seller_id, user_id, seller.id],
-            countdown=new_countdown,
             queue="process_report"
         )
         prev = new_countdown
@@ -255,7 +254,7 @@ def create_sale_and_traffic_report(access_token, marketplace, report_type, data,
         return
     get_report_and_process_data_task.apply_async(
         args=[user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id, report_type], queue="process_report",
-        countdown=20 + random.randint(0, 180)
+        countdown=20 + random.randint(0, 120)
     )
 
 

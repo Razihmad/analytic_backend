@@ -59,7 +59,6 @@ def start_fetcing_ad_sales_data_by_asin(
 
 @shared_task
 def create_ads_data_report_by_date(
-    *,
     start_date: date,
     end_date: date,
     access_token: str,
