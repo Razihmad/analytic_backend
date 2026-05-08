@@ -15,6 +15,7 @@ import os
 import environ
 from pathlib import Path
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 from project import celery_config
 
@@ -200,6 +201,13 @@ CELERY_QUEUES = celery_config.task_queues
 CELERY_TASK_ROUTES = celery_config.task_routes
 CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_BROKER_URL = env.str("CELERY_BROKER_URL", default="amqp://localhost")
+CELERY_BEAT_SCHEDULE = {
+    "run-user-1-sales-report-date-minus-2-daily": {
+        "task": "amazon.tasks.run_user_sales_report_for_date_minus_2",
+        "schedule": crontab(hour=3, minute=0),
+        "args": (1,),
+    }
+}
 print("CELERY_BROKER_URL", CELERY_BROKER_URL)
 ## Logging ##
 LOGGING = {
@@ -257,3 +265,4 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 USE_TZ = True
 TIME_ZONE = "Asia/Kolkata"
+CSRF_TRUSTED_ORIGINS = ["https://product.expgrowthdigital.com"]

@@ -24,3 +24,4 @@ urlpatterns = [
     path("getGraphData/", GetGraphData.as_view(), name="get-graph-data"),
     path("getProductAnalysis/", GetProductAnalysis.as_view(), name="get-product-analysis"),
 ]
+

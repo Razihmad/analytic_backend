@@ -2,10 +2,12 @@ import logging
 from datetime import timedelta
 import random
 
+from amazon_ads.services import fetch_ads_data_by_date
 from celery import shared_task
 from sp_api.base import ReportType, ReportStatus, Granularity
 
 from amazon.selectors import get_seller_by_user_id
+from amazon.models import Seller
 from authentication.services import get_access_token
 import utils.datetime as dt
 from amazon.utils.amazon_sp_api import amazon_sp_api
@@ -17,6 +19,22 @@ logger = logging.getLogger(__name__)
 @shared_task
 def testing_tasks():
     logger.info("This is only for testin purpose")
+
+
+@shared_task
+def run_user_sales_report_for_date_minus_2(user_id: int = 1):
+    from amazon_ads.services import fetch_ads_data_by_date
+    from amazon.models import Seller
+
+    target_date = (dt.now(with_tz=True).date() - timedelta(days=2)).strftime("%Y-%m-%d")
+    sellers = Seller.objects.filter(user_id=user_id).values_list("amazon_seller_id", flat=True)
+    logger.info(f"Queueing sales report tasks for {user_id=}, {target_date=}, sellers={len(sellers)}")
+    for amazon_seller_id in sellers:
+        fetch_sales_report_by_date_range.apply_async(
+            args=[user_id, amazon_seller_id, target_date, target_date],
+            queue="process_report",
+        )
+        fetch_ads_data_by_date(user_id=user_id, amazon_seller_id=amazon_seller_id, start_date=target_date, end_date=target_date)
 
 
 @shared_task
