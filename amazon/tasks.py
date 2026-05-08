@@ -376,8 +376,3 @@ def process_search_query_market_basket_report_document(url: str, seller_id: int)
             }
         )
     prepare_and_bulk_create_search_query_market_basket_data(data=data_by_asin_list)
-
-
-@shared_task
-def test_celery_beat(user_id):
-    logger.info(f"here it is working, {user_id=}")

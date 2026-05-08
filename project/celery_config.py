@@ -68,10 +68,6 @@ task_routes = {
     "amazon_ads.tasks.create_ads_campaign_data_report_by_date": {
         "queue": "process_report",
         "routing_key": "report",
-    },
-    "amazon.tasks.test_celery_beat":{
-        "queue": "process_report",
-        "routing_key": "report"
     }
 }
 
@@ -82,9 +78,4 @@ beat_tasks = {
         "schedule": crontab(hour=7, minute=30),
         "kwargs": {"user_id": 2},
     },
-    "test_celery_beat": {
-        "task": "amazon.tasks.test_celery_beat",
-        "schedule": crontab(minute="*/1"),
-        "kwargs": {"user_id": 2},
-    }
 }
