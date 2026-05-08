@@ -1,5 +1,6 @@
 import logging
 from datetime import timedelta
+import queue
 import random
 
 from amazon_ads.services import fetch_ads_data_by_date
@@ -225,8 +226,10 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
         }
         create_sale_and_traffic_report.apply_async(
             args=[access_token, marketplace, report_type, data, amazon_seller_id, user_id, seller.id],
-            countdown=random.randint(0, 180)
+            countdown=random.randint(0, 180),
+            queue="process_report"
         )
+
 
 @shared_task
 def create_sale_and_traffic_report(access_token, marketplace, report_type, data, amazon_seller_id, user_id, seller_id):
