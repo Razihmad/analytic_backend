@@ -1,6 +1,5 @@
 import logging
 from datetime import timedelta
-import queue
 import random
 
 from amazon_ads.services import fetch_ads_data_by_date
@@ -23,7 +22,7 @@ def testing_tasks():
 
 
 @shared_task
-def run_user_sales_report_for_date_minus_2(user_id: int = 1):
+def run_user_sales_report_for_date_minus_2(user_id: int = 2):
     from amazon_ads.services import fetch_ads_data_by_date
     from amazon.models import Seller
 
@@ -377,3 +376,8 @@ def process_search_query_market_basket_report_document(url: str, seller_id: int)
             }
         )
     prepare_and_bulk_create_search_query_market_basket_data(data=data_by_asin_list)
+
+
+@shared_task
+def test_celery_beat(user_id):
+    logger.info(f"here it is working, {user_id=}")

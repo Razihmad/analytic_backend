@@ -39,7 +39,7 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=[])
 
 INTERNAL_APPS = ["amazon", "authentication", "amazon_ads"]
 
-EXTERNAL_APPS = ["rest_framework", "corsheaders", "rangefilter", "import_export"]
+EXTERNAL_APPS = ["rest_framework", "corsheaders", "rangefilter", "import_export", "django_celery_beat"]
 
 DEFAULT_APPS = [
     "django.contrib.admin",
@@ -201,14 +201,9 @@ CELERY_QUEUES = celery_config.task_queues
 CELERY_TASK_ROUTES = celery_config.task_routes
 CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_BROKER_URL = env.str("CELERY_BROKER_URL", default="amqp://localhost")
-CELERY_BEAT_SCHEDULE = {
-    "run-user-1-sales-report-date-minus-2-daily": {
-        "task": "amazon.tasks.run_user_sales_report_for_date_minus_2",
-        "schedule": crontab(hour=3, minute=0),
-        "args": (1,),
-    }
-}
-print("CELERY_BROKER_URL", CELERY_BROKER_URL)
+CELERY_BEAT_SCHEDULE = celery_config.beat_tasks
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+
 ## Logging ##
 LOGGING = {
     'version': 1,

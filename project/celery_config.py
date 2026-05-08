@@ -1,4 +1,5 @@
 from kombu import Exchange, Queue
+from celery.schedules import crontab
 
 task_default_queue = "default"
 task_default_exchange = "default"
@@ -61,11 +62,29 @@ task_routes = {
         "routing_key": "report",
     },
     "amazon_ads.tasks.start_fetching_amazon_ads_campaign_by_date_range": {
-        "queue": "proocess_report",
+        "queue": "process_report",
         "routing_key": "report",
     },
     "amazon_ads.tasks.create_ads_campaign_data_report_by_date": {
-        "queue": "proocess_report",
+        "queue": "process_report",
         "routing_key": "report",
     },
+    "amazon.tasks.test_celery_beat":{
+        "queue": "process_report",
+        "routing_key": "report"
+    }
+}
+
+
+beat_tasks = {
+    "run-user-1-sales-report-date-minus-2-daily": {
+        "task": "amazon.tasks.run_user_sales_report_for_date_minus_2",
+        "schedule": crontab(hour=7, minute=30),
+        "kwargs": {"user_id": 2},
+    },
+    "test_celery_beat": {
+        "task": "amazon.tasks.test_celery_beat",
+        "schedule": crontab(minute="*/1"),
+        "kwargs": {"user_id": 2},
+    }
 }
