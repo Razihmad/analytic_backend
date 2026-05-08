@@ -218,27 +218,38 @@ def fetch_sales_report_by_date_range(user_id: int, amazon_seller_id: str, start_
     logger.info(f"{access_token=}, {seller=}, {marketplace=}, {amazon_seller_id=}, {user_id=}, {start_date=}, {end_date=}")
     while start_date <= end_date:
         report_type = ReportType.GET_SALES_AND_TRAFFIC_REPORT.value
-        response = amazon_sp_api.create_report(
-            access_token=access_token,
-            marketplace=marketplace,
-            report_type=report_type,
-            data={
-                "reportOptions": {"dateGranularity": Granularity.DAY.value, "asinGranularity": "SKU"},
-                "dataStartTime": start_date.strftime("%Y-%m-%d"),
-                "dataEndTime": start_date.strftime("%Y-%m-%d"),
-            },
+        data = {
+            "reportOptions": {"dateGranularity": Granularity.DAY.value, "asinGranularity": "SKU"},
+            "dataStartTime": start_date.strftime("%Y-%m-%d"),
+            "dataEndTime": start_date.strftime("%Y-%m-%d"),
+        }
+        create_sale_and_traffic_report.apply_async(
+            args=[access_token, marketplace, report_type, data, amazon_seller_id, user_id, seller.id],
+            countdown=random.randint(0, 180)
         )
-        logger.info(f"{response=}")
-        is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
-        if is_token_expire:
-            access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
-        start_date = start_date + timedelta(days=1)
-        report_id = response.get("reportId")
-        logger.info(f"{user_id=}, {report_id=}, {start_date=}")
-        get_report_and_process_data_task.apply_async(
-            args=[user_id, seller.id, report_id, access_token, marketplace, amazon_seller_id, report_type], queue="process_report",
-            countdown=20 + random.randint(0, 10)
-        )
+
+@shared_task
+def create_sale_and_traffic_report(access_token, marketplace, report_type, data, amazon_seller_id, user_id, seller_id):
+    report_type = ReportType.GET_SALES_AND_TRAFFIC_REPORT.value
+    response = amazon_sp_api.create_report(
+        access_token=access_token,
+        marketplace=marketplace,
+        report_type=report_type,
+        data=data,
+    )
+    logger.info(f"{response=}")
+    is_token_expire = amazon_sp_api.is_access_token_expired(response=response)
+    if is_token_expire:
+        access_token = get_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id)
+    start_date = start_date + timedelta(days=1)
+    report_id = response.get("reportId")
+    logger.info(f"{user_id=}, {report_id=}, {start_date=}")
+    if not report_id:
+        return
+    get_report_and_process_data_task.apply_async(
+        args=[user_id, seller_id, report_id, access_token, marketplace, amazon_seller_id, report_type], queue="process_report",
+        countdown=20 + random.randint(50, 150)
+    )
 
 
 @shared_task
