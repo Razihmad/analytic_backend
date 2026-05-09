@@ -69,6 +69,7 @@ def create_ads_data_report_by_date(
     ad_account_id: int,
     campaign_type: str,
     report_type: str,
+    countdown: int
 ):
     group_by = GroupBy.ADVERTISER.value
     columns = AD_PRODUCT_COLUMN_MAPPING.get(campaign_type)
@@ -100,7 +101,7 @@ def create_ads_data_report_by_date(
         args=[
             user_id, amazon_seller_id, region, report_id, profile_id, ad_account_id, report_type, campaign_type,
         ],
-        countdown=300 + random.randint(0, 180),
+        countdown=countdown + random.randint(0, 180),
         queue="process_ads_report"
     )
 
@@ -247,8 +248,10 @@ def start_fetching_amazon_ads_by_date_range(
     end_date = dt.convert_str_to_date(date_str=end_date)
     region = get_region_by_country_code(country_code=country_code)
     access_token = get_ads_access_token(user_id=user_id, amazon_seller_id=amazon_seller_id, region=region)
+    prev_countdown = 100
     for campaign_type, report_type in CAMPAIGN_TO_ADVERTISED_PRODUCT_REPORT.items():
         logger.info(f"{amazon_seller_id=}, {start_date=}, {end_date=}, {campaign_type=}, {report_type=}, {user_id=}, {profile_id=}")
+        new_countdown = prev_countdown + random.randint(100, 200)
         create_ads_data_report_by_date.apply_async(
             args=[
                 start_date,
@@ -260,10 +263,12 @@ def start_fetching_amazon_ads_by_date_range(
                 amazon_seller_id,
                 ad_account_id,
                 campaign_type,
-                report_type
+                report_type,
+                new_countdown
             ],
-            countdown=random.randint(0, 180)
+            countdown=new_countdown
         )
+        prev_countdown = new_countdown
 
 
 @shared_task

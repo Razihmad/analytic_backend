@@ -151,7 +151,7 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
             user_id,
         ],
         queue="process_ads_report",
-        countdown=100
+        countdown=200
     )
     start_fetching_search_term_report.apply_async(
         args=[
@@ -164,7 +164,7 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
             user_id,
         ],
         queue="process_ads_report",
-        countdown=150
+        countdown=400
 
     )
     start_fetching_targeting_report.apply_async(
@@ -178,7 +178,7 @@ def fetch_ads_data_by_date(*, user_id: int, amazon_seller_id: str, start_date: s
             user_id,
         ],
         queue="process_ads_report",
-        countdown=200
+        countdown=600
     )
 
 
