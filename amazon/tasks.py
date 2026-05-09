@@ -27,7 +27,7 @@ def run_user_sales_report_for_date_minus_2(user_id: int = 2):
     from amazon.models import Seller
 
     target_date = (dt.now(with_tz=True).date() - timedelta(days=2)).strftime("%Y-%m-%d")
-    sellers = Seller.objects.filter(user_id=user_id).values_list("amazon_seller_id", flat=True)
+    sellers = Seller.objects.filter(id=4).values_list("amazon_seller_id", flat=True)
     logger.info(f"Queueing sales report tasks for {user_id=}, {target_date=}, sellers={len(sellers)}")
     for amazon_seller_id in sellers:
         fetch_sales_report_by_date_range.apply_async(
