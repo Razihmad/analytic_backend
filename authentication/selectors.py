@@ -1,4 +1,5 @@
 import logging
+import select
 from typing import Dict, List, Tuple
 from django.contrib.auth.models import User
 
@@ -23,6 +24,9 @@ def get_or_create_seller(*, partner_id: str, refresh_token: str, marketplace_id:
             "marketplace": country_code,
         }
     )
+    if not is_created:
+        seller.refresh_token = refresh_token
+        seller.save()
     logger.info(f"{seller=}, {is_created=}, {seller.refresh_token=}")
     return seller
 
