@@ -73,6 +73,7 @@ def create_ads_data_report_by_date(
 ):
     group_by = GroupBy.ADVERTISER.value
     columns = AD_PRODUCT_COLUMN_MAPPING.get(campaign_type)
+    logger.info(f"{campaign_type=}, {report_type=}, {columns=}")
     if not columns:
         logger.info(f"columns not found for {campaign_type=}, {report_type=}")
         return
