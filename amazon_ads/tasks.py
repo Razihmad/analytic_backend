@@ -266,7 +266,8 @@ def start_fetching_amazon_ads_by_date_range(
                 report_type,
                 new_countdown
             ],
-            countdown=new_countdown
+            countdown=new_countdown,
+            queue="process_ads_report"
         )
         prev_countdown = new_countdown
 
