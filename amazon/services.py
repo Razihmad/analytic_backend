@@ -294,6 +294,7 @@ def get_asin_categorization_by_sales(
     prev_ads_sales_data = serialize_ads_sales_with_asin_mapper(ads_sales_data=prev_ads_sales_data, asin_mapper_dict=asin_mapper_dict)
 
     ads_sales_data = group_ads_data_by_field(total_ads_sales=ads_sales_data, group_by=group_by)
+    logger.info(f"[{group_by=}]{ads_sales_data=}, {prev_ads_sales_data=}")
     prev_ads_sales_data = group_ads_data_by_field(total_ads_sales=prev_ads_sales_data, group_by=group_by)
 
     asin_wise_sales = defaultdict(dict)
