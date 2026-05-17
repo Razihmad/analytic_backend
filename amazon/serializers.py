@@ -259,7 +259,5 @@ def serialize_seller_central_traffic_with_asin_mapper(*, traffics: QuerySet[Sell
                     "brand": asin_mapper_dict[(traffic["child_asin"], traffic["sku"])].brand,
                 }
                 )
-        else:
-            logger.error(f"Asin {traffic['child_asin']} with sku {traffic['sku']} not found in asin_mapper_dict")
 
     return result

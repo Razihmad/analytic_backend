@@ -346,6 +346,7 @@ def get_asin_categorization_by_sales(
         sales = int(data.get("sales"))
         prev_sales = int(data.get("prev_sales", 0))
         ads_sales = int(data.get("ads_sales"))
+        ads_spend = int(data.get("ads_spend", 0))
         prev_ads_sales = int(data.get("prev_ads_sales", 0))
         prev_ads_spend = int(data.get("prev_ads_spend", 0))
         prev_orders = int(data.get("prev_orders", 0))
@@ -392,7 +393,7 @@ def get_asin_categorization_by_sales(
 
 
     total_asins = len(total_sales_data)
-    logger.info(f"{start_date=}, {end_date=}, {user_id=}, {seller=}, {total_asins=}")
+    logger.info(f"{start_date=}, {end_date=}, {user_id=}, {seller=}, {total_asins=}, {result=}")
     if not total_asins:
         return {}
 
