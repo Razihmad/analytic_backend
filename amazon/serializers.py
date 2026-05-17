@@ -215,8 +215,6 @@ def serialize_ads_sales_with_asin_mapper(*, ads_sales_data: List[Dict], asin_map
                 "product_type": asin_mapper_dict[(data["asin"], data["sku"])].product_type,
                 "brand": asin_mapper_dict[(data["asin"], data["sku"])].brand,
             })
-        else:
-            logger.error(f"Asin {data['asin']} with sku {data['sku']} not found in asin_mapper_dict")
 
     return result
 

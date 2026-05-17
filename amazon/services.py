@@ -319,6 +319,7 @@ def get_asin_categorization_by_sales(
         cur_data["units_ordered"] = data["units_ordered"] + cur_data.get("units_ordered", 0)
         cur_data[group_by] = data[group_by]
         asin_wise_sales[data[group_by]] = cur_data
+    logger.info(f"[GROUP_BY={group_by}], {asin_wise_sales=}")
     prev_total_spend = 0
     prev_total_sales = 0
     for data in prev_total_sales_data:
