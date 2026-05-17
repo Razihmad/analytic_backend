@@ -307,7 +307,7 @@ def get_asin_categorization_by_sales(
         cur_data["ads_spend"] = int(ads_spend)
         cur_data["ads_clicks"] = int(ads_clicks)
         cur_data["impressions"] = int(impressions)
-        total_spend += ads_spend
+        total_spend += int(ads_spend)
         total_sales += data["sales"]
 
         total_sessions_and_sku = total_traffic_data.get(key, [0, ""])
@@ -379,12 +379,12 @@ def get_asin_categorization_by_sales(
         data["prev_cpc"] = round(100 * prev_ads_spend / prev_ads_clicks, 1) if prev_ads_clicks else 0
         data["ctr"] = ctr
         data["prev_ctr"] = prev_ctr
-        data["sales"] = sales
-        data["prev_sales"] = prev_sales
-        data["ads_sales"] = ads_sales
-        data["prev_ads_sales"] = prev_ads_sales
-        data["ads_spend"] = ads_spend
-        data["prev_ads_spend"] = prev_ads_spend
+        data["sales"] = int(sales)
+        data["prev_sales"] = int(prev_sales)
+        data["ads_sales"] = int(ads_sales)
+        data["prev_ads_sales"] = int(prev_ads_sales)
+        data["ads_spend"] = int(ads_spend)
+        data["prev_ads_spend"] = int(prev_ads_spend)
     
         result.append(data)
 
@@ -394,10 +394,6 @@ def get_asin_categorization_by_sales(
     if not total_asins:
         return {}
 
-    # tier_1_data = {"asin_percentage": round(100 * tier_1_sales / total_sales, 2), "data": asin_greater_than_5_percent}
-    # tier_2_data = {"asin_percentage": round(100 * tier_2_sales / total_sales, 2), "data": asin_greater_than_1_percent}
-    # tier_3_data = {"asin_percentage": round(100 * tier_3_sales / total_sales, 2), "data": asin_less_than_1_percent}
-    # return tier_1_data, tier_2_data, tier_3_data
     return result
 
 def group_sessions_and_sku_by_key(*, traffic_data: List[Dict], group_by: str) -> Tuple[int, str]:
