@@ -25,6 +25,7 @@ ipython = "^9.3.0"
 gunicorn = "^23.0.0"
 django-import-export = "^4.4.1"
 django-celery-beat = "^2.9.0"
+django-environ = "^0.13.0"
 
 
 [build-system]
