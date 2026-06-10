@@ -85,7 +85,7 @@ SP_ADVERTISED_PRODUCT_COLUMNS = [
     "date",
     "costPerClick",
     "advertisedAsin",
-    "advertisedSku"
+    "advertisedSku",
     "impressions",
     "clicks",
     "cost",

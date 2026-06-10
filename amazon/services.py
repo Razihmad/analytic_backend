@@ -319,26 +319,27 @@ def get_asin_categorization_by_sales(
         cur_data["units_ordered"] = data["units_ordered"] + cur_data.get("units_ordered", 0)
         cur_data[group_by] = data[group_by]
         asin_wise_sales[data[group_by]] = cur_data
-    logger.info(f"[GROUP_BY={group_by}], {asin_wise_sales=}")
+
+    logger.info(f"[GROUP_BY={group_by}], {user_id=}, {amazon_seller_id=} {asin_wise_sales=},")
     prev_total_spend = 0
     prev_total_sales = 0
     for data in prev_total_sales_data:
         key = data[group_by] # group_by can be asin, product, product_type, brand
-        cur_data = asin_wise_sales[data[group_by]]
+        prev_data = asin_wise_sales[key]
         prev_ads_sales, prev_ads_spend, prev_ads_clicks, prev_impressions = get_ad_sales_by_key(ads_sales_by_asin=prev_ads_sales_data, key=key)
-        cur_data["prev_ads_sales"] = int(prev_ads_sales)
-        cur_data["prev_ads_spend"] = int(prev_ads_spend)
-        cur_data["prev_ads_clicks"] = int(prev_ads_clicks)
-        cur_data["prev_impressions"] = int(prev_impressions)
+        prev_data["prev_ads_sales"] = int(prev_ads_sales)
+        prev_data["prev_ads_spend"] = int(prev_ads_spend)
+        prev_data["prev_ads_clicks"] = int(prev_ads_clicks)
+        prev_data["prev_impressions"] = int(prev_impressions)
         prev_total_spend += prev_ads_spend
         prev_total_sales += data["sales"]
         prev_total_sessions_and_sku = prev_total_traffic_data.get(key, [0, ""])
-        cur_data["prev_total_sessions"] = prev_total_sessions_and_sku[0]
-        cur_data["prev_sku"] = prev_total_sessions_and_sku[1]
-        cur_data["prev_sales"] = cur_data.get("prev_sales", 0) + data["sales"]
-        cur_data["prev_orders"] = cur_data.get("prev_orders", 0) + data["orders"]
-        cur_data["prev_units_ordered"] = data["units_ordered"] + cur_data.get("prev_units_ordered", 0)
-        asin_wise_sales[data[group_by]] = cur_data
+        prev_data["prev_total_sessions"] = prev_total_sessions_and_sku[0]
+        prev_data["prev_sku"] = prev_total_sessions_and_sku[1]
+        prev_data["prev_sales"] = prev_data.get("prev_sales", 0) + data["sales"]
+        prev_data["prev_orders"] = prev_data.get("prev_orders", 0) + data["orders"]
+        prev_data["prev_units_ordered"] = data["units_ordered"] + prev_data.get("prev_units_ordered", 0)
+        asin_wise_sales[key] = prev_data
 
     logger.info(f"{asin_wise_sales=}")
     result = []
